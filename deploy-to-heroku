@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Requirements before first run on each machine:
+# * install heroku toolbelt -- https://toolbelt.heroku.com
+# * add heroku binary folder to $PATH, as instructed by the installer
+# * authorize your SSH key -- simply run heroku keys:add
+
 ########################################
 # helper functions
 ########################################
@@ -38,20 +43,14 @@ heroku_deploy() {
     fi
 
     # some information
-    local GIT='git -c color.ui=always'
-    cat <<ENDMSG
-current branch:
-$($GIT branch) 
-
-status:
-$($GIT status)
-
-Deploy to heroku? [y/N]
-ENDMSG
+    echo "status:"
+    git status -sb
+    echo
+    echo -n "Deploy to heroku? [y/N] "
 
     # make sure 
-    read ans
-    if [ "$ans" != 'Y' ] && [ "$ans" != 'y' ]; then
+    read answer
+    if [ "$answer" != 'Y' ] && [ "$answer" != 'y' ]; then
         empcho "aborted."
         exit 2
     fi
