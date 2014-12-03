@@ -1,0 +1,26 @@
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Vacations Planner</title>
+    <!-- stylesheets -->
+    <link rel="stylesheet" type="text/css" href="{% static 'planner/css/bootstrap.min.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'planner/css/planner.css' %}"/>
+</head>
+<body>
+
+<div class="container">
+    {% include 'planner/navbar.html' %}
+    {% block content %}{% endblock %}
+</div>
+<!-- end container -->
+
+<!-- javascript -->
+<script src="{% static 'planner/js/jquery-2.1.1.min.js' %}"></script>
+<script src="{% static 'planner/js/bootstrap.min.js' %}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
