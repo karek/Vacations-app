@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# login if not logged in
+heroku auth:whoami
+
+# add heroku remote if not present
+if [ -z "$(git remote | grep heroku)" ]; then
+    heroku git:remote --app vacations-test
+fi
+
+# some information
+GIT='git -c color.ui=always'
+cat <<ENDMSG
+current branch:
+$($GIT branch)
+
+status:
+$($GIT status)
+
+Deploy to heroku? [y/N]
+ENDMSG
+
+# make sure 
+read ans
+if [ "$ans" != 'Y' ] && [ "$ans" != 'y' ]; then
+    echo "aborted."
+    exit 2
+fi
+
+# deploy
+git push heroku master
