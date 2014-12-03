@@ -45,3 +45,4 @@ fi
 
 # deploy
 git push heroku master || fatal_error $? "git push to heroku"
+empcho "DEPLOY SUCCESSFUL"
