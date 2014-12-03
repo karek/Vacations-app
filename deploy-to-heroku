@@ -1,18 +1,34 @@
 #!/bin/bash
 
+# emphasized echo message
+empcho() {
+    local emph=$(echo -en "\033[7m")
+    local norm=$(echo -en "\033[0m")
+    local lmark=">>--"
+    local rmark="--<<"
+    echo -e "$emph$lmark ${@} $rmark$norm"
+}
+
+# error handler
+# params: $1 = exit code, $2 = optional failed routine name
+fatal_error() {
+    empcho "$2 failed with code $1"
+    exit $1
+}
+
 # login if not logged in
-heroku auth:whoami
+heroku auth:whoami || fatal_error $? "heroku login"
 
 # add heroku remote if not present
 if [ -z "$(git remote | grep heroku)" ]; then
-    heroku git:remote --app vacations-test
+    heroku git:remote --app vacations-test || fatal_error $? "add heroku git remote"
 fi
 
 # some information
 GIT='git -c color.ui=always'
 cat <<ENDMSG
 current branch:
-$($GIT branch)
+$($GIT branch) 
 
 status:
 $($GIT status)
@@ -23,9 +39,9 @@ ENDMSG
 # make sure 
 read ans
 if [ "$ans" != 'Y' ] && [ "$ans" != 'y' ]; then
-    echo "aborted."
+    empcho "aborted."
     exit 2
 fi
 
 # deploy
-git push heroku master
+git push heroku master || fatal_error $? "git push to heroku"
