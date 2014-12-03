@@ -1,5 +1,9 @@
 #!/bin/bash
 
+########################################
+# helper functions
+########################################
+
 # emphasized echo message
 empcho() {
     local emph=$(echo -en "\033[7m")
@@ -16,17 +20,26 @@ fatal_error() {
     exit $1
 }
 
-# login if not logged in
-heroku auth:whoami || fatal_error $? "heroku login"
+########################################
+# main functions
+########################################
 
-# add heroku remote if not present
-if [ -z "$(git remote | grep heroku)" ]; then
-    heroku git:remote --app vacations-test || fatal_error $? "add heroku git remote"
-fi
+# deploy current repo state to heroku
+heroku_deploy() {
+    # login if not logged in
+    echo "checking heroku login:"
+    heroku auth:whoami || fatal_error $? "heroku login"
+    echo
 
-# some information
-GIT='git -c color.ui=always'
-cat <<ENDMSG
+    # add heroku remote if not present
+    if [ -z "$(git remote | grep heroku)" ]; then
+        heroku git:remote --app vacations-test || fatal_error $? "add heroku git remote"
+        echo
+    fi
+
+    # some information
+    local GIT='git -c color.ui=always'
+    cat <<ENDMSG
 current branch:
 $($GIT branch) 
 
@@ -36,13 +49,22 @@ $($GIT status)
 Deploy to heroku? [y/N]
 ENDMSG
 
-# make sure 
-read ans
-if [ "$ans" != 'Y' ] && [ "$ans" != 'y' ]; then
-    empcho "aborted."
-    exit 2
-fi
+    # make sure 
+    read ans
+    if [ "$ans" != 'Y' ] && [ "$ans" != 'y' ]; then
+        empcho "aborted."
+        exit 2
+    fi
 
-# deploy
-git push heroku master || fatal_error $? "git push to heroku"
-empcho "DEPLOY SUCCESSFUL"
+    # deploy
+    git push heroku master || fatal_error $? "git push to heroku"
+    empcho "DEPLOY SUCCESSFUL"
+    return 0
+}
+
+########################################
+# script main body
+########################################
+
+# no special arguments so far
+heroku_deploy
