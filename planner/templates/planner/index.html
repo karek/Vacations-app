@@ -1,5 +1,17 @@
 {% extends "planner/base.html" %}
 
+ {% block calendarDecl %}
+    <script type="text/javascript"> $(document).ready(function() {
+        $('#calendar').fullCalendar({
+            header: {
+				left: 'prev,next today',
+				center: 'title',
+				right: 'month,agendaWeek'
+			},
+            weekends: false
+        })
+    }); </script>
+{% endblock %}
 
 {% block content %}
 <h1><span class="glyphicon glyphicon-calendar"></span> Vacations Planner
