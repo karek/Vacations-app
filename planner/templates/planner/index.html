@@ -1,11 +1,19 @@
 {% extends "planner/base.html" %}
 
+{% load staticfiles %}
+
 {% block content %}
     <h1><span class="glyphicon glyphicon-calendar"></span> Vacations Planner </h1>
     <div id='calendar'></div>
 {% endblock %}
 
-{% block calendarDecl %}
+{% block scripts %}
+    {{ block.super }}
+    <script src="{% static 'planner/js/moment.min.js' %}"></script>
+    <script src="{% static 'planner/js/fullcalendar.min.js' %}"></script>
+{% endblock %}
+
+{% block calendarDeclaration %}
     <script type="text/javascript"> $(document).ready(function() {
         $('#calendar').fullCalendar({
             header: {

@@ -1,5 +1,4 @@
 {% load staticfiles %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,12 +23,10 @@
 {% block scripts %}
     <!-- javascript -->
     <script src="{% static 'planner/js/jquery.min.js' %}"></script>
-    <script src="{% static 'planner/js/moment.min.js' %}"></script>
     <script src="{% static 'planner/js/bootstrap.min.js' %}"></script>
-    <script src="{% static 'planner/js/fullcalendar.min.js' %}"></script>
 {% endblock %}
 
-{% block calendarDecl %}{% endblock %}
+{% block calendarDeclaration %}{% endblock %}
 
 </body>
 </html>
