@@ -7,11 +7,12 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="#">Vacations Planner</a>
+            <a class="navbar-brand" href="{% url 'planner:index' %}">Vacations Planner</a>
         </div>
         <div class="collapse navbar-collapse" id="collapse">
             <ul class="nav navbar-nav">
                 <li><a href="{% url 'admin:index' %}">Admin</a></li>
+                <li><a href="{% url 'planner:register' %}">Register</a></li>
             </ul>
         </div>
     </div>

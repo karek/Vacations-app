@@ -7,3 +7,8 @@ def index(request):
     context = {}
     return render(request, 'planner/index.html', context)
 
+
+def register(request):
+    context = {}
+    return render(request, 'planner/register.html', context)
+
