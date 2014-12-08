@@ -1,3 +1,4 @@
+from django.contrib.messages.views import SuccessMessageMixin
 from django.shortcuts import render
 
 # Create your views here.
@@ -10,10 +11,11 @@ def index(request):
     return render(request, 'planner/index.html', context)
 
 
-class RegisterView(FormView):
+class RegisterView(SuccessMessageMixin, FormView):
     form_class = RegisterForm
     template_name = 'planner/register.html'
     success_url = '/'
+    success_message = "Account has been created successfully."
 
     def form_valid(self, form):
         form.save()
