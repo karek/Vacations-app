@@ -3,6 +3,6 @@ from planner import views
 
 urlpatterns = patterns('',
                        url(r'^$', views.index, name='index'),
-                       url(r'^register$', views.register, name='register'),
+                       url('^register/', views.RegisterView.as_view(), name='register')
 )
 
