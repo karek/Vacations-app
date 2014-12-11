@@ -8,7 +8,7 @@
     <!-- stylesheets -->
     <link rel="stylesheet" type="text/css" href="{% static 'planner/css/bootstrap.min.css' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static 'planner/css/planner.css' %}"/>
-    <link rel='stylesheet' type="text/css" href="{% static 'planner/css/fullcalendar.min.css' %}" />
+    <link rel='stylesheet' type="text/css" href="{% static 'planner/css/fullcalendar.min.css' %}"/>
     <link rel='stylesheet' type="text/css" media='print' href="{% static 'planner/css/fullcalendar.print.css' %}"/>
 </head>
 
@@ -16,14 +16,15 @@
 
 <div class="container">
     {% include 'planner/navbar.html' %}
+    {% include 'planner/messages.html' %}
     {% block content %}{% endblock %}
 </div>
 <!-- end container -->
 
 {% block scripts %}
-    <!-- javascript -->
-    <script src="{% static 'planner/js/jquery.min.js' %}"></script>
-    <script src="{% static 'planner/js/bootstrap.min.js' %}"></script>
+<!-- javascript -->
+<script src="{% static 'planner/js/jquery.min.js' %}"></script>
+<script src="{% static 'planner/js/bootstrap.min.js' %}"></script>
 {% endblock %}
 
 {% block calendarDeclaration %}{% endblock %}

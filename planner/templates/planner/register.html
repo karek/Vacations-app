@@ -1,0 +1,20 @@
+{% extends "planner/base.html" %}
+
+{% load staticfiles %}
+{% load bootstrap %}
+
+{% block content %}
+<h1><span class="glyphicon glyphicon-calendar"></span> Vacations Planner </h1>
+<p>Fill the form below to register an account.</p>
+<form class="form form-horizontal" method="post" id="matchForm">
+    {% csrf_token %}
+    {{ form|bootstrap_horizontal }}
+    <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+            <button type="submit" class="btn btn-primary" value="submit" id="formButton">
+                Confirm
+            </button>
+        </div>
+    </div>
+</form>
+{% endblock %}
