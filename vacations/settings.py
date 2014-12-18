@@ -80,6 +80,8 @@ USE_TZ = True
 
 
 # Parse database configuration from $DATABASE_URL
+# We set the default=sqlite parameter for developement purposes. Heroku automatically sets
+# environment variable DATABASE_URL which is used by dj_database_url package to override defaults.
 import dj_database_url
 DATABASES['default'] =  dj_database_url.config(default="sqlite:///vacations_dev_db.sqlite")
 
