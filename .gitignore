@@ -4,3 +4,4 @@ staticfiles
 .Python
 .idea
 env/
+*.sqlite
