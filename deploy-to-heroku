@@ -29,8 +29,7 @@ fatal_error() {
 # main functions
 ########################################
 
-# deploy current repo state to heroku
-heroku_deploy() {
+heroku_check() {
     # login if not logged in
     echo "checking heroku login:"
     heroku auth:whoami || fatal_error $? "heroku login"
@@ -41,23 +40,39 @@ heroku_deploy() {
         heroku git:remote --app vacations-test || fatal_error $? "add heroku git remote"
         echo
     fi
+}
 
+print_status() {
     # some information
     echo "status:"
     git status -sb
-    echo
-    echo -n "Deploy to heroku? [y/N] "
+}
 
+# ask for confirmation with prompt from parameter $1.
+make_sure() {
+    echo
+    echo -n "$1 [y/N] "
     # make sure 
     read answer
     if [ "$answer" != 'Y' ] && [ "$answer" != 'y' ]; then
         empcho "aborted."
         exit 2
     fi
+}
 
-    # deploy
+# deploy current repo state to heroku
+heroku_deploy() {
+    make_sure "Deploy to heroku?"
     git push heroku master || fatal_error $? "git push to heroku"
     empcho "DEPLOY SUCCESSFUL"
+    return 0
+}
+
+# run syncdb remotely (with confirmation)
+heroku_run_syncdb() {
+    make_sure "Run syncdb on heroku?"
+    heroku run python manage.py syncdb || fatal_error $? "heroku syncdb failed"
+    empcho "DATABASE SYNCED"
     return 0
 }
 
@@ -66,4 +81,7 @@ heroku_deploy() {
 ########################################
 
 # no special arguments so far
+heroku_check
+print_status
 heroku_deploy
+heroku_run_syncdb
