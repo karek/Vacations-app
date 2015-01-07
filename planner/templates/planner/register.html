@@ -6,7 +6,7 @@
 {% block content %}
 <h1><span class="glyphicon glyphicon-calendar"></span> Vacations Planner </h1>
 <p>Fill the form below to register an account.</p>
-<form class="form form-horizontal" method="post" id="matchForm">
+<form class="form form-horizontal" method="post" id="registerForm">
     {% csrf_token %}
     {{ form|bootstrap_horizontal }}
     <div class="form-group">
