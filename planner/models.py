@@ -48,13 +48,13 @@ class EmailUser(AbstractBaseUser):
 
     def get_full_name(self):
         # The user is identified by their email address
-        return self.email
+        return str(self.first_name) + " " + str(self.last_name)
 
     def get_short_name(self):
         # The user is identified by their email address
-        return self.email
+        return self.first_name
 
-    def __str__(self):  # __unicode__ on Python 2
+    def __unicode__(self):  # __unicode__ on Python 2
         return self.email
 
     def has_perm(self, perm, obj=None):
