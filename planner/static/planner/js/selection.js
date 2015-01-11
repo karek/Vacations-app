@@ -13,8 +13,9 @@ function selectf(begin, end) {
     $('#absence_select').append('<li class="s_range" s_begin=\'' + range1.begin.format('YYYY-MM-DD')
     	+ '\' s_end=\'' + range1.end.format('YYYY-MM-DD') + '\'>'
     	+ range1.begin.format('DD MMM') + ' -- ' 
-    	+ range1.end.format('DD MMM') + "                   " 
-     	+ '<button type="button" class="btn btn-danger btn-xs btn-remove"> Delete </button>' + '</li>')
+    	+ range1.end.format('DD MMM') 
+    	+ '<div class="btn btn-danger btn-xs btn-remove"> Delete </div>'
+     	+ '</li>')
 
     // sorting after every entry, fuck the poverty!
     
@@ -28,8 +29,8 @@ function selectf(begin, end) {
 
 function unselectf(view, jsEvent) {
 	console.log("unselectf")
+	$('#yourCalendar').fullCalendar('unselect');
 }
-
 
 // (b1 <= b2) =>
 // 1. [b1  [b2   e2]  e1] -> [b1  e1]
@@ -54,3 +55,21 @@ function join_ranges(range1, range2) {
 	else
 		return {begin: range1.begin, end: range1.end } // 1.
 }
+
+$(document).on('click', '.btn-remove', function(){
+	console.log()
+	// if someone has more stupid idea to refresh all selected days, please show me
+	$(this).parent().remove()
+	$('#calendar').fullCalendar( 'next' )
+	$('#calendar').fullCalendar( 'prev' )
+	
+	$(".s_range").each(function(index) {
+		console.log($(this).attr("s_begin"))
+		console.log($(this).attr("s_end"))
+		m1 = moment($(this).attr("s_begin"))
+		m2 = moment($(this).attr("s_end"))
+		$('#calendar').fullCalendar('select', m1, m2)
+	})
+
+	
+})
