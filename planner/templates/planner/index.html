@@ -8,7 +8,7 @@
     <div>
         <h3> Planned absence: </h3> <br>
         <ul id='absence_select'>
-            
+
         </ul>
     </div>    
     <br><br>
@@ -37,6 +37,10 @@
             unSelectCancel: '.fc-day',
             select: selectf, // our function for select
             unselect: unselectf // our function for clearing selection
+        })
+        // action on delete range button
+        $('.btn').click(function() {
+            console.log("dupa")
         })
     }); </script>
 {% endblock %}

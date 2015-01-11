@@ -11,14 +11,15 @@ function selectf(begin, end) {
 	})
 
     $('#absence_select').append('<li class="s_range" s_begin=\'' + range1.begin.format()
-    	+ '\' s_end=\'' + range1.end.format()+ '\'>'
+    	+ '\' s_end=\'' + range1.end.format() + '\'>'
     	+ range1.begin.format('DD MMM') + ' -- ' 
-    	+ range1.end.format('DD MMM') + '</li>')
+    	+ range1.end.format('DD MMM') + "                   " 
+     	+ '<button type="button" class="btn btn-danger btn-xs btn-remove"> Delete </button>' + '</li>')
 
     // sorting after every entry, fuck the poverty!
     
     function comp(a,b) {
-    	console.log("comp")
+    	// console.log("comp")
      	return ($(b).attr("s_begin") < $(a).attr("s_begin")) ?  1 : -1
      }
     $('#absence_select li').sort(comp).appendTo('#absence_select');
