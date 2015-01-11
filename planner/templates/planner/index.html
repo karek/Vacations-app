@@ -4,13 +4,23 @@
 
 {% block content %}
     <h1><span class="glyphicon glyphicon-calendar"></span> Vacations Planner </h1>
+    <br><br>
+    <div>
+        <h3> Planned absence: </h3> <br>
+        <ul id='absence_select'>
+            
+        </ul>
+    </div>    
+    <br><br>
     <div id='calendar'></div>
+    
 {% endblock %}
 
 {% block scripts %}
     {{ block.super }}
     <script src="{% static 'planner/js/moment.min.js' %}"></script>
-    <script src="{% static 'planner/js/fullcalendar.min.js' %}"></script>
+    <script src="{% static 'planner/js/fullcalendar.js' %}"></script>
+    <script src="{% static 'planner/js/selection.js' %}"></script>
 {% endblock %}
 
 {% block calendarDeclaration %}
@@ -21,7 +31,12 @@
                 center: 'title',
                 right: 'month,agendaWeek'
             },
-            weekends: false
+            selectable: true,  // we can select days
+            selectHelper: true, // we see our selection
+            unselectAuto: false, // no autoclearing selection after clickng on page(not enough though)
+            unSelectCancel: '.fc-day',
+            select: selectf, // our function for select
+            unselect: unselectf // our function for clearing selection
         })
     }); </script>
 {% endblock %}
