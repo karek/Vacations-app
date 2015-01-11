@@ -10,8 +10,8 @@ function selectf(begin, end) {
 			
 	})
 
-    $('#absence_select').append('<li class="s_range" s_begin=\'' + range1.begin.format()
-    	+ '\' s_end=\'' + range1.end.format() + '\'>'
+    $('#absence_select').append('<li class="s_range" s_begin=\'' + range1.begin.format('YYYY-MM-DD')
+    	+ '\' s_end=\'' + range1.end.format('YYYY-MM-DD') + '\'>'
     	+ range1.begin.format('DD MMM') + ' -- ' 
     	+ range1.end.format('DD MMM') + "                   " 
      	+ '<button type="button" class="btn btn-danger btn-xs btn-remove"> Delete </button>' + '</li>')
