@@ -6714,7 +6714,7 @@ var View = fc.View = Class.extend({
 	// Selects a date range on the view. `start` and `end` are both Moments.
 	// `ev` is the native mouse event that begin the interaction.
 	select: function(range, ev) {
-		this.unselect(ev);
+		// this.unselect(ev);
 		this.renderSelection(range);
 		this.reportSelection(range, ev);
 	},
