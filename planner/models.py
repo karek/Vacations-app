@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from django.db import transaction
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
@@ -105,7 +106,14 @@ class AbsenceRange(models.Model):
     vacation = models.ForeignKey(Vacation)
     begin = models.DateField()
     end = models.DateField()
+    # TODO: check if new vacation overlaps with any existing (with the same user)
 
     def __unicode__(self):
-        return "%s: absence from %s to %s" % (self.vacation, dateToString(self.begin),
-                dateToString(self.end))
+        return "%s - %s" % (dateToString(self.begin), dateToString(self.end))
+
+    @classmethod
+    def getBetween(cls, user, rbegin, rend):
+        """ Returns all user's vacations intersecting with given period. """
+        return cls.objects.filter(
+                Q(begin__lt=rend, begin__gte=rbegin) | Q(end__gt=rbegin, end__lte=rend),
+                vacation__user=user).order_by('begin', 'end')

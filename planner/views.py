@@ -1,3 +1,6 @@
+from calendar import monthrange
+from datetime import date
+
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.http import HttpResponseRedirect
@@ -13,7 +16,12 @@ from planner.utils import InternalError, stringToDate, dateToString
 
 class IndexView(SuccessMessageMixin, View):
     def get(self, request, *args, **kwargs):
-        context = {}
+        # TODO:FIXME: add user id when logging in works
+        d = date.today()
+        month_begin = date(d.year, d.month, 1)
+        month_end = date(d.year, d.month, monthrange(d.year, d.month)[1])
+        vacations = AbsenceRange.getBetween(None, month_begin, month_end)
+        context = { 'booked': vacations }
         return render(request, 'planner/index.html', context)
 
 
@@ -57,7 +65,7 @@ class BookVacationView(SuccessMessageMixin, View):
             raise InternalError("begin[] and end[] sizes differ")
         ranges = sorted(zip(map(stringToDate, begins), map(stringToDate, ends)))
         # check dates integrity
-        # TODO: would it be nicer to have this in Vacation model validator?
+        # TODO: would it be nicer to have this in Vacation/AbsenceRange model validator?
         prev_end = None
         for (begin, end) in ranges:
             if begin > end:

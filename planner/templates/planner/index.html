@@ -17,6 +17,17 @@
     </div>    
     <br><br>
     <div id='calendar'></div>
+    {% if booked %}
+    <div>
+        <h3> Currently booked: </h3>
+        <ul>
+            {% for absence in booked %}
+            <li>{{ absence }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
     
 {% endblock %}
 
