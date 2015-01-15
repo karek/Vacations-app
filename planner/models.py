@@ -1,7 +1,9 @@
 from django.db import models
+from django.db import transaction
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
+from planner.utils import dateToString
 
 
 class EmailUserManager(BaseUserManager):
@@ -72,3 +74,38 @@ class EmailUser(AbstractBaseUser):
         "Is the user a member of staff?"
         # Simplest possible answer: All admins are staff
         return self.is_admin
+
+
+class Vacation(models.Model):
+    """ User's whole vacation. Describes parameters and has many AbsenceRanges attached. """
+    # TODO:FIXME: remove blank and null attributes when when logging in works
+    user = models.ForeignKey(EmailUser, blank=True, null=True)
+    dateCreated = models.DateTimeField(auto_now_add=True)
+    # TODO: rodzaj
+    # TODO: status
+    # TODO: komentarz
+
+    def __unicode__(self):
+        return "Vacation by %s" % (self.id, self.user)
+
+    @classmethod
+    @transaction.atomic
+    def createFromRanges(cls, user, ranges):
+        """ Create a vacation together with all its absence ranges (in one atomic transaction)."""
+        vac = cls(user=user)
+        vac.save()
+        for (rbegin, rend) in ranges:
+            absence = AbsenceRange(vacation=vac, begin=rbegin, end=rend)
+            absence.save()
+        return vac
+
+
+class AbsenceRange(models.Model):
+    """ A single, continous period of absence as part of a Vacation. """
+    vacation = models.ForeignKey(Vacation)
+    begin = models.DateField()
+    end = models.DateField()
+
+    def __unicode__(self):
+        return "%s: absence from %s to %s" % (self.vacation, dateToString(self.begin),
+                dateToString(self.end))

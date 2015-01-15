@@ -6,10 +6,14 @@
     <h1><span class="glyphicon glyphicon-calendar"></span> Vacations Planner </h1>
     <br><br>
     <div>
-        <h3> Planned absence: </h3> <br>
-        <ul id='absence_select'>
+        <form id='book-vacation' method='POST' action='{% url 'planner:book-vacation' %}' >
+            {% csrf_token %}
+            <h3> Planned absence: </h3> <br>
+            <ul id='absence_select'>
 
-        </ul>
+            </ul>
+            <input type='submit' name='book-value-submit' value='book vacation' class='btn btn-primary'/>
+        </form>
     </div>    
     <br><br>
     <div id='calendar'></div>
