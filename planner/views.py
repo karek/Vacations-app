@@ -1,6 +1,7 @@
 from calendar import monthrange
 from datetime import date
 
+from django.core.exceptions import ValidationError
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.http import HttpResponseRedirect
@@ -14,13 +15,12 @@ from planner.models import Vacation, AbsenceRange
 from planner.utils import InternalError, stringToDate, dateToString
 
 
-class IndexView(SuccessMessageMixin, View):
+class IndexView(View):
     def get(self, request, *args, **kwargs):
-        # TODO:FIXME: add user id when logging in works
         d = date.today()
         month_begin = date(d.year, d.month, 1)
         month_end = date(d.year, d.month, monthrange(d.year, d.month)[1])
-        vacations = AbsenceRange.getBetween(None, month_begin, month_end)
+        vacations = AbsenceRange.getBetween('*', month_begin, month_end)
         context = { 'booked': vacations }
         return render(request, 'planner/index.html', context)
 
@@ -36,7 +36,7 @@ class RegisterView(SuccessMessageMixin, FormView):
         return super(RegisterView, self).form_valid(form)
 
 
-class BookVacationView(SuccessMessageMixin, View):
+class BookVacationView(View):
 
     def get(self, request, *args, **kwargs):
         """ Redirect to index, just in case. """
@@ -50,6 +50,9 @@ class BookVacationView(SuccessMessageMixin, View):
             messages.success(request, 'Absence booked successfully.')
         except InternalError as e:
             messages.error(request, e.message)
+        except ValidationError as e:
+            messages.error(request, '\n'.join(e.messages))
+            print "added error %s" % e.message
         return HttpResponseRedirect('/')
 
     def validateRanges(self, begins, ends):
@@ -57,25 +60,14 @@ class BookVacationView(SuccessMessageMixin, View):
 
         Takes two lists of 'YYYY-MM-DD' strings.
         Returns validated list of date pairs.
-        Throws InternalError on errors.
+        Throws InternalError or ValidationError on errors.
         """
         if not begins or not ends:
             raise InternalError("no absence ranges given")
         if len(begins) != len(ends):
             raise InternalError("begin[] and end[] sizes differ")
-        ranges = sorted(zip(map(stringToDate, begins), map(stringToDate, ends)))
-        # check dates integrity
-        # TODO: would it be nicer to have this in Vacation/AbsenceRange model validator?
-        prev_end = None
-        for (begin, end) in ranges:
-            if begin > end:
-                raise InternalError("Range begin (%s) is after its end (%s)"
-                        % (dateToString(begin), dateToString(end)))
-            if prev_end and prev_end >= begin:
-                raise InternalError("ranges [... - %s] and [%s - ...] overlaps"
-                        % (dateToString(prev_end), dateToString(begin)))
-            prev_end = end
-        return ranges
+        # Return the ranges, AbsenceRange's clean() will validate the rest
+        return sorted(zip(map(stringToDate, begins), map(stringToDate, ends)))
 
     def addVacation(self, ranges):
         """ Takes a list of ranges (date pairs) and saves them as a vacation. """

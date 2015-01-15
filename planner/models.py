@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
 from django.db import transaction
@@ -97,6 +98,7 @@ class Vacation(models.Model):
         vac.save()
         for (rbegin, rend) in ranges:
             absence = AbsenceRange(vacation=vac, begin=rbegin, end=rend)
+            absence.full_clean()
             absence.save()
         return vac
 
@@ -106,14 +108,43 @@ class AbsenceRange(models.Model):
     vacation = models.ForeignKey(Vacation)
     begin = models.DateField()
     end = models.DateField()
-    # TODO: check if new vacation overlaps with any existing (with the same user)
 
     def __unicode__(self):
         return "%s - %s" % (dateToString(self.begin), dateToString(self.end))
 
     @classmethod
-    def getBetween(cls, user, rbegin, rend):
-        """ Returns all user's vacations intersecting with given period. """
-        return cls.objects.filter(
+    def getBetween(cls, users, rbegin, rend):
+        """ Returns all users' vacations intersecting with given period.
+        
+        users should be a list of users or '*' for everyone. """
+        user_ranges = cls.objects.all()
+        if users != '*':
+            user_ranges = user_ranges.filter(vacation__user__in=users)
+        return user_ranges.filter(
                 Q(begin__lt=rend, begin__gte=rbegin) | Q(end__gt=rbegin, end__lte=rend),
-                vacation__user=user).order_by('begin', 'end')
+                ).order_by('begin', 'end')
+
+    @classmethod
+    def getIntersection(cls, user, rbegin, rend):
+        """ Does the user already have any absence range during given period?
+        
+        Returns single (first if many) intersecting AbsenceRange or None. """
+        try:
+            return cls.objects.filter(
+                Q(begin__lt=rend, begin__gte=rbegin) | Q(end__gt=rbegin, end__lte=rend),
+                vacation__user=user)[0]
+        except DoesNotExist:
+            return None
+
+    def clean(self):
+        """ Don't allow adding intersecting ranges. """
+        if self.begin >= self.end:
+            raise ValidationError("Range begin (%s) is after its end (%s)"
+                    % (dateToString(self.begin), dateToString(self.end)))
+        print "clean for range %s" % self
+        # NOTE: we may allow intersections with absences of other types in the future
+        intersecting = self.getIntersection(self.vacation.user, self.begin, self.end)
+        if intersecting:
+            raise ValidationError("new absence %s intersects with %s" % (self, intersecting))
+
+
