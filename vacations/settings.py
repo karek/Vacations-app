@@ -66,6 +66,13 @@ DATABASES = {
 }
 
 AUTH_USER_MODEL = 'planner.EmailUser'
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'planner.auth_backend.PasswordlessAuthBackend',
+)
+
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
