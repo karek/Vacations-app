@@ -3,15 +3,12 @@ from django.contrib.auth import authenticate, login
 from django.contrib.messages.views import SuccessMessageMixin
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import render
-
-# Create your views here.
 from django.views.generic.edit import FormView
 from planner.forms import RegisterForm
 
 
 def index(request):
-    context = {}
-    return render(request, 'planner/index.html', context)
+    return render(request, 'planner/index.html', {})
 
 
 class RegisterView(SuccessMessageMixin, FormView):
@@ -36,9 +33,6 @@ def user_login(request):
                 return HttpResponseRedirect('/')
             else:
                 messages.error(request, 'Your account is disabled.')
-                return render(request, 'planner/login.html', {})
         else:
             messages.error(request, 'Invalid login details.')
-            return render(request, 'planner/login.html', {})
-    else:
-        return render(request, 'planner/login.html', {})
+    return HttpResponseRedirect('/')
