@@ -1,12 +1,12 @@
 {% if request.user.is_authenticated %}
 <ul class="nav navbar-nav navbar-right">
-    <li><a href="{% url 'planner:logout' %}">Logout</a></li>
+    <li><a href="{% url 'planner:logout'%}?next={{ request.path }}">Logout</a></li>
 </ul>
 <div class="nav navbar-right">
     <p class="nav navbar-text">Hello, {{ request.user.first_name }}</p>
 </div>
 {% else %}
-<form class="navbar-form navbar-right" method="post" id="loginForm" action="{% url 'planner:login' %}">
+<form class="navbar-form navbar-right" method="post" id="loginForm" action="{% url 'planner:login' %}?next={{ request.path }}">
     {% csrf_token %}
     <div class="form-group">
         <input type="email" name="email" maxlength="255" id="id_email" class="form-control"

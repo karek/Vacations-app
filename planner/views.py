@@ -23,6 +23,7 @@ class RegisterView(SuccessMessageMixin, FormView):
 
 
 def user_login(request):
+    next_page = request.GET.get('next', '/')
     if request.method == 'POST':
         email = request.POST['email']
         user = authenticate(email=email)
@@ -30,9 +31,9 @@ def user_login(request):
             if user.is_active:
                 login(request, user)
                 # FIXME this should be done with the 'next' parameter in the url
-                return HttpResponseRedirect('/')
+                return HttpResponseRedirect(next_page)
             else:
                 messages.error(request, 'Your account is disabled.')
         else:
             messages.error(request, 'Invalid login details.')
-    return HttpResponseRedirect('/')
+    return HttpResponseRedirect(next_page)
