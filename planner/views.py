@@ -1,4 +1,7 @@
+from django.contrib import messages
+from django.contrib.auth import authenticate, login
 from django.contrib.messages.views import SuccessMessageMixin
+from django.http.response import HttpResponseRedirect
 from django.shortcuts import render
 
 # Create your views here.
@@ -20,3 +23,22 @@ class RegisterView(SuccessMessageMixin, FormView):
     def form_valid(self, form):
         form.save()
         return super(RegisterView, self).form_valid(form)
+
+
+def user_login(request):
+    if request.method == 'POST':
+        email = request.POST['email']
+        user = authenticate(email=email)
+        if user:
+            if user.is_active:
+                login(request, user)
+                # FIXME this should be done with the 'next' parameter in the url
+                return HttpResponseRedirect('/')
+            else:
+                messages.error(request, 'Your account is disabled.')
+                return render(request, 'planner/login.html', {})
+        else:
+            messages.error(request, 'Invalid login details.')
+            return render(request, 'planner/login.html', {})
+    else:
+        return render(request, 'planner/login.html', {})
