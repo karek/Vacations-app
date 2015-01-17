@@ -2,7 +2,12 @@ body {
     padding-top: 70px;
 }
 
-#calendar{
+#calendar {
     max-width: 900px;
 }
 
+#logo-img {
+    margin-top: -8px;
+    width: 158px;
+    height: 40px;
+}

@@ -1,3 +1,5 @@
+{% load staticfiles %}
+
 <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
     <div class="container">
         <div class="navbar-header">
@@ -7,7 +9,8 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="{% url 'planner:index' %}">Vacations Planner</a>
+            <a class="navbar-brand" href="{% url 'planner:index' %}">
+                <img src="{% static 'planner/img/logo3.png' %}" id="logo-img"></a>
         </div>
         <div class="collapse navbar-collapse" id="collapse">
             <ul class="nav navbar-nav">
