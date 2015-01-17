@@ -1,7 +1,8 @@
 from django.contrib import messages
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, get_user_model
 from django.contrib.messages.views import SuccessMessageMixin
-from django.http.response import HttpResponseRedirect
+from django.core import serializers
+from django.http.response import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from django.views.generic.edit import FormView
 from planner.forms import RegisterForm
@@ -30,10 +31,16 @@ def user_login(request):
         if user:
             if user.is_active:
                 login(request, user)
-                # FIXME this should be done with the 'next' parameter in the url
-                return HttpResponseRedirect(next_page)
+                messages.success(request, 'Logged in succesfully. How are you, {0}?'.format(user.first_name))
             else:
                 messages.error(request, 'Your account is disabled.')
         else:
             messages.error(request, 'Invalid login details.')
     return HttpResponseRedirect(next_page)
+
+
+def user(request):
+    users = get_user_model().objects.all()
+    data = serializers.serialize('json', users, fields=('email', 'first_name', 'last_name'))
+    return HttpResponse(data, content_type="application/json")
+
