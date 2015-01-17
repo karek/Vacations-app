@@ -1,17 +1,29 @@
+from calendar import monthrange
+from datetime import date
+
+from django.core.exceptions import ValidationError
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.messages.views import SuccessMessageMixin
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import render
-
-# Create your views here.
+from django.utils.datastructures import MultiValueDictKeyError
+from django.views.generic.base import View
 from django.views.generic.edit import FormView
+
 from planner.forms import RegisterForm
+from planner.models import Absence, AbsenceRange
+from planner.utils import InternalError, stringToDate, dateToString
 
 
-def index(request):
-    context = {}
-    return render(request, 'planner/index.html', context)
+class IndexView(View):
+    def get(self, request, *args, **kwargs):
+        d = date.today()
+        month_begin = date(d.year, d.month, 1)
+        month_end = date(d.year, d.month, monthrange(d.year, d.month)[1])
+        absences = AbsenceRange.getBetween('*', month_begin, month_end)
+        context = { 'booked': absences }
+        return render(request, 'planner/index.html', context)
 
 
 class RegisterView(SuccessMessageMixin, FormView):
@@ -42,3 +54,48 @@ def user_login(request):
             return render(request, 'planner/login.html', {})
     else:
         return render(request, 'planner/login.html', {})
+
+
+class BookVacationView(View):
+
+    def get(self, request, *args, **kwargs):
+        """ Redirect to index, just in case. """
+        return HttpResponseRedirect('/')
+
+    def post(self, request, *args, **kwargs):
+        try:
+            if not request.user.is_authenticated():
+                raise InternalError("You must log in to book vacations.")
+            ranges = self.validateRanges(request.POST.getlist('begin[]'),
+                    request.POST.getlist('end[]'))
+            self.addVacation(request.user, ranges)
+            messages.success(request, 'Absence booked successfully.')
+        except InternalError as e:
+            messages.error(request, e.message)
+        except ValidationError as e:
+            messages.error(request, '\n'.join(e.messages))
+            print "added error %s" % e.message
+        return HttpResponseRedirect('/')
+
+    def validateRanges(self, begins, ends):
+        """ Parse and validate date ranges received from user.
+
+        Takes two lists of 'YYYY-MM-DD' strings.
+        Returns validated list of date pairs.
+        Throws InternalError on errors.
+        """
+        if not begins or not ends:
+            raise InternalError("no absence ranges given")
+        if len(begins) != len(ends):
+            raise InternalError("begin[] and end[] sizes differ")
+        # Return the ranges, AbsenceRange's clean() will validate the rest
+        return sorted(zip(map(stringToDate, begins), map(stringToDate, ends)))
+
+    def addVacation(self, user, ranges):
+        """ Takes a list of ranges (date pairs) and saves them as a vacation.
+        
+        AbsenceRange's clean() checks if the ranges are valid and not intersecting (with themselves
+        nor with previous user's absences). """
+        Absence.createFromRanges(user, ranges)
+        # nothing really to do here
+

@@ -10,11 +10,16 @@ function selectf(begin, end) {
 			
 	})
 
-    $('#absence_select').append('<li class="s_range" s_begin=\'' + range1.begin.format('YYYY-MM-DD')
-    	+ '\' s_end=\'' + range1.end.format('YYYY-MM-DD') + '\'>'
+    var begin_str = range1.begin.format('YYYY-MM-DD');
+    var end_str = range1.end.format('YYYY-MM-DD');
+
+    $('#absence_select').append('<li class="s_range" s_begin=\'' + begin_str
+    	+ '\' s_end=\'' + end_str + '\'>'
     	+ range1.begin.format('DD MMM') + ' -- ' 
     	+ range1.end.format('DD MMM') 
     	+ '<div class="btn btn-danger btn-xs btn-remove"> Delete </div>'
+        + '<input type="hidden" name="begin[]" value="' + begin_str + '" />'
+        + '<input type="hidden" name="end[]" value="' + end_str + '" />'
      	+ '</li>')
 
     // sorting after every entry, fuck the poverty!
