@@ -12,7 +12,7 @@ from django.views.generic.base import View
 from django.views.generic.edit import FormView
 
 from planner.forms import RegisterForm
-from planner.models import Vacation, AbsenceRange
+from planner.models import Absence, AbsenceRange
 from planner.utils import InternalError, stringToDate, dateToString
 
 
@@ -21,8 +21,8 @@ class IndexView(View):
         d = date.today()
         month_begin = date(d.year, d.month, 1)
         month_end = date(d.year, d.month, monthrange(d.year, d.month)[1])
-        vacations = AbsenceRange.getBetween('*', month_begin, month_end)
-        context = { 'booked': vacations }
+        absences = AbsenceRange.getBetween('*', month_begin, month_end)
+        context = { 'booked': absences }
         return render(request, 'planner/index.html', context)
 
 
@@ -64,9 +64,11 @@ class BookVacationView(View):
 
     def post(self, request, *args, **kwargs):
         try:
+            if not request.user.is_authenticated():
+                raise InternalError("You must log in to book vacations.")
             ranges = self.validateRanges(request.POST.getlist('begin[]'),
                     request.POST.getlist('end[]'))
-            self.addVacation(ranges)
+            self.addVacation(request.user, ranges)
             messages.success(request, 'Absence booked successfully.')
         except InternalError as e:
             messages.error(request, e.message)
@@ -76,11 +78,11 @@ class BookVacationView(View):
         return HttpResponseRedirect('/')
 
     def validateRanges(self, begins, ends):
-        """ Validate date ranges received from user.
+        """ Parse and validate date ranges received from user.
 
         Takes two lists of 'YYYY-MM-DD' strings.
         Returns validated list of date pairs.
-        Throws InternalError or ValidationError on errors.
+        Throws InternalError on errors.
         """
         if not begins or not ends:
             raise InternalError("no absence ranges given")
@@ -89,8 +91,11 @@ class BookVacationView(View):
         # Return the ranges, AbsenceRange's clean() will validate the rest
         return sorted(zip(map(stringToDate, begins), map(stringToDate, ends)))
 
-    def addVacation(self, ranges):
-        """ Takes a list of ranges (date pairs) and saves them as a vacation. """
-        Vacation.createFromRanges(None, ranges)
+    def addVacation(self, user, ranges):
+        """ Takes a list of ranges (date pairs) and saves them as a vacation.
+        
+        AbsenceRange's clean() checks if the ranges are valid and not intersecting (with themselves
+        nor with previous user's absences). """
+        Absence.createFromRanges(user, ranges)
         # nothing really to do here
 

@@ -78,34 +78,33 @@ class EmailUser(AbstractBaseUser):
         return self.is_admin
 
 
-class Vacation(models.Model):
-    """ User's whole vacation. Describes parameters and has many AbsenceRanges attached. """
-    # TODO:FIXME: remove blank and null attributes when when logging in works
-    user = models.ForeignKey(EmailUser, blank=True, null=True)
+class Absence(models.Model):
+    """ User's whole Absence. Describes parameters and has many AbsenceRanges attached. """
+    user = models.ForeignKey(EmailUser)
     dateCreated = models.DateTimeField(auto_now_add=True)
     # TODO: rodzaj
     # TODO: status
     # TODO: komentarz
 
     def __unicode__(self):
-        return "Vacation by %s" % (self.id, self.user)
+        return "Absence by %s" % (self.id, self.user)
 
     @classmethod
     @transaction.atomic
     def createFromRanges(cls, user, ranges):
-        """ Create a vacation together with all its absence ranges (in one atomic transaction)."""
-        vac = cls(user=user)
-        vac.save()
+        """ Create an absence together with all its absence ranges (in one atomic transaction)."""
+        new_abs = cls(user=user)
+        new_abs.save()
         for (rbegin, rend) in ranges:
-            absence = AbsenceRange(vacation=vac, begin=rbegin, end=rend)
+            absence = AbsenceRange(absence=new_abs, begin=rbegin, end=rend)
             absence.full_clean()
             absence.save()
-        return vac
+        return new_abs
 
 
 class AbsenceRange(models.Model):
-    """ A single, continous period of absence as part of a Vacation. """
-    vacation = models.ForeignKey(Vacation)
+    """ A single, continous period of absence as part of an Absence. """
+    absence = models.ForeignKey(Absence)
     begin = models.DateField()
     end = models.DateField()
 
@@ -118,8 +117,9 @@ class AbsenceRange(models.Model):
         
         users should be a list of users or '*' for everyone. """
         user_ranges = cls.objects.all()
+        # TODO: this should return whole Absences, not single ranges.
         if users != '*':
-            user_ranges = user_ranges.filter(vacation__user__in=users)
+            user_ranges = user_ranges.filter(absence__user__in=users)
         return user_ranges.filter(
                 Q(begin__lt=rend, begin__gte=rbegin) | Q(end__gt=rbegin, end__lte=rend),
                 ).order_by('begin', 'end')
@@ -132,8 +132,8 @@ class AbsenceRange(models.Model):
         try:
             return cls.objects.filter(
                 Q(begin__lt=rend, begin__gte=rbegin) | Q(end__gt=rbegin, end__lte=rend),
-                vacation__user=user)[0]
-        except DoesNotExist:
+                absence__user=user)[0]
+        except IndexError:
             return None
 
     def clean(self):
@@ -142,8 +142,8 @@ class AbsenceRange(models.Model):
             raise ValidationError("Range begin (%s) is after its end (%s)"
                     % (dateToString(self.begin), dateToString(self.end)))
         print "clean for range %s" % self
-        # NOTE: we may allow intersections with absences of other types in the future
-        intersecting = self.getIntersection(self.vacation.user, self.begin, self.end)
+        # TODO: we should allow intersections with absences of other types in the future
+        intersecting = self.getIntersection(self.absence.user, self.begin, self.end)
         if intersecting:
             raise ValidationError("new absence %s intersects with %s" % (self, intersecting))
 

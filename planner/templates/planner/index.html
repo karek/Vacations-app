@@ -17,12 +17,13 @@
     </div>    
     <br><br>
     <div id='calendar'></div>
+    {% comment %} TODO: remove this when we no longer need such debug output. {% endcomment %}
     {% if booked %}
     <div>
         <h3> Currently booked: </h3>
         <ul>
-            {% for absence in booked %}
-            <li>{{ absence }}</li>
+            {% for range in booked %}
+            <li>{{ range }} by {{ range.absence.user }}</li>
             {% endfor %}
         </ul>
     </div>
