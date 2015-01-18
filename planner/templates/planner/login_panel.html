@@ -24,11 +24,11 @@
     $.getJSON("{% url 'planner:user' %}", function (serialized_users_json) {
         var users = new Bloodhound({
             datumTokenizer: function (u) {
-                return [u.email, u['first_name'], u['last_name']]
+                return [u.email, u.first_name, u.last_name]
             },
             queryTokenizer: Bloodhound.tokenizers.whitespace,
             local: $.map(serialized_users_json, function (u) {
-                return { email: u.fields.email, first_name: u.fields['first_name'], last_name: u.fields['last_name'] };
+                return { email: u.email, first_name: u.first_name, last_name: u.last_name };
             })
         });
 

@@ -12,8 +12,7 @@ urlpatterns = patterns(
     url(r'^logout/$', 'django.contrib.auth.views.logout', {'next_page': '/'}, name='logout'),
     url(r'^plan-absence/$', views.PlanAbsenceView.as_view(), name='plan-absence'),
     # urls for ajax calls (returning jsons):
-    url(r'^get-all-users/$', views.get_all_users, name='get-all-users'),
-    url(r'^get-ranges-between/$', views.get_ranges_between, name='get-ranges-between'),
-    url(r'^user/$', views.user, name='user')
+    url(r'^user/$', views.UserRestView.as_view(), name='user'),
+    url(r'^range/$', views.RangeRestView.as_view(), name='range'),
 )
 
