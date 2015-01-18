@@ -1,3 +1,5 @@
+{% load staticfiles %}
+
 <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
     <div class="container">
         <div class="navbar-header">
@@ -7,21 +9,14 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="{% url 'planner:index' %}">Vacations Planner</a>
+            <a class="navbar-brand" href="{% url 'planner:index' %}">
+                <img src="{% static 'planner/img/logo3.png' %}" id="logo-img"></a>
         </div>
         <div class="collapse navbar-collapse" id="collapse">
             <ul class="nav navbar-nav">
                 <li><a href="{% url 'admin:index' %}">Admin</a></li>
             </ul>
-            <ul class="nav navbar-nav navbar-right">
-                {% if request.user.is_authenticated %}
-                <p class="navbar-text">Hello, {{ request.user.first_name }}</p>
-                <li><a href="{% url 'planner:logout' %}">Logout</a></li>
-                {% else %}
-                <li><a href="{% url 'planner:register' %}">Register</a></li>
-                <li><a href="{% url 'planner:login' %}">Login</a></li>
-                {% endif %}
-            </ul>
+            {% include 'planner/login_panel.html' %}
         </div>
     </div>
 </nav>

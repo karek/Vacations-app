@@ -2,9 +2,10 @@ from calendar import monthrange
 from datetime import date
 import json
 
+from django.core import serializers
 from django.core.exceptions import ValidationError
 from django.contrib import messages
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, get_user_model
 from django.contrib.messages.views import SuccessMessageMixin
 from django.http.response import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import render
@@ -41,22 +42,26 @@ class RegisterView(SuccessMessageMixin, FormView):
 
 
 def user_login(request):
+    next_page = request.GET.get('next', '/')
     if request.method == 'POST':
         email = request.POST['email']
         user = authenticate(email=email)
         if user:
             if user.is_active:
                 login(request, user)
-                # FIXME this should be done with the 'next' parameter in the url
-                return HttpResponseRedirect('/')
+                messages.success(request, 'Logged in succesfully. How are you, %s?' % user.first_name)
             else:
                 messages.error(request, 'Your account is disabled.')
                 return render(request, 'planner/login.html', {})
         else:
             messages.error(request, 'Invalid login details.')
-            return render(request, 'planner/login.html', {})
-    else:
-        return render(request, 'planner/login.html', {})
+    return HttpResponseRedirect(next_page)
+
+
+def user(request):
+    users = get_user_model().objects.all()
+    data = serializers.serialize('json', users, fields=('email', 'first_name', 'last_name'))
+    return HttpResponse(data, content_type="application/json")
 
 
 class PlanAbsenceView(View):
