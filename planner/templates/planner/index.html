@@ -18,16 +18,11 @@
     <br><br>
     <div id='calendar'></div>
     {% comment %} TODO: remove this when we no longer need such debug output. {% endcomment %}
-    {% if booked %}
     <div>
         <h3> Currently booked: </h3>
-        <ul>
-            {% for range in booked %}
-            <li>{{ range }} by {{ range.absence.user }}</li>
-            {% endfor %}
+        <ul id='all_ranges'>
         </ul>
     </div>
-    {% endif %}
 
     
 {% endblock %}
@@ -56,7 +51,21 @@
         })
         // action on delete range button
         $('.btn').click(function() {
-            console.log("dupa")
+            console.log("dupa");
         })
+        {% autoescape off %}
+        var all_ranges = {{ all_ranges }};
+        var all_users = {{ all_users }};
+        {% endautoescape %}
+        var users_by_id = new Array();
+        for (u in all_users) {
+            users_by_id[all_users[u].id] = all_users[u];
+        }
+        for (i in all_ranges) {
+            var uid = all_ranges[i].user_id;
+            var li = '<li>from ' + all_ranges[i].begin + ' to ' + all_ranges[i].end + ', by '
+                + users_by_id[uid].full_name + ' (' + users_by_id[uid].email + ')' + '</li>';
+            $('#all_ranges').append(li);
+        }
     }); </script>
 {% endblock %}
