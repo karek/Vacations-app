@@ -46,7 +46,7 @@ def user_login(request):
         if user:
             if user.is_active:
                 login(request, user)
-                messages.success(request, 'Logged in succesfully. How are you, {0}?'.format(user.first_name))
+                messages.success(request, 'Logged in succesfully. How are you, %s?' % user.first_name)
             else:
                 messages.error(request, 'Your account is disabled.')
                 return render(request, 'planner/login.html', {})
