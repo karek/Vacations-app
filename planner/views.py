@@ -1,15 +1,30 @@
+from calendar import monthrange
+from datetime import date
+from django.core import serializers
+
+from django.core.exceptions import ValidationError
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, get_user_model
 from django.contrib.messages.views import SuccessMessageMixin
-from django.core import serializers
 from django.http.response import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
+from django.utils.datastructures import MultiValueDictKeyError
+from django.views.generic.base import View
 from django.views.generic.edit import FormView
+
 from planner.forms import RegisterForm
+from planner.models import Absence, AbsenceRange
+from planner.utils import InternalError, stringToDate, dateToString
 
 
-def index(request):
-    return render(request, 'planner/index.html', {})
+class IndexView(View):
+    def get(self, request, *args, **kwargs):
+        d = date.today()
+        month_begin = date(d.year, d.month, 1)
+        month_end = date(d.year, d.month, monthrange(d.year, d.month)[1])
+        absences = AbsenceRange.getBetween('*', month_begin, month_end)
+        context = { 'booked': absences }
+        return render(request, 'planner/index.html', context)
 
 
 class RegisterView(SuccessMessageMixin, FormView):
@@ -34,6 +49,7 @@ def user_login(request):
                 messages.success(request, 'Logged in succesfully. How are you, {0}?'.format(user.first_name))
             else:
                 messages.error(request, 'Your account is disabled.')
+                return render(request, 'planner/login.html', {})
         else:
             messages.error(request, 'Invalid login details.')
     return HttpResponseRedirect(next_page)
@@ -43,4 +59,48 @@ def user(request):
     users = get_user_model().objects.all()
     data = serializers.serialize('json', users, fields=('email', 'first_name', 'last_name'))
     return HttpResponse(data, content_type="application/json")
+
+
+class PlanAbsenceView(View):
+
+    def get(self, request, *args, **kwargs):
+        """ Redirect to index, just in case. """
+        return HttpResponseRedirect('/')
+
+    def post(self, request, *args, **kwargs):
+        try:
+            if not request.user.is_authenticated():
+                raise InternalError("You must log in to plan absences.")
+            ranges = self.validateRanges(request.POST.getlist('begin[]'),
+                    request.POST.getlist('end[]'))
+            self.addVacation(request.user, ranges)
+            messages.success(request, 'Absence booked successfully.')
+        except InternalError as e:
+            messages.error(request, e.message)
+        except ValidationError as e:
+            messages.error(request, '\n'.join(e.messages))
+            print "added error %s" % e.message
+        return HttpResponseRedirect('/')
+
+    def validateRanges(self, begins, ends):
+        """ Parse and validate date ranges received from user.
+
+        Takes two lists of 'YYYY-MM-DD' strings.
+        Returns validated list of date pairs.
+        Throws InternalError on errors.
+        """
+        if not begins or not ends:
+            raise InternalError("no absence ranges given")
+        if len(begins) != len(ends):
+            raise InternalError("begin[] and end[] sizes differ")
+        # Return the ranges, AbsenceRange's clean() will validate the rest
+        return sorted(zip(map(stringToDate, begins), map(stringToDate, ends)))
+
+    def addVacation(self, user, ranges):
+        """ Takes a list of ranges (date pairs) and saves them as a vacation.
+        
+        AbsenceRange's clean() checks if the ranges are valid and not intersecting (with themselves
+        nor with previous user's absences). """
+        Absence.createFromRanges(user, ranges)
+        # nothing really to do here
 

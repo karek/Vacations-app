@@ -1,7 +1,11 @@
+from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Q
+from django.db import transaction
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
+from planner.utils import dateToString
 
 
 class EmailUserManager(BaseUserManager):
@@ -72,3 +76,75 @@ class EmailUser(AbstractBaseUser):
         "Is the user a member of staff?"
         # Simplest possible answer: All admins are staff
         return self.is_admin
+
+
+class Absence(models.Model):
+    """ User's whole Absence. Describes parameters and has many AbsenceRanges attached. """
+    user = models.ForeignKey(EmailUser)
+    dateCreated = models.DateTimeField(auto_now_add=True)
+    # TODO: rodzaj
+    # TODO: status
+    # TODO: komentarz
+
+    def __unicode__(self):
+        return "Absence by %s" % (self.id, self.user)
+
+    @classmethod
+    @transaction.atomic
+    def createFromRanges(cls, user, ranges):
+        """ Create an absence together with all its absence ranges (in one atomic transaction)."""
+        new_abs = cls(user=user)
+        new_abs.save()
+        for (rbegin, rend) in ranges:
+            absence = AbsenceRange(absence=new_abs, begin=rbegin, end=rend)
+            absence.full_clean()
+            absence.save()
+        return new_abs
+
+
+class AbsenceRange(models.Model):
+    """ A single, continous period of absence as part of an Absence. """
+    absence = models.ForeignKey(Absence)
+    begin = models.DateField()
+    end = models.DateField()
+
+    def __unicode__(self):
+        return "%s - %s" % (dateToString(self.begin), dateToString(self.end))
+
+    @classmethod
+    def getBetween(cls, users, rbegin, rend):
+        """ Returns all users' vacations intersecting with given period.
+        
+        users should be a list of users or '*' for everyone. """
+        user_ranges = cls.objects.all()
+        # TODO: this should return whole Absences, not single ranges.
+        if users != '*':
+            user_ranges = user_ranges.filter(absence__user__in=users)
+        return user_ranges.filter(
+                Q(begin__lt=rend, begin__gte=rbegin) | Q(end__gt=rbegin, end__lte=rend),
+                ).order_by('begin', 'end')
+
+    @classmethod
+    def getIntersection(cls, user, rbegin, rend):
+        """ Does the user already have any absence range during given period?
+        
+        Returns single (first if many) intersecting AbsenceRange or None. """
+        try:
+            return cls.objects.filter(
+                Q(begin__lt=rend, begin__gte=rbegin) | Q(end__gt=rbegin, end__lte=rend),
+                absence__user=user)[0]
+        except IndexError:
+            return None
+
+    def clean(self):
+        """ Don't allow adding intersecting ranges. """
+        if self.begin >= self.end:
+            raise ValidationError("Range begin (%s) is after its end (%s)"
+                    % (dateToString(self.begin), dateToString(self.end)))
+        print "clean for range %s" % self
+        # TODO: we should allow intersections with absences of other types in the future
+        intersecting = self.getIntersection(self.absence.user, self.begin, self.end)
+        if intersecting:
+            raise ValidationError("new absence %s intersects with %s" % (self, intersecting))
+
+

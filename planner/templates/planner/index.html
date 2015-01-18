@@ -3,13 +3,38 @@
 {% load staticfiles %}
 
 {% block content %}
-<div id='calendar'></div>
+    <div>
+        <form id='plan-absence' method='POST' action='{% url 'planner:plan-absence' %}' >
+            {% csrf_token %}
+            <h3> Planned absence: </h3> <br>
+            <ul id='absence_select'>
+
+            </ul>
+            <input type='submit' name='book-value-submit' value='plan absence' class='btn btn-primary'/>
+        </form>
+    </div>    
+    <br><br>
+    <div id='calendar'></div>
+    {% comment %} TODO: remove this when we no longer need such debug output. {% endcomment %}
+    {% if booked %}
+    <div>
+        <h3> Currently booked: </h3>
+        <ul>
+            {% for range in booked %}
+            <li>{{ range }} by {{ range.absence.user }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    
 {% endblock %}
 
 {% block scripts %}
-{{ block.super }}
-<script src="{% static 'planner/js/moment.min.js' %}"></script>
-<script src="{% static 'planner/js/fullcalendar.min.js' %}"></script>
+    {{ block.super }}
+    <script src="{% static 'planner/js/moment.min.js' %}"></script>
+    <script src="{% static 'planner/js/fullcalendar.js' %}"></script>
+    <script src="{% static 'planner/js/selection.js' %}"></script>
 {% endblock %}
 
 {% block calendarDeclaration %}
@@ -21,8 +46,17 @@
                 center: 'title',
                 right: 'month,agendaWeek'
             },
-            weekends: false
+            selectable: true,  // we can select days
+            selectHelper: true, // we see our selection
+            unselectAuto: false, // no autoclearing selection after clickng on page(not enough though)
+            unSelectCancel: '.fc-day',
+            select: selectf, // our function for select
+            unselect: unselectf // our function for clearing selection
         })
-    });
+        // action on delete range button
+        $('.btn').click(function() {
+            console.log("dupa")
+        })
+    }); 
 </script>
 {% endblock %}
