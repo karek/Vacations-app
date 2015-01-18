@@ -3,17 +3,18 @@
 {% load staticfiles %}
 
 {% block content %}
-    <div id='calendar'></div>
+<div id='calendar'></div>
 {% endblock %}
 
 {% block scripts %}
-    {{ block.super }}
-    <script src="{% static 'planner/js/moment.min.js' %}"></script>
-    <script src="{% static 'planner/js/fullcalendar.min.js' %}"></script>
+{{ block.super }}
+<script src="{% static 'planner/js/moment.min.js' %}"></script>
+<script src="{% static 'planner/js/fullcalendar.min.js' %}"></script>
 {% endblock %}
 
 {% block calendarDeclaration %}
-    <script type="text/javascript"> $(document).ready(function() {
+<script type="text/javascript">
+    $(document).ready(function () {
         $('#calendar').fullCalendar({
             header: {
                 left: 'prev,next today',
@@ -22,5 +23,6 @@
             },
             weekends: false
         })
-    }); </script>
+    });
+</script>
 {% endblock %}

@@ -21,33 +21,38 @@
 </ul>
 
 <script type="text/javascript">
-    var users = new Bloodhound({
-        datumTokenizer: function (u) {
-            return [u.email, u['first_name'], u['last_name']]
-        },
-        queryTokenizer: Bloodhound.tokenizers.whitespace,
-        prefetch: {
-            url: "{% url 'planner:user' %}",
-            filter: function (list) {
-                return $.map(list, function (u) {
-                    return { email: u.fields.email, first_name: u.fields['first_name'], last_name: u.fields['last_name'] };
-                });
-            }
-        }
-    });
-
-    users.initialize();
-
-    $('.typeahead').typeahead({
-                hint: true,
-                highlight: true,
-                minLength: 1
+    $.getJSON("{% url 'planner:user' %}", function (serialized_users_json) {
+        var users = new Bloodhound({
+            datumTokenizer: function (u) {
+                return [u.email, u['first_name'], u['last_name']]
             },
-            {
-                name: 'users',
-                displayKey: 'email',
-                source: users.ttAdapter()
-            });
+            queryTokenizer: Bloodhound.tokenizers.whitespace,
+            local: $.map(serialized_users_json, function (u) {
+                return { email: u.fields.email, first_name: u.fields['first_name'], last_name: u.fields['last_name'] };
+            })
+        });
+
+        users.initialize();
+
+        $('.typeahead').typeahead({
+                    hint: true,
+                    highlight: true,
+                    minLength: 1
+                },
+                {
+                    name: 'users',
+                    displayKey: 'email',
+                    source: users.ttAdapter(),
+                    templates: {
+                        empty: [
+                            '<div class="empty-message">',
+                            'Looks like this user doesn\'t exist. <br>', '<a href=\'{% url "planner:register" %}\'>Let\'s register him now!</a>',
+                            '</div>'
+                        ].join('\n'),
+                        suggestion: Handlebars.compile('{% verbatim %}<p>{{first_name}} {{last_name}} <span class="badge">{{email}}</span></p>{% endverbatim %}')
+                    }
+                });
+    });
 </script>
 {% endif %}
 
