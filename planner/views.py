@@ -26,7 +26,6 @@ class IndexView(View):
             'month_begin': dateToString(month_begin),
             'month_end': dateToString(month_end),
         }
-        print context;
         return render(request, 'planner/index.html', context)
 
 
