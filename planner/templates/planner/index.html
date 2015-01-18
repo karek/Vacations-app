@@ -3,8 +3,6 @@
 {% load staticfiles %}
 
 {% block content %}
-    <h1><span class="glyphicon glyphicon-calendar"></span> Vacations Planner </h1>
-    <br><br>
     <div>
         <form id='plan-absence' method='POST' action='{% url 'planner:plan-absence' %}' >
             {% csrf_token %}
@@ -40,7 +38,8 @@
 {% endblock %}
 
 {% block calendarDeclaration %}
-    <script type="text/javascript"> $(document).ready(function() {
+<script type="text/javascript">
+    $(document).ready(function () {
         $('#calendar').fullCalendar({
             header: {
                 left: 'prev,next today',
@@ -58,5 +57,6 @@
         $('.btn').click(function() {
             console.log("dupa")
         })
-    }); </script>
+    }); 
+</script>
 {% endblock %}
