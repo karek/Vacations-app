@@ -59,7 +59,7 @@ def user_login(request):
         return render(request, 'planner/login.html', {})
 
 
-class BookVacationView(View):
+class PlanAbsenceView(View):
 
     def get(self, request, *args, **kwargs):
         """ Redirect to index, just in case. """
@@ -68,7 +68,7 @@ class BookVacationView(View):
     def post(self, request, *args, **kwargs):
         try:
             if not request.user.is_authenticated():
-                raise InternalError("You must log in to book vacations.")
+                raise InternalError("You must log in to plan absences.")
             ranges = self.validateRanges(request.POST.getlist('begin[]'),
                     request.POST.getlist('end[]'))
             self.addVacation(request.user, ranges)
