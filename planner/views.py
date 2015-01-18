@@ -22,12 +22,11 @@ class IndexView(View):
         d = date.today()
         month_begin = date(d.year, d.month, 1)
         month_end = date(d.year, d.month, monthrange(d.year, d.month)[1])
-        json_users = objListToJson(EmailUser.objects.all())
-        json_ranges = objListToJson(AbsenceRange.getBetween('*', month_begin, month_end))
         context = {
-            'all_ranges': json_ranges,
-            'all_users': json_users,
+            'month_begin': dateToString(month_begin),
+            'month_end': dateToString(month_end),
         }
+        print context;
         return render(request, 'planner/index.html', context)
 
 

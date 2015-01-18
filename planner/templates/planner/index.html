@@ -32,6 +32,7 @@
     <script src="{% static 'planner/js/moment.min.js' %}"></script>
     <script src="{% static 'planner/js/fullcalendar.js' %}"></script>
     <script src="{% static 'planner/js/selection.js' %}"></script>
+    <script src="{% static 'planner/js/ajaxes.js' %}"></script>
 {% endblock %}
 
 {% block calendarDeclaration %}
@@ -53,19 +54,21 @@
         $('.btn').click(function() {
             console.log("dupa");
         })
-        {% autoescape off %}
-        var all_ranges = {{ all_ranges }};
-        var all_users = {{ all_users }};
-        {% endautoescape %}
-        var users_by_id = new Array();
-        for (u in all_users) {
-            users_by_id[all_users[u].id] = all_users[u];
-        }
-        for (i in all_ranges) {
-            var uid = all_ranges[i].user_id;
-            var li = '<li>from ' + all_ranges[i].begin + ' to ' + all_ranges[i].end + ', by '
-                + users_by_id[uid].full_name + ' (' + users_by_id[uid].email + ')' + '</li>';
-            $('#all_ranges').append(li);
-        }
+        // load users, then ranges, then display them (for now)
+        // TODO: remove this displaying when showing on calendar works
+        // TODO: change dates to whatever the calendar displays
+        getAllUsers(function(data) {
+            getAbsencesBetween('{{ month_begin }}', '{{ month_end }}', [], function(data) {
+                console.debug('showing ranges');
+                for (i in data) {
+                    console.debug('appending range, i=' + i);
+                    var uid = data[i].user_id;
+                    var li = '<li>from ' + data[i].begin + ' to ' + data[i].end + ', by '
+                        + g_users_by_id[uid].full_name + ' (' + g_users_by_id[uid].email + ')'
+                        + '</li>';
+                    $('#all_ranges').append(li);
+                }
+            })
+        });
     }); </script>
 {% endblock %}
