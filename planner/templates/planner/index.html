@@ -36,13 +36,22 @@
 {% endblock %}
 
 {% block calendarDeclaration %}
-    <script type="text/javascript"> $(document).ready(function() {
+    <script type="text/javascript">
+
+        var exampleWorkersJson =
+               [ {"first_name":"John", "last_name":"Doe"},
+                 {"first_name":"Anna", "last_name":"Smith"},
+                 {"first_name":"Peter", "last_name":"Jones"}];
+
+
+        $(document).ready(function() {
         $('#calendar').fullCalendar({
             header: {
                 left: 'prev,next today',
                 center: 'title',
                 right: 'month,agendaWeek'
             },
+            defaultView: 'agendaWeek', //TODO: Remove
             selectable: true,  // we can select days
             selectHelper: true, // we see our selection
             unselectAuto: false, // no autoclearing selection after clickng on page(not enough though)
