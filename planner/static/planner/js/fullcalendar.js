@@ -5257,7 +5257,6 @@ var TimeGrid = Grid.extend({
 		Grid.prototype.render.call(this); // call the super-method
 	},
 
-
 	renderBusinessHours: function() {
 		var events = this.view.calendar.getBusinessHoursEvents();
 		this.businessHourSegs = this.renderFill('businessHours', this.eventsToSegs(events), 'bgevent');
@@ -5272,13 +5271,12 @@ var TimeGrid = Grid.extend({
 					this.rowHtml('slotBg') + // leverages RowRenderer, which will call slotBgCellHtml
 				'</table>' +
 			'</div>' +
-			'<div class="fc-slats">' +
+			'<div class="fc-slats" id="slats">' +
 				'<table>' +
 					this.slatRowHtml() +
 				'</table>' +
 			'</div>';
 	},
-
 
 	// Renders the HTML for a vertical background cell behind the slots.
 	// This method is distinct from 'bg' because we wanted a new `rowType` so the View could customize the rendering.
@@ -5298,30 +5296,27 @@ var TimeGrid = Grid.extend({
 		var minutes;
 		var axisHtml;
 
-		// Calculate the time for each slot
-		while (slotTime < this.maxTime) {
-			slotDate = this.start.clone().time(slotTime); // will be in UTC but that's good. to avoid DST issues
-			minutes = slotDate.minutes();
+        console.log(exampleWorkersJson); // TODO: Change it to data downloaded from AJAX
 
-			axisHtml =
+        for (i in exampleWorkersJson) {
+
+            var currPerson = exampleWorkersJson[i];
+            var name = currPerson.first_name + " "  + currPerson.last_name;
+
+            axisHtml =
 				'<td class="fc-axis fc-time ' + view.widgetContentClass + '" ' + view.axisStyleAttr() + '>' +
-					((!slotNormal || !minutes) ? // if irregular slot duration, or on the hour, then display the time
 						'<span>' + // for matchCellWidths
-							htmlEscape(slotDate.format(this.axisFormat)) +
-						'</span>' :
-						''
-						) +
-				'</td>';
+							htmlEscape(name) +
+						'</span>' +	'</td>';
 
 			html +=
-				'<tr ' + (!minutes ? '' : 'class="fc-minor"') + '>' +
+				'<tr>' +
 					(!isRTL ? axisHtml : '') +
 					'<td class="' + view.widgetContentClass + '"/>' +
 					(isRTL ? axisHtml : '') +
 				"</tr>";
 
-			slotTime.add(this.slotDuration);
-		}
+        }
 
 		return html;
 	},
