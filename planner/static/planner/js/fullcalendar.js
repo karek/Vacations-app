@@ -5285,7 +5285,7 @@ var TimeGrid = Grid.extend({
 	},
 
 
-	// Generates the HTML for the horizontal "slats" that run width-wise. Has a time axis on a side. Depends on RTL.
+	// Generates the HTML for the horizontal "slats" that run width-wise. Has a person axis on a side. Depends on RTL.
 	slatRowHtml: function() {
 		var view = this.view;
 		var isRTL = this.isRTL;
@@ -5296,13 +5296,11 @@ var TimeGrid = Grid.extend({
 		var minutes;
 		var axisHtml;
 
-        console.log(exampleWorkersJson); // TODO: Change it to data downloaded from AJAX
+        global_users.sort(function(a, b) { return a.last_name > b.last_name } );
 
-        exampleWorkersJson.sort(function(a, b) { return a.last_name > b.last_name } );
+        for (i in global_users) {
 
-        for (i in exampleWorkersJson) {
-
-            var currPerson = exampleWorkersJson[i];
+            var currPerson = global_users[i];
             var name = currPerson.first_name + " "  + currPerson.last_name;
 
             axisHtml =
@@ -6905,6 +6903,7 @@ function Calendar(element, instanceOptions) {
 	t.reportEventChange = reportEventChange;
 	t.rerenderEvents = renderEvents; // `renderEvents` serves as a rerender. an API method
 	t.changeView = changeView;
+	t.redrawView = redrawView;
 	t.select = select;
 	t.unselect = unselect;
 	t.prev = prev;
@@ -7190,13 +7189,21 @@ function Calendar(element, instanceOptions) {
 		renderView(0, viewType);
 	}
 
+    
+    // Forced changeView() to the same view to re-render the calendar.
+    // NOTE: this rebuilds the whole calendar, for redisplaying events use re(fetch|render)Events().
+    function redrawView() {
+        renderView(0, currentView.type, true);
+    }
+
 
 	// Renders a view because of a date change, view-type change, or for the first time
-	function renderView(delta, viewType) {
+	function renderView(delta, viewType, redraw) {
+        if (typeof redraw === 'undefined') redraw = false;
 		ignoreWindowResize++;
 
 		// if viewType is changing, destroy the old view
-		if (currentView && viewType && currentView.type !== viewType) {
+		if ((currentView && viewType && currentView.type !== viewType) || redraw) {
 			header.deactivateButton(currentView.type);
 			freezeContentHeight(); // prevent a scroll jump when view element is removed
 			if (currentView.start) { // rendered before?
@@ -7227,7 +7234,8 @@ function Calendar(element, instanceOptions) {
 			if (
 				!currentView.start || // never rendered before
 				delta || // explicit date window change
-				!date.isWithin(currentView.intervalStart, currentView.intervalEnd) // implicit date window change
+				!date.isWithin(currentView.intervalStart, currentView.intervalEnd || // implicit date window change
+                redraw) // explicit forced redraw
 			) {
 				if (elementVisible()) {
 

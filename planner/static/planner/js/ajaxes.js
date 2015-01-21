@@ -23,9 +23,15 @@ function getAbsencesBetween(begin, end, users, on_success) {
 
 global_users = new Array();
 global_users_by_id = new Array();
+global_users_loaded = false;
 
 // Get and save users (and execute callback).
 function getAllUsers(on_success) {
+    if (global_users_loaded) {
+        console.debug('users already loaded, running on_success immediately');
+        on_success(global_users);
+        return;
+    }
     var req_url = global_user_url;
     console.debug('ajax url: ' + req_url);
     $.ajax({
@@ -39,6 +45,8 @@ function getAllUsers(on_success) {
                 console.debug('saving user ' + data[u].email);
                 global_users_by_id[data[u].id] = data[u];
             }
+            global_users_loaded = true;
+            console.debug('users saved, running on_success');
             on_success(data);
         },
         error: function(jqxhr, txt_status, error) {

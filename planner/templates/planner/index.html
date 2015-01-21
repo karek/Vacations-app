@@ -39,14 +39,7 @@
 
 {% block calendarDeclaration %}
     <script type="text/javascript">
-
-        var exampleWorkersJson =
-               [ {"first_name":"John", "last_name":"Doe"},
-                 {"first_name":"Anna", "last_name":"Smith"},
-                 {"first_name":"Peter", "last_name":"Jones"}];
-
-
-        $(document).ready(function() {
+    $(document).ready(function() {
         $('#calendar').fullCalendar({
             header: {
                 left: 'prev,next today',
@@ -60,7 +53,7 @@
             unSelectCancel: '.fc-day',
             select: selectf, // our function for select
             unselect: unselectf // our function for clearing selection
-        })
+        });
         // action on delete range button
         $('.btn').click(function() {
             console.log("dupa");
@@ -69,6 +62,8 @@
         // TODO: remove this displaying when showing on calendar works
         // TODO: change dates to whatever the calendar displays
         getAllUsers(function(data) {
+            console.debug('redrawing calendar');
+            $('#calendar').fullCalendar('redrawView')
             getAbsencesBetween('{{ month_begin }}', '{{ month_end }}', [], function(data) {
                 console.debug('showing ranges');
                 for (i in data) {
