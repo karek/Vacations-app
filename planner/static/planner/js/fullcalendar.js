@@ -5298,6 +5298,8 @@ var TimeGrid = Grid.extend({
 
         console.log(exampleWorkersJson); // TODO: Change it to data downloaded from AJAX
 
+        exampleWorkersJson.sort(function(a, b) { return a.last_name > b.last_name } );
+
         for (i in exampleWorkersJson) {
 
             var currPerson = exampleWorkersJson[i];
