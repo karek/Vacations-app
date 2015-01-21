@@ -9373,6 +9373,7 @@ fcViews.basicDay = {
 setDefaults({
 	allDaySlot: true,
 	allDayText: 'all-day',
+    myName: 'Me', //TODO: CHange its place?
 	scrollTime: '06:00:00',
 	slotDuration: '00:30:00',
 	minTime: '00:00:00',
@@ -9532,11 +9533,12 @@ fcViews.agenda = View.extend({ // AgendaView
 
 	// Generates the HTML that goes before the all-day cells.
 	// Queried by the DayGrid subcomponent when generating rows. Ordering depends on isRTL.
+    //TODO: Maybe the name of logged user should be downloaded here and than inserted?
 	dayIntroHtml: function() {
 		return '' +
 			'<td class="fc-axis ' + this.widgetContentClass + '" ' + this.axisStyleAttr() + '>' +
 				'<span>' + // needed for matchCellWidths
-					(this.opt('allDayHtml') || htmlEscape(this.opt('allDayText'))) +
+					(this.opt('allDayHtml') || htmlEscape(this.opt('myName'))) +
 				'</span>' +
 			'</td>';
 	},
