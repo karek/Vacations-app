@@ -83,8 +83,8 @@ class EmailUser(AbstractBaseUser):
     def toDict(self):
         return {
             'id': self.id,
-            'short_name': self.get_short_name(),
-            'full_name': self.get_full_name(),
+            'first_name': self.first_name,
+            'last_name': self.last_name,
             'email': self.email,
         }
 
