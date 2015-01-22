@@ -25,6 +25,7 @@ class IndexView(View):
         context = {
             'month_begin': dateToString(month_begin),
             'month_end': dateToString(month_end),
+            'users': objListToJson(get_user_model().objects.all()),
         }
         return render(request, 'planner/index.html', context)
 
