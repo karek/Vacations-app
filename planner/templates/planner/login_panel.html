@@ -34,7 +34,8 @@
 
         users.initialize();
 
-        $('.typeahead').typeahead({
+        $('.typeahead').typeahead(
+                {
                     hint: true,
                     highlight: true,
                     minLength: 1
@@ -44,14 +45,18 @@
                     displayKey: 'email',
                     source: users.ttAdapter(),
                     templates: {
-                        empty: [
-                            '<div class="empty-message">',
-                            'Looks like this user doesn\'t exist. <br>', '<a href=\'{% url "planner:register" %}\'>Let\'s register him now!</a>',
-                            '</div>'
-                        ].join('\n'),
+                        empty: function () {
+                            return [
+                                '<div class="empty-message">',
+                                'Looks like this user doesn\'t exist. <br>',
+                                '<a href=\'{% url "planner:register" %}?email=' + $('#id_email').val() + '\'>Let\'s register him now!</a>',
+                                '</div>'
+                            ].join('\n')
+                        },
                         suggestion: Handlebars.compile('{% verbatim %}<p>{{first_name}} {{last_name}} <span class="badge">{{email}}</span></p>{% endverbatim %}')
                     }
-                });
+                }
+        );
     });
 </script>
 {% endif %}
