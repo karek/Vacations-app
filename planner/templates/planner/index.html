@@ -16,16 +16,11 @@
     <br><br>
     <div id='calendar'></div>
     {% comment %} TODO: remove this when we no longer need such debug output. {% endcomment %}
-    {% if booked %}
     <div>
         <h3> Currently booked: </h3>
-        <ul>
-            {% for range in booked %}
-            <li>{{ range }} by {{ range.absence.user }}</li>
-            {% endfor %}
+        <ul id='all_ranges'>
         </ul>
     </div>
-    {% endif %}
 
     
 {% endblock %}
@@ -35,10 +30,18 @@
     <script src="{% static 'planner/js/moment.min.js' %}"></script>
     <script src="{% static 'planner/js/fullcalendar.js' %}"></script>
     <script src="{% static 'planner/js/selection.js' %}"></script>
+    <script src="{% static 'planner/js/ajaxes.js' %}"></script>
+    <script type="text/javascript">
+        global_user_url = {% url 'planner:user' %};
+        global_range_url = {% url 'planner:range' %};
+        {% autoescape off %}
+        saveUserData({{ users }});
+        {% endautoescape %}
+    </script>
 {% endblock %}
 
 {% block calendarDeclaration %}
-<script type="text/javascript">
+    <script type="text/javascript">
     $(document).ready(function () {
         $('#calendar').fullCalendar({
             header: {
@@ -51,12 +54,15 @@
             unselectAuto: false, // no autoclearing selection after clickng on page(not enough though)
             unSelectCancel: '.fc-day',
             select: selectf, // our function for select
-            unselect: unselectf // our function for clearing selection
+            unselect: unselectf, // our function for clearing selection
+            events: {
+                events: getAbsencesForCalendar
+            }
         })
         // action on delete range button
         $('.btn').click(function() {
-            console.log("dupa")
+            console.log("dupa");
         })
-    }); 
-</script>
+    });
+    </script>
 {% endblock %}

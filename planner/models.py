@@ -1,3 +1,5 @@
+import json
+
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
@@ -5,6 +7,7 @@ from django.db import transaction
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
+
 from planner.utils import dateToString
 
 
@@ -52,7 +55,7 @@ class EmailUser(AbstractBaseUser):
 
     def get_full_name(self):
         # The user is identified by their email address
-        return str(self.first_name) + " " + str(self.last_name)
+        return unicode(self.first_name) + " " + unicode(self.last_name)
 
     def get_short_name(self):
         # The user is identified by their email address
@@ -76,6 +79,14 @@ class EmailUser(AbstractBaseUser):
         "Is the user a member of staff?"
         # Simplest possible answer: All admins are staff
         return self.is_admin
+
+    def toDict(self):
+        return {
+            'id': self.id,
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'email': self.email,
+        }
 
 
 class Absence(models.Model):
@@ -117,7 +128,6 @@ class AbsenceRange(models.Model):
         
         users should be a list of users or '*' for everyone. """
         user_ranges = cls.objects.all()
-        # TODO: this should return whole Absences, not single ranges.
         if users != '*':
             user_ranges = user_ranges.filter(absence__user__in=users)
         return user_ranges.filter(
@@ -146,5 +156,16 @@ class AbsenceRange(models.Model):
         intersecting = self.getIntersection(self.absence.user, self.begin, self.end)
         if intersecting:
             raise ValidationError("new absence %s intersects with %s" % (self, intersecting))
+
+    def toDict(self):
+        """ Returns needed AbsenceRange's attributes as dict, e.g. for converting to json. """
+        return {
+            'id': self.id,
+            'begin': dateToString(self.begin),
+            'end': dateToString(self.end),
+            'absence_id': self.absence.id,
+            'user_id': self.absence.user.id,
+        }
+
 
 

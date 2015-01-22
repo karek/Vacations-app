@@ -1,5 +1,6 @@
-from time import strptime, strftime
 from datetime import date
+import json
+from time import strptime, strftime
 
 class InternalError(Exception):
     def __init__(self, message):
@@ -20,3 +21,8 @@ def stringToDate(obj):
 def dateToString(obj):
     """ changes date object to 'YYYY-MM-DD' string """
     return obj.strftime('%Y-%m-%d')
+
+
+def objListToJson(objs):
+    obj_list = map(lambda o: o.toDict(), objs)
+    return json.dumps(obj_list)

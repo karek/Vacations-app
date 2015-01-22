@@ -1,12 +1,12 @@
 from calendar import monthrange
 from datetime import date
-from django.core import serializers
 
+from django.core import serializers
 from django.core.exceptions import ValidationError
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, get_user_model
 from django.contrib.messages.views import SuccessMessageMixin
-from django.http.response import HttpResponseRedirect, HttpResponse
+from django.http.response import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.datastructures import MultiValueDictKeyError
 from django.views.generic.base import View
@@ -14,7 +14,7 @@ from django.views.generic.edit import FormView
 
 from planner.forms import RegisterForm
 from planner.models import Absence, AbsenceRange
-from planner.utils import InternalError, stringToDate, dateToString
+from planner.utils import InternalError, stringToDate, dateToString, objListToJson
 
 
 class IndexView(View):
@@ -22,8 +22,11 @@ class IndexView(View):
         d = date.today()
         month_begin = date(d.year, d.month, 1)
         month_end = date(d.year, d.month, monthrange(d.year, d.month)[1])
-        absences = AbsenceRange.getBetween('*', month_begin, month_end)
-        context = { 'booked': absences }
+        context = {
+            'month_begin': dateToString(month_begin),
+            'month_end': dateToString(month_end),
+            'users': objListToJson(get_user_model().objects.all()),
+        }
         return render(request, 'planner/index.html', context)
 
 
@@ -53,12 +56,6 @@ def user_login(request):
         else:
             messages.error(request, 'Invalid login details.')
     return HttpResponseRedirect(next_page)
-
-
-def user(request):
-    users = get_user_model().objects.all()
-    data = serializers.serialize('json', users, fields=('email', 'first_name', 'last_name'))
-    return HttpResponse(data, content_type="application/json")
 
 
 class PlanAbsenceView(View):
@@ -104,3 +101,35 @@ class PlanAbsenceView(View):
         Absence.createFromRanges(user, ranges)
         # nothing really to do here
 
+
+def _make_json_response(data):
+    return HttpResponse(data, content_type='application/json')
+
+
+def _make_error_response(msg):
+    return HttpResponseBadRequest(msg, content_type='text/plain')
+
+
+class UserRestView(View):
+    def get(self, request):
+        """ Returns all users as array of json objects. """
+        return _make_json_response(objListToJson(get_user_model().objects.all()))
+
+
+class RangeRestView(View):
+    def get(self, request):
+        """ Returns all ranges between given dates for given users (or everyone if not specified),
+        as array of json objects.
+        Example call: <server>/get-ranges-between/?begin=2015-01-01&end=2015-01-10&user[]=1&user[]=2
+        """
+        if 'begin' not in request.GET:
+            return _make_error_response('begin not specified')
+        if 'end' not in request.GET:
+            return _make_error_response('end not specified')
+        try:
+            rbegin = stringToDate(request.GET['begin'])
+            rend = stringToDate(request.GET['end'])
+        except InternalError as e:
+            return _make_error_response(e.message)
+        users = request.GET.getlist('user[]', '*')
+        return _make_json_response(objListToJson(AbsenceRange.getBetween(users, rbegin, rend)))
