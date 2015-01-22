@@ -1,5 +1,3 @@
-import json
-
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
@@ -52,6 +50,18 @@ class EmailUser(AbstractBaseUser):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name']
+
+    def clean(self):
+        super(EmailUser, self).clean()
+        if self.email is not None:
+            self.email = self.email.lower()
+            if self._state.adding:
+                emailuser = EmailUser.objects.filter(email__iexact=self.email)
+
+                if emailuser.exists():
+                    raise ValidationError({
+                        'email': 'That email address is already associated with an account.'
+                    })
 
     def get_full_name(self):
         # The user is identified by their email address
@@ -131,8 +141,8 @@ class AbsenceRange(models.Model):
         if users != '*':
             user_ranges = user_ranges.filter(absence__user__in=users)
         return user_ranges.filter(
-                Q(begin__lt=rend, begin__gte=rbegin) | Q(end__gt=rbegin, end__lte=rend),
-                ).order_by('begin', 'end')
+            Q(begin__lt=rend, begin__gte=rbegin) | Q(end__gt=rbegin, end__lte=rend),
+        ).order_by('begin', 'end')
 
     @classmethod
     def getIntersection(cls, user, rbegin, rend):
@@ -150,7 +160,7 @@ class AbsenceRange(models.Model):
         """ Don't allow adding intersecting ranges. """
         if self.begin >= self.end:
             raise ValidationError("Range begin (%s) is after its end (%s)"
-                    % (dateToString(self.begin), dateToString(self.end)))
+                                  % (dateToString(self.begin), dateToString(self.end)))
         print "clean for range %s" % self
         # TODO: we should allow intersections with absences of other types in the future
         intersecting = self.getIntersection(self.absence.user, self.begin, self.end)

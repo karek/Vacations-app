@@ -9,7 +9,7 @@ class PasswordlessAuthBackend(ModelBackend):
 
     def authenticate(self, email=None):
         try:
-            return self.user_model.objects.get(email=email)
+            return self.user_model.objects.get(email__iexact=email)
         except self.user_model.DoesNotExist:
             return None
 
