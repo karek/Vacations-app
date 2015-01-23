@@ -27,9 +27,7 @@
                 return [u.email, u.first_name, u.last_name]
             },
             queryTokenizer: Bloodhound.tokenizers.whitespace,
-            local: $.map(serialized_users_json, function (user_json) {
-                return user_json;
-            })
+            local: serialized_users_json
         });
 
         users.initialize();

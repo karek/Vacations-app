@@ -35,9 +35,7 @@ class RegisterView(SuccessMessageMixin, FormView):
 
     def get_initial(self):
         initial = super(RegisterView, self).get_initial()
-
         initial['email'] = self.request.GET.get('email','')
-
         return initial
 
     def form_valid(self, form):
