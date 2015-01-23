@@ -18,3 +18,47 @@
     </div>
 </form>
 {% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script type="text/javascript">
+    var existing_emails = new Array();
+
+    function prepare_for_email_verification() {
+        $('#id_email').parent().append('<span class="help-block " id="unique_email_help"></span>');
+    }
+
+    function check_if_user_exists(email) {
+        var span_help = $('#unique_email_help');
+        //FIXME There should be verification if the 'email' is an actual email
+        if (email == '' || email == undefined) {
+            span_help.html('Type an email address and I will check if it exists.');
+        } else {
+            if (existing_emails.indexOf(email) != -1) {
+                span_help.parent().parent().attr("class", "form-group has-error");
+                span_help.html('<span class="glyphicon glyphicon-remove"></span> That email address is already associated with an account.');
+            } else {
+                span_help.parent().parent().attr("class", "form-group has-success");
+                span_help.html('<span class="glyphicon glyphicon-ok"></span> That email address is new.');
+            }
+        }
+    }
+
+    $(document).ready(function ($) {
+        $.getJSON("{% url 'planner:user' %}", function (serialized_users_json) {
+            serialized_users_json.forEach(function (user_json) {
+                existing_emails.push(user_json.email);
+            });
+        });
+
+        prepare_for_email_verification();
+        check_if_user_exists($('#id_email').val());
+
+        $('#id_email').on('input', function () {
+            console.log($(this).val());
+            check_if_user_exists($(this).val());
+        });
+    });
+</script>
+{% endblock %}
+
