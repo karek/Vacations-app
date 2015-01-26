@@ -5257,6 +5257,7 @@ var TimeGrid = Grid.extend({
 		Grid.prototype.render.call(this); // call the super-method
 	},
 
+
 	renderBusinessHours: function() {
 		var events = this.view.calendar.getBusinessHoursEvents();
 		this.businessHourSegs = this.renderFill('businessHours', this.eventsToSegs(events), 'bgevent');
@@ -5271,12 +5272,13 @@ var TimeGrid = Grid.extend({
 					this.rowHtml('slotBg') + // leverages RowRenderer, which will call slotBgCellHtml
 				'</table>' +
 			'</div>' +
-			'<div class="fc-slats" id="slats">' +
+			'<div class="fc-slats">' +
 				'<table>' +
 					this.slatRowHtml() +
 				'</table>' +
 			'</div>';
 	},
+
 
 	// Renders the HTML for a vertical background cell behind the slots.
 	// This method is distinct from 'bg' because we wanted a new `rowType` so the View could customize the rendering.
@@ -5285,7 +5287,7 @@ var TimeGrid = Grid.extend({
 	},
 
 
-	// Generates the HTML for the horizontal "slats" that run width-wise. Has a person axis on a side. Depends on RTL.
+	// Generates the HTML for the horizontal "slats" that run width-wise. Has a time axis on a side. Depends on RTL.
 	slatRowHtml: function() {
 		var view = this.view;
 		var isRTL = this.isRTL;
@@ -5296,27 +5298,30 @@ var TimeGrid = Grid.extend({
 		var minutes;
 		var axisHtml;
 
-        global_users.sort(function(a, b) { return a.last_name > b.last_name } );
+		// Calculate the time for each slot
+		while (slotTime < this.maxTime) {
+			slotDate = this.start.clone().time(slotTime); // will be in UTC but that's good. to avoid DST issues
+			minutes = slotDate.minutes();
 
-        for (i in global_users) {
-
-            var currPerson = global_users[i];
-            var name = currPerson.first_name + " "  + currPerson.last_name;
-
-            axisHtml =
+			axisHtml =
 				'<td class="fc-axis fc-time ' + view.widgetContentClass + '" ' + view.axisStyleAttr() + '>' +
+					((!slotNormal || !minutes) ? // if irregular slot duration, or on the hour, then display the time
 						'<span>' + // for matchCellWidths
-							htmlEscape(name) +
-						'</span>' +	'</td>';
+							htmlEscape(slotDate.format(this.axisFormat)) +
+						'</span>' :
+						''
+						) +
+				'</td>';
 
 			html +=
-				'<tr>' +
+				'<tr ' + (!minutes ? '' : 'class="fc-minor"') + '>' +
 					(!isRTL ? axisHtml : '') +
 					'<td class="' + view.widgetContentClass + '"/>' +
 					(isRTL ? axisHtml : '') +
 				"</tr>";
 
-        }
+			slotTime.add(this.slotDuration);
+		}
 
 		return html;
 	},
@@ -6903,7 +6908,6 @@ function Calendar(element, instanceOptions) {
 	t.reportEventChange = reportEventChange;
 	t.rerenderEvents = renderEvents; // `renderEvents` serves as a rerender. an API method
 	t.changeView = changeView;
-	t.redrawView = redrawView;
 	t.select = select;
 	t.unselect = unselect;
 	t.prev = prev;
@@ -7189,21 +7193,13 @@ function Calendar(element, instanceOptions) {
 		renderView(0, viewType);
 	}
 
-    
-    // Forced changeView() to the same view to re-render the calendar.
-    // NOTE: this rebuilds the whole calendar, for redisplaying events use re(fetch|render)Events().
-    function redrawView() {
-        renderView(0, currentView.type, true);
-    }
-
 
 	// Renders a view because of a date change, view-type change, or for the first time
-	function renderView(delta, viewType, redraw) {
-        if (typeof redraw === 'undefined') redraw = false;
+	function renderView(delta, viewType) {
 		ignoreWindowResize++;
 
 		// if viewType is changing, destroy the old view
-		if ((currentView && viewType && currentView.type !== viewType) || redraw) {
+		if (currentView && viewType && currentView.type !== viewType) {
 			header.deactivateButton(currentView.type);
 			freezeContentHeight(); // prevent a scroll jump when view element is removed
 			if (currentView.start) { // rendered before?
@@ -7234,8 +7230,7 @@ function Calendar(element, instanceOptions) {
 			if (
 				!currentView.start || // never rendered before
 				delta || // explicit date window change
-				!date.isWithin(currentView.intervalStart, currentView.intervalEnd || // implicit date window change
-                redraw) // explicit forced redraw
+				!date.isWithin(currentView.intervalStart, currentView.intervalEnd) // implicit date window change
 			) {
 				if (elementVisible()) {
 
@@ -9383,7 +9378,6 @@ fcViews.basicDay = {
 setDefaults({
 	allDaySlot: true,
 	allDayText: 'all-day',
-    myName: 'Me', //TODO: CHange its place?
 	scrollTime: '06:00:00',
 	slotDuration: '00:30:00',
 	minTime: '00:00:00',
@@ -9543,12 +9537,11 @@ fcViews.agenda = View.extend({ // AgendaView
 
 	// Generates the HTML that goes before the all-day cells.
 	// Queried by the DayGrid subcomponent when generating rows. Ordering depends on isRTL.
-    //TODO: Maybe the name of logged user should be downloaded here and than inserted?
 	dayIntroHtml: function() {
 		return '' +
 			'<td class="fc-axis ' + this.widgetContentClass + '" ' + this.axisStyleAttr() + '>' +
 				'<span>' + // needed for matchCellWidths
-					(this.opt('allDayHtml') || htmlEscape(this.opt('myName'))) +
+					(this.opt('allDayHtml') || htmlEscape(this.opt('allDayText'))) +
 				'</span>' +
 			'</td>';
 	},
