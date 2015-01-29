@@ -1,5 +1,5 @@
 function selectf(begin, end) {
-	// console.log("selectf")
+	// console.debug("selectf")
 	var range1 = { begin: begin, end: end };
 	$(".s_range").each(function(index) {
 		var range2 = { begin: moment($(this).attr("s_begin")), end: moment($(this).attr("s_end"))}
@@ -12,11 +12,8 @@ function selectf(begin, end) {
     var begin_str = range1.begin.format('YYYY-MM-DD');
     var end_str = range1.end.format('YYYY-MM-DD');
 
-    console.log(range1);
-    console.log(range1.begin);
-
     var days_between = range1.end.diff(range1.begin, 'days');
-    console.log(days_between);
+    console.debug(days_between);
 
     $('#absence_select').append(''
         + '<a href="#" class="s_range list-group-item rm-absence-selection" '
@@ -30,14 +27,14 @@ function selectf(begin, end) {
     // sorting after every entry, fuck the poverty!
     
     function comp(a,b) {
-    	// console.log("comp")
+    	// console.debug("comp")
      	return ($(b).attr("s_begin") < $(a).attr("s_begin")) ?  1 : -1
      }
     $('#absence_select a').sort(comp).appendTo('#absence_select');
 }
 
 function unselectf(view, jsEvent) {
-	console.log("unselectf");
+	console.debug("unselectf");
 	$('#yourCalendar').fullCalendar('unselect');
 }
 
@@ -63,15 +60,15 @@ function join_ranges(range1, range2) {
 }
 
 $(document).on('click', '.rm-absence-selection', function(){
-	console.log('removing selected range');
+	console.debug('removing selected range');
 	// if someone has more stupid idea to refresh all selected days, please show me
 	$(this).remove();
 	$('#calendar').fullCalendar('next');
 	$('#calendar').fullCalendar('prev');
 	
 	$(".s_range").each(function(index) {
-		console.log($(this).attr("s_begin"));
-		console.log($(this).attr("s_end"));
+		console.debug($(this).attr("s_begin"));
+		console.debug($(this).attr("s_end"));
 		m1 = moment($(this).attr("s_begin"));
 		m2 = moment($(this).attr("s_end"));
 		$('#calendar').fullCalendar('select', m1, m2)
