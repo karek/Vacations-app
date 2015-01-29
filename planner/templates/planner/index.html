@@ -3,26 +3,29 @@
 {% load staticfiles %}
 
 {% block content %}
-    <div>
-        <form id='plan-absence' method='POST' action='{% url 'planner:plan-absence' %}' >
-            {% csrf_token %}
-            <h3> Planned absence: </h3> <br>
-            <ul id='absence_select'>
-
-            </ul>
-            <input type='submit' name='book-value-submit' value='plan absence' class='btn btn-primary'/>
-        </form>
-    </div>    
-    <br><br>
-    <div id='calendar'></div>
-    {% comment %} TODO: remove this when we no longer need such debug output. {% endcomment %}
-    <div>
-        <h3> Currently booked: </h3>
-        <ul id='all_ranges'>
-        </ul>
+<div class="row">
+    <div class="col-lg-9">
+        <div id='calendar'></div>
     </div>
+    <div class="col-lg-3">
+        <h2 style="margin-top: 0px;" align="center">Selected absence</h2>
+        <form id='plan-absence' method='POST' action="{% url 'planner:plan-absence' %}">
+            {% csrf_token %}
+            <div id='absence_select' class="list-group">
+            </div>
+            <input type='submit' name='book-value-submit' value='Plan Absence' class='btn btn-primary'/>
+        </form>
+    </div>
+</div>
 
-    
+{% comment %} TODO: remove this when we no longer need such debug output. {% endcomment %}
+<div>
+    <h3> Currently booked: </h3>
+    <ul id='all_ranges'>
+    </ul>
+</div>
+
+
 {% endblock %}
 
 {% block scripts %}
