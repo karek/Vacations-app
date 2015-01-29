@@ -1,13 +1,24 @@
+function log_date(msg, date) {
+    console.debug(msg + " " + date.format("YYYY-MM-DD HH:mm:ss:SS") + " | " + date);
+}
+
 function selectf(begin, end) {
 	// console.debug("selectf")
-	var range1 = { begin: begin, end: end };
+    log_date("selectf.begin:", begin);
+    log_date("selectf.end:", end);
+	var range1 = { begin: moment(begin.format('YYYY-MM-DD')), end: moment(end.format('YYYY-MM-DD')) };
 	$(".s_range").each(function(index) {
-		var range2 = { begin: moment($(this).attr("s_begin")), end: moment($(this).attr("s_end"))}
+		var range2 = { begin: moment($(this).attr("s_begin")), end: moment($(this).attr("s_end"))};
+        log_date("---loop range2.begin:", range2.begin);
+        log_date("---loop range2.end:", range2.end);
 		if (!if_disjoint(range1, range2)) {
 			range1 = join_ranges(range1, range2);
 			this.remove();
 		}
 	});
+
+    log_date("after disjoints .begin:", range1.begin);
+    log_date("after disjoints .end:", range1.end);
 
     var begin_str = range1.begin.format('YYYY-MM-DD');
     var end_str = range1.end.format('YYYY-MM-DD');
