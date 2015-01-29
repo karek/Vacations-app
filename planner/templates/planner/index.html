@@ -9,11 +9,17 @@
     </div>
     <div class="col-lg-3">
         <h2 style="margin-top: 0px;" align="center">Selected absence</h2>
-        <form id='plan-absence' method='POST' action="{% url 'planner:plan-absence' %}">
+        <form align="center" id='plan-absence' method='POST' action="{% url 'planner:plan-absence' %}">
             {% csrf_token %}
             <div id='absence_select' class="list-group">
             </div>
-            <input type='submit' name='book-value-submit' value='Plan Absence' class='btn btn-primary'/>
+            <div class="form-actions"  style="text-align: center;">
+                {% if request.user.is_authenticated %}
+                <input type='submit' name='book-value-submit' value='Plan Absence' class='btn btn-primary'/>
+                {% else %}
+                <p>You have to be logged in to plan absences.</p>
+                {% endif %}
+            </div>
         </form>
     </div>
 </div>
