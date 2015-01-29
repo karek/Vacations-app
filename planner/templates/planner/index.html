@@ -9,7 +9,7 @@
     </div>
     <div class="col-lg-3">
         <h2 style="margin-top: 0px;" align="center">Selected absence</h2>
-        <form align="center" id='plan-absence' method='POST' action="{% url 'planner:plan-absence' %}">
+        <form id='plan-absence' method='POST' action="{% url 'planner:plan-absence' %}">
             {% csrf_token %}
             <div id='absence_select' class="list-group">
             </div>
