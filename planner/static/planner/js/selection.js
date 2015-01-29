@@ -12,14 +12,20 @@ function selectf(begin, end) {
     var begin_str = range1.begin.format('YYYY-MM-DD');
     var end_str = range1.end.format('YYYY-MM-DD');
 
-    $('#absence_select').append('<li class="s_range" s_begin=\'' + begin_str
-    	+ '\' s_end=\'' + end_str + '\'>'
-    	+ range1.begin.format('DD MMM') + ' -- ' 
-    	+ range1.end.format('DD MMM') 
-    	+ '<div class="btn btn-danger btn-xs btn-remove"> Delete </div>'
+    console.log(range1);
+    console.log(range1.begin);
+
+    var days_between = range1.end.diff(range1.begin, 'days');
+    console.log(days_between);
+
+    $('#absence_select').append(''
+        + '<a href="#" class="s_range list-group-item rm-absence-selection" '
+        + 's_begin=\'' + begin_str + '\' s_end=\'' + end_str + '\'>'
+        + '<span class="badge">' + days_between + '</span>'
+    	+ range1.begin.format('DD MMM') + ' - ' + range1.end.format('DD MMM')
         + '<input type="hidden" name="begin[]" value="' + begin_str + '" />'
         + '<input type="hidden" name="end[]" value="' + end_str + '" />'
-     	+ '</li>')
+     	+ '</a>');
 
     // sorting after every entry, fuck the poverty!
     
@@ -56,10 +62,10 @@ function join_ranges(range1, range2) {
 		return {begin: range1.begin, end: range1.end }; // 1.
 }
 
-$(document).on('click', '.btn-remove', function(){
+$(document).on('click', '.rm-absence-selection', function(){
 	console.log('removing selected range');
 	// if someone has more stupid idea to refresh all selected days, please show me
-	$(this).parent().remove()
+	$(this).remove();
 	$('#calendar').fullCalendar('next');
 	$('#calendar').fullCalendar('prev');
 	
