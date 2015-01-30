@@ -11,7 +11,7 @@
         <h2 style="margin-top: 0px;" align="center">Selected absence</h2>
         <form id='plan-absence' method='POST' action="{% url 'planner:plan-absence' %}">
             {% csrf_token %}
-            <div id='absence_select' class="list-group">
+            <div id='absence_select' class="list-group" style="padding-top: 9px">
             </div>
             <div class="form-actions"  style="text-align: center;">
                 {% if request.user.is_authenticated %}

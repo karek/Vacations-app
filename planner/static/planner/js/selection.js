@@ -9,8 +9,8 @@ function selectf(begin, end) {
 	var range1 = { begin: moment(begin.format('YYYY-MM-DD')), end: moment(end.format('YYYY-MM-DD')) };
 	$(".s_range").each(function(index) {
 		var range2 = { begin: moment($(this).attr("s_begin")), end: moment($(this).attr("s_end"))};
-        log_date("---loop range2.begin:", range2.begin);
-        log_date("---loop range2.end:", range2.end);
+        log_date("--- loop range2.begin:", range2.begin);
+        log_date("    loop range2.end:  ", range2.end);
 		if (!if_disjoint(range1, range2)) {
 			range1 = join_ranges(range1, range2);
 			this.remove();
@@ -29,16 +29,15 @@ function selectf(begin, end) {
     $('#absence_select').append(''
         + '<a href="#" class="s_range list-group-item rm-absence-selection" '
         + 's_begin=\'' + begin_str + '\' s_end=\'' + end_str + '\'>'
-        + '<span class="badge">' + days_between + '</span>'
     	+ range1.begin.format('DD MMM') + ' - ' + range1.end.format('DD MMM')
+        + ' <span class="badge">' + days_between
+//        + ' <span class="glyphicon glyphicon-remove"></span>'
+        + '</span>'
         + '<input type="hidden" name="begin[]" value="' + begin_str + '" />'
         + '<input type="hidden" name="end[]" value="' + end_str + '" />'
      	+ '</a>');
 
-    // sorting after every entry, fuck the poverty!
-    
     function comp(a,b) {
-    	// console.debug("comp")
      	return ($(b).attr("s_begin") < $(a).attr("s_begin")) ?  1 : -1
      }
     $('#absence_select a').sort(comp).appendTo('#absence_select');
