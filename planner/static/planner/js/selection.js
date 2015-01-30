@@ -23,13 +23,31 @@ function selectf(begin, end) {
     var begin_str = range1.begin.format('YYYY-MM-DD');
     var end_str = range1.end.format('YYYY-MM-DD');
 
+    var display_date = {begin: moment(range1.begin), end: moment(range1.end)};
+    display_date.end.subtract(1, "days");
+
+    log_date("display_date.begin:", display_date.begin);
+    log_date("display_date.end:", display_date.end);
+
     var days_between = range1.end.diff(range1.begin, 'days');
     console.debug(days_between);
+
+    var display_range_str;
+
+    if (days_between == 1) {
+        display_range_str = display_date.begin.format('DD MMM');
+    } else {
+        if (display_date.begin.month() == display_date.end.month()) {
+            display_range_str = display_date.begin.format('DD') + ' - ' + display_date.end.format('DD MMM');
+        } else {
+            display_range_str = display_date.begin.format('DD MMM') + ' - ' + display_date.end.format('DD MMM');
+        }
+    }
 
     $('#absence_select').append(''
         + '<a href="#" class="s_range list-group-item rm-absence-selection" '
         + 's_begin=\'' + begin_str + '\' s_end=\'' + end_str + '\'>'
-    	+ range1.begin.format('DD MMM') + ' - ' + range1.end.format('DD MMM')
+    	+ display_range_str
         + ' <span class="badge">' + days_between
 //        + ' <span class="glyphicon glyphicon-remove"></span>'
         + '</span>'
