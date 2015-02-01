@@ -49,7 +49,7 @@ function selectf(begin, end) {
         + 's_begin=\'' + begin_str + '\' s_end=\'' + end_str + '\'>'
     	+ display_range_str
         + ' <span class="badge">' + days_between
-//        + ' <span class="glyphicon glyphicon-remove"></span>'
+       + ' <span class="glyphicon glyphicon-remove"></span>'
         + '</span>'
         + '<input type="hidden" name="begin[]" value="' + begin_str + '" />'
         + '<input type="hidden" name="end[]" value="' + end_str + '" />'
@@ -99,7 +99,7 @@ $(document).on('click', '.rm-absence-selection', function(){
 		console.debug($(this).attr("s_end"));
 		m1 = moment($(this).attr("s_begin"));
 		m2 = moment($(this).attr("s_end"));
-		$('#calendar').fullCalendar('select', m1, m2)
+		$('#calendar').fullCalendar('select', m1, m2);
 	})
 
 	
