@@ -5989,9 +5989,23 @@ var CustomResourceGrid = TimeGrid.extend({
 
 		// Calculate the time for each slot
         for (i in global_users) {
+
             var currPerson = global_users[i];
             var name = currPerson.first_name + " "  + currPerson.last_name;
+
             axisHtml =
+				'<td class="fc-axis fc-time ' + view.widgetContentClass + '" ' + view.axisStyleAttr() + '>' +
+						'<span>' + // for matchCellWidths
+							htmlEscape(name) +
+						'</span>' +	'</td>';
+
+			html +=
+				'<tr>' +
+					(!isRTL ? axisHtml : '') +
+					'<td class="' + view.widgetContentClass + '"/>' +
+					(isRTL ? axisHtml : '') +
+				"</tr>";
+
         }
 
 		return html;
@@ -6953,6 +6967,7 @@ function Calendar(element, instanceOptions) {
 	t.reportEventChange = reportEventChange;
 	t.rerenderEvents = renderEvents; // `renderEvents` serves as a rerender. an API method
 	t.changeView = changeView;
+    t.redrawView = redrawView;
 	t.select = select;
 	t.unselect = unselect;
 	t.prev = prev;
@@ -7238,13 +7253,20 @@ function Calendar(element, instanceOptions) {
 		renderView(0, viewType);
 	}
 
+    // Forced changeView() to the same view to re-render the calendar.
+    // NOTE: this rebuilds the whole calendar, for redisplaying events use re(fetch|render)Events().
+    function redrawView() {
+        renderView(0, currentView.type, true);
+    }
 
 	// Renders a view because of a date change, view-type change, or for the first time
-	function renderView(delta, viewType) {
+	function renderView(delta, viewType, redraw) {
+
+        if (typeof redraw === 'undefined') redraw = false;
 		ignoreWindowResize++;
 
 		// if viewType is changing, destroy the old view
-		if (currentView && viewType && currentView.type !== viewType) {
+		if ((currentView && viewType && currentView.type !== viewType) || redraw)  {
 			header.deactivateButton(currentView.type);
 			freezeContentHeight(); // prevent a scroll jump when view element is removed
 			if (currentView.start) { // rendered before?
@@ -7275,7 +7297,8 @@ function Calendar(element, instanceOptions) {
 			if (
 				!currentView.start || // never rendered before
 				delta || // explicit date window change
-				!date.isWithin(currentView.intervalStart, currentView.intervalEnd) // implicit date window change
+				!date.isWithin(currentView.intervalStart, currentView.intervalEnd || // implicit date window change
+                redraw) // explicit forced redraw
 			) {
 				if (elementVisible()) {
 
@@ -9423,6 +9446,7 @@ fcViews.basicDay = {
 setDefaults({
 	allDaySlot: true,
 	allDayText: 'all-day',
+    myName: 'Me', //Just for now
 	scrollTime: '06:00:00',
 	slotDuration: '00:30:00',
 	minTime: '00:00:00',
@@ -9587,7 +9611,7 @@ fcViews.agenda = View.extend({ // AgendaView
 		return '' +
 			'<td class="fc-axis ' + this.widgetContentClass + '" ' + this.axisStyleAttr() + '>' +
 				'<span>' + // needed for matchCellWidths
-					(this.opt('allDayHtml') || htmlEscape(this.opt('allDayText'))) +
+                    (this.opt('allDayHtml') || htmlEscape(this.opt('myName'))) +
 				'</span>' +
 			'</td>';
 	},
