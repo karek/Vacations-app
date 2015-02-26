@@ -4,7 +4,7 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 
-from planner.models import EmailUser
+from planner.models import EmailUser, Absence, AbsenceRange
 
 class UserCreationForm(forms.ModelForm):
     """A form for creating new users. Includes all the required
@@ -82,6 +82,8 @@ class EmailUserAdmin(UserAdmin):
 
 # Now register the new UserAdmin...
 admin.site.register(EmailUser, EmailUserAdmin)
+admin.site.register(Absence)
+admin.site.register(AbsenceRange)
 # ... and, since we're not using Django's built-in permissions,
 # unregister the Group model from admin.
 admin.site.unregister(Group)

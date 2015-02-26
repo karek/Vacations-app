@@ -3,38 +3,50 @@
 {% load staticfiles %}
 
 {% block content %}
-    <div>
-        <form id='plan-absence' method='POST' action='{% url 'planner:plan-absence' %}' >
-            {% csrf_token %}
-            <h3> Planned absence: </h3> <br>
-            <ul id='absence_select'>
-
-            </ul>
-            <input type='submit' name='book-value-submit' value='plan absence' class='btn btn-primary'/>
-        </form>
-    </div>    
-    <br><br>
-    <div id='calendar'></div>
-    {% comment %} TODO: remove this when we no longer need such debug output. {% endcomment %}
-    <div>
-        <h3> Currently booked: </h3>
-        <ul id='all_ranges'>
-        </ul>
+<div class="row">
+    <div class="col-lg-9">
+        <div id='calendar'></div>
     </div>
+    <div class="col-lg-3">
+        <h2 style="margin-top: 0px;" align="center">Selected absence</h2>
+        <form id='plan-absence' method='POST' action="{% url 'planner:plan-absence' %}">
+            {% csrf_token %}
+            <div id='absence_select' class="list-group" style="padding-top: 9px">
+            </div>
+            <div class="form-actions"  style="text-align: center;">
+                {% if request.user.is_authenticated %}
+                <input type='submit' name='book-value-submit' value='Plan Absence' class='btn btn-primary'/>
+                {% else %}
+                <p>You have to be logged in to plan absences.</p>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
 
-    
+{% comment %} TODO: remove this when we no longer need such debug output. {% endcomment %}
+<div>
+    <h3> Currently booked: </h3>
+    <ul id='all_ranges'>
+    </ul>
+</div>
+
+
 {% endblock %}
 
 {% block scripts %}
-    {{ block.super }}
-    <script type="text/javascript">
-        global_user_url = {% url 'planner:user' %};
-        global_range_url = {% url 'planner:range' %};
-    </script>
-    <script src="{% static 'planner/js/moment.min.js' %}"></script>
-    <script src="{% static 'planner/js/fullcalendar.js' %}"></script>
-    <script src="{% static 'planner/js/selection.js' %}"></script>
-    <script src="{% static 'planner/js/ajaxes.js' %}"></script>
+{{ block.super }}
+<script src="{% static 'planner/js/moment.min.js' %}"></script>
+<script src="{% static 'planner/js/fullcalendar.js' %}"></script>
+<script src="{% static 'planner/js/selection.js' %}"></script>
+<script src="{% static 'planner/js/ajaxes.js' %}"></script>
+<script type="text/javascript">
+    global_user_url = {% url 'planner:user' %};
+    global_range_url = {% url 'planner:range' %};
+    {% autoescape off %}
+    saveUserData({{ users }});
+    {% endautoescape %}
+</script>
 {% endblock %}
 
 {% block calendarDeclaration %}
@@ -52,30 +64,11 @@
             unselectAuto: false, // no autoclearing selection after clickng on page(not enough though)
             unSelectCancel: '.fc-day',
             select: selectf, // our function for select
-            unselect: unselectf // our function for clearing selection
-        });
-        // action on delete range button
-        $('.btn').click(function() {
-            console.log("dupa");
-        })
-        // load users, then ranges, then display them (for now)
-        // TODO: remove this displaying when showing on calendar works
-        // TODO: change dates to whatever the calendar displays
-        getAllUsers(function(data) {
-            console.debug('redrawing calendar');
-            $('#calendar').fullCalendar('redrawView')
-            getAbsencesBetween('{{ month_begin }}', '{{ month_end }}', [], function(data) {
-                console.debug('showing ranges');
-                for (i in data) {
-                    console.debug('appending range, i=' + i);
-                    var uid = data[i].user_id;
-                    var li = '<li>from ' + data[i].begin + ' to ' + data[i].end + ', by '
-                        + global_users_by_id[uid].full_name + ' (' + global_users_by_id[uid].email + ')'
-                        + '</li>';
-                    $('#all_ranges').append(li);
-                }
-            })
+            unselect: unselectf, // our function for clearing selection
+            events: {
+                events: getAbsencesForCalendar
+            }
         });
     });
-    </script>
+</script>
 {% endblock %}

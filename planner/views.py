@@ -1,17 +1,14 @@
 from calendar import monthrange
 from datetime import date
 
-from django.core import serializers
 from django.core.exceptions import ValidationError
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, get_user_model
 from django.contrib.messages.views import SuccessMessageMixin
 from django.http.response import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import render
-from django.utils.datastructures import MultiValueDictKeyError
 from django.views.generic.base import View
 from django.views.generic.edit import FormView
-
 from planner.forms import RegisterForm
 from planner.models import Absence, AbsenceRange
 from planner.utils import InternalError, stringToDate, dateToString, objListToJson
@@ -25,6 +22,7 @@ class IndexView(View):
         context = {
             'month_begin': dateToString(month_begin),
             'month_end': dateToString(month_end),
+            'users': objListToJson(get_user_model().objects.all()),
         }
         return render(request, 'planner/index.html', context)
 
@@ -34,6 +32,11 @@ class RegisterView(SuccessMessageMixin, FormView):
     template_name = 'planner/register.html'
     success_url = '/'
     success_message = "Account has been created successfully."
+
+    def get_initial(self):
+        initial = super(RegisterView, self).get_initial()
+        initial['email'] = self.request.GET.get('email','')
+        return initial
 
     def form_valid(self, form):
         form.save()
@@ -58,7 +61,6 @@ def user_login(request):
 
 
 class PlanAbsenceView(View):
-
     def get(self, request, *args, **kwargs):
         """ Redirect to index, just in case. """
         return HttpResponseRedirect('/')
@@ -68,7 +70,7 @@ class PlanAbsenceView(View):
             if not request.user.is_authenticated():
                 raise InternalError("You must log in to plan absences.")
             ranges = self.validateRanges(request.POST.getlist('begin[]'),
-                    request.POST.getlist('end[]'))
+                                         request.POST.getlist('end[]'))
             self.addVacation(request.user, ranges)
             messages.success(request, 'Absence booked successfully.')
         except InternalError as e:
