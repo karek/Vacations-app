@@ -5216,6 +5216,7 @@ DayGrid.mixin({
 
 ;;
 
+
 /* A component that renders one or more columns of vertical time slots
 ----------------------------------------------------------------------------------------------------------------------*/
 
@@ -5955,6 +5956,64 @@ TimeGrid.mixin({
 	}
 
 });
+
+
+    /* A component that renders rows with custom values given by json (atm. Global Users)
+----------------------------------------------------------------------------------------------------------------------*/
+
+var CustomResourceGrid = TimeGrid.extend({
+
+
+    renderHtml: function() {
+		return '' +
+			'<div class="fc-bg">' +
+				'<table>' +
+					this.rowHtml('slotBg') + // leverages RowRenderer, which will call slotBgCellHtml
+				'</table>' +
+			'</div>' +
+			'<div class="fc-slats" id="slats">' +
+				'<table>' +
+					this.slatRowHtml() +
+				'</table>' +
+			'</div>';
+	},
+
+    // Generates the HTML for the horizontal "slats" that run width-wise. Has a person axis on a side. Depends on RTL.
+    slatRowHtml: function() {
+		var view = this.view;
+		var isRTL = this.isRTL;
+		var html = '';
+		var axisHtml;
+
+        global_users.sort(function(a, b) { return a.last_name > b.last_name } );
+
+		// Calculate the time for each slot
+        for (i in global_users) {
+
+            var currPerson = global_users[i];
+            var name = currPerson.first_name + " "  + currPerson.last_name;
+
+            axisHtml =
+				'<td class="fc-axis fc-time ' + view.widgetContentClass + '" ' + view.axisStyleAttr() + '>' +
+						'<span>' + // for matchCellWidths
+							htmlEscape(name) +
+						'</span>' +	'</td>';
+
+			html +=
+				'<tr>' +
+					(!isRTL ? axisHtml : '') +
+					'<td class="' + view.widgetContentClass + '"/>' +
+					(isRTL ? axisHtml : '') +
+				"</tr>";
+
+        }
+
+		return html;
+    }
+
+});;
+
+
 
 
 // Given an array of segments that are all in the same column, sets the backwardCoord and forwardCoord on each.
@@ -6908,6 +6967,7 @@ function Calendar(element, instanceOptions) {
 	t.reportEventChange = reportEventChange;
 	t.rerenderEvents = renderEvents; // `renderEvents` serves as a rerender. an API method
 	t.changeView = changeView;
+    t.redrawView = redrawView;
 	t.select = select;
 	t.unselect = unselect;
 	t.prev = prev;
@@ -7193,13 +7253,20 @@ function Calendar(element, instanceOptions) {
 		renderView(0, viewType);
 	}
 
+    // Forced changeView() to the same view to re-render the calendar.
+    // NOTE: this rebuilds the whole calendar, for redisplaying events use re(fetch|render)Events().
+    function redrawView() {
+        renderView(0, currentView.type, true);
+    }
 
 	// Renders a view because of a date change, view-type change, or for the first time
-	function renderView(delta, viewType) {
+	function renderView(delta, viewType, redraw) {
+
+        if (typeof redraw === 'undefined') redraw = false;
 		ignoreWindowResize++;
 
 		// if viewType is changing, destroy the old view
-		if (currentView && viewType && currentView.type !== viewType) {
+		if ((currentView && viewType && currentView.type !== viewType) || redraw)  {
 			header.deactivateButton(currentView.type);
 			freezeContentHeight(); // prevent a scroll jump when view element is removed
 			if (currentView.start) { // rendered before?
@@ -7230,7 +7297,8 @@ function Calendar(element, instanceOptions) {
 			if (
 				!currentView.start || // never rendered before
 				delta || // explicit date window change
-				!date.isWithin(currentView.intervalStart, currentView.intervalEnd) // implicit date window change
+				!date.isWithin(currentView.intervalStart, currentView.intervalEnd || // implicit date window change
+                redraw) // explicit forced redraw
 			) {
 				if (elementVisible()) {
 
@@ -9378,6 +9446,7 @@ fcViews.basicDay = {
 setDefaults({
 	allDaySlot: true,
 	allDayText: 'all-day',
+    myName: 'Me', //Just for now
 	scrollTime: '06:00:00',
 	slotDuration: '00:30:00',
 	minTime: '00:00:00',
@@ -9391,7 +9460,7 @@ fcViews.agenda = View.extend({ // AgendaView
 
 	timeGrid: null, // the main time-grid subcomponent of this view
 	dayGrid: null, // the "all-day" subcomponent. if all-day is turned off, this will be null
-
+    customGrid: null,
 	axisWidth: null, // the width of the time axis running down the side
 
 	noScrollRowEls: null, // set of fake row elements that must compensate when scrollerEl has scrollbars
@@ -9402,7 +9471,8 @@ fcViews.agenda = View.extend({ // AgendaView
 
 
 	initialize: function() {
-		this.timeGrid = new TimeGrid(this);
+        this.customGrid = new CustomResourceGrid(this)
+		this.timeGrid = this.customGrid;  //new TimeGrid(this);
 
 		if (this.opt('allDaySlot')) { // should we display the "all-day" area?
 			this.dayGrid = new DayGrid(this); // the all-day subcomponent of this view
@@ -9541,7 +9611,7 @@ fcViews.agenda = View.extend({ // AgendaView
 		return '' +
 			'<td class="fc-axis ' + this.widgetContentClass + '" ' + this.axisStyleAttr() + '>' +
 				'<span>' + // needed for matchCellWidths
-					(this.opt('allDayHtml') || htmlEscape(this.opt('allDayText'))) +
+                    (this.opt('allDayHtml') || htmlEscape(this.opt('myName'))) +
 				'</span>' +
 			'</td>';
 	},
