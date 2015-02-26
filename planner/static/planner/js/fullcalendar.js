@@ -5963,6 +5963,7 @@ TimeGrid.mixin({
 
 var CustomResourceGrid = TimeGrid.extend({
 
+    dayMousedown: function() {},
 
     renderHtml: function() {
 		return '' +
