@@ -20,6 +20,15 @@ function selectf(begin, end) {
     log_date("after disjoints .begin:", range1.begin);
     log_date("after disjoints .end:", range1.end);
 
+    // substract reserved absence
+    var range_list = [range1]
+    var absence_list = []
+    getAbsencesBetween(range1.begin.format('YYYY-MM-DD'), range1.end.format('YYYY-MM-DD'), global_logged_user_id, function(data){
+        absence_list = data.map(mapAjaxAbsenceToRange);
+        console.debug(absence_list);
+    })
+    console.debug(absence_list);
+
     var begin_str = range1.begin.format('YYYY-MM-DD');
     var end_str = range1.end.format('YYYY-MM-DD');
 
@@ -85,6 +94,24 @@ function join_ranges(range1, range2) {
 		return {begin: range1.begin, end: range2.end }; // 2.
 	else
 		return {begin: range1.begin, end: range1.end }; // 1.
+}
+
+// substract_ranges :: { begin: moment, end: moment} , {begin: moment, end: moment}, [{begin: moment, end: moment}] -> void
+function substract_ranges(range1, range2, rangelist) {
+    if (range1.begin > range2.begin)
+        substract_ranges(range2, range1, rangelist);
+    if (range2.end < range1.end) {
+        rangelist.push({begin: range1.begin, end: range2.begin})
+        rangelist.push({begin: range2.end, end: range1.end})
+    }
+    if (range2.begin < range1.end)
+        rangelist.push({begin: range1.begin, end: range2.begin});
+
+}
+
+function mapAjaxAbsenceToRange(absence) {
+    return { begin: moment(absence.begin), 
+             end: moment(absence.end) };
 }
 
 $(document).on('click', '.rm-absence-selection', function(){

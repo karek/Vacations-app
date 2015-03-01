@@ -1,8 +1,8 @@
 // Get and save absence ranges, and execute the function on them.
 // Pass empty users array to get everyone's absences.
 function getAbsencesBetween(begin, end, users, on_success) {
-    var req_url = global_range_url + '?begin=' + begin + '&end=' + end;
-    for (var i in users) req_url += '&user[]=' + users[i];
+    var req_url = global_range_url + '?begin=' + begin + '&end=' + end
+    for (var i in users) req_url += '&user[]=' + users[i]; 
     console.debug('ajax url: ' + req_url);
     $.ajax({
         type: "GET",
