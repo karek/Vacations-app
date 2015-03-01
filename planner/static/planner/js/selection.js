@@ -20,14 +20,21 @@ function selectf(begin, end) {
     log_date("after disjoints .begin:", range1.begin);
     log_date("after disjoints .end:", range1.end);
 
-    // substract reserved absence
-    var range_list = [range1]
+    // subtract reserved absence
+    // if user not logged in leave empty array -- there is nothing to subtract anyway
     var absence_list = []
-    getAbsencesBetween(range1.begin.format('YYYY-MM-DD'), range1.end.format('YYYY-MM-DD'), global_logged_user_id, function(data){
-        absence_list = data.map(mapAjaxAbsenceToRange);
+    if (global_logged_user_id !== null) {
+        var range_list = [range1]
+        getAbsencesBetween(
+                range1.begin.format('YYYY-MM-DD'),
+                range1.end.format('YYYY-MM-DD'),
+                [global_logged_user_id],
+                function(data){
+            absence_list = data.map(mapAjaxAbsenceToRange);
+            console.debug(absence_list);
+        });
         console.debug(absence_list);
-    })
-    console.debug(absence_list);
+    }
 
     var begin_str = range1.begin.format('YYYY-MM-DD');
     var end_str = range1.end.format('YYYY-MM-DD');

@@ -43,6 +43,11 @@
 <script type="text/javascript">
     global_user_url = {% url 'planner:user' %};
     global_range_url = {% url 'planner:range' %};
+    {% if request.user.is_authenthicated %}
+        global_logged_user_id = {{ request.user.id }};
+    {% else %}
+        global_logged_user_id = null;
+    {% endif %}
     {% autoescape off %}
     saveUserData({{ users }});
     {% endautoescape %}
