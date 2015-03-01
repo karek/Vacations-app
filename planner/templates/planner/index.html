@@ -43,10 +43,10 @@
 <script type="text/javascript">
     global_user_url = {% url 'planner:user' %};
     global_range_url = {% url 'planner:range' %};
-    {% if request.user.is_authenthicated %}
+    {% if request.user.is_authenticated %}
         global_logged_user_id = {{ request.user.id }};
     {% else %}
-        global_logged_user_id = null;
+        global_logged_user_id = -1;
     {% endif %}
     {% autoescape off %}
     saveUserData({{ users }});
@@ -69,6 +69,7 @@
             unSelectCancel: '.fc-day',
             select: selectf, // our function for select
             unselect: unselectf, // our function for clearing selection
+//            selectOverlap: checkSelectOverlap, // function for checking where selections can be made
             events: {
                 events: getAbsencesForCalendar
             }

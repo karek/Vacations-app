@@ -7,7 +7,7 @@ function selectf(begin, end) {
     log_date("selectf.begin:", begin);
     log_date("selectf.end:", end);
 	var range1 = { begin: moment(begin.format('YYYY-MM-DD')), end: moment(end.format('YYYY-MM-DD')) };
-	$(".s_range").each(function(index) {
+	$(".s_range").each(function(index) { 
 		var range2 = { begin: moment($(this).attr("s_begin")), end: moment($(this).attr("s_end"))};
         log_date("--- loop range2.begin:", range2.begin);
         log_date("    loop range2.end:  ", range2.end);
@@ -20,33 +20,47 @@ function selectf(begin, end) {
     log_date("after disjoints .begin:", range1.begin);
     log_date("after disjoints .end:", range1.end);
 
-    // subtract reserved absence
-    // if user not logged in leave empty array -- there is nothing to subtract anyway
-    var absence_list = []
-    if (global_logged_user_id !== null) {
-        var range_list = [range1]
-        getAbsencesBetween(
-                range1.begin.format('YYYY-MM-DD'),
-                range1.end.format('YYYY-MM-DD'),
-                [global_logged_user_id],
-                function(data){
-            absence_list = data.map(mapAjaxAbsenceToRange);
-            console.debug(absence_list);
-        });
-        console.debug(absence_list);
+    // subtract already reserved absences and really select what's left
+    for (var i in global_logged_users_absences) {
+        var cur_range = mapAjaxAbsenceToRange(global_logged_users_absences[i]);
+        subtracted = subtract_range(range1, cur_range);
+        console.debug("subtracted ", cur_range.begin, " - ", cur_range.end, " -> ", subtracted.length);
+        switch(subtracted.length) {
+            case 0: // current range covers whole remaining range, nothing more to do
+                range1 = null;
+                break;
+            case 1: // ranges are disjoint or current range cut only one end of the remaining range
+                range1 = subtracted[0];
+                break;
+            case 2:
+                // Current range split the remaining range. We assume that the stored ranges are
+                // sorted and disjoint, thus we know that the first range is ready for displyaing,
+                // but we must still check the latter one.
+                finalize_selectf(subtracted[0]);
+                range1 = subtracted[1];
+                break;
+            default:
+                console.error("this should never happen");
+        }
+        // stop if there is nothing left
+        if (range1 === null) break;
     }
+    // if it wasn't erased, the remaining range is also valid
+    if (range1 !== null) finalize_selectf(range1);
+}
 
-    var begin_str = range1.begin.format('YYYY-MM-DD');
-    var end_str = range1.end.format('YYYY-MM-DD');
+// finalize selectf's job on a cleaned and checked range
+function finalize_selectf(range) {
+    var begin_str = range.begin.format('YYYY-MM-DD');
+    var end_str = range.end.format('YYYY-MM-DD');
 
-    var display_date = {begin: moment(range1.begin), end: moment(range1.end)};
+    var display_date = {begin: moment(range.begin), end: moment(range.end)};
     display_date.end.subtract(1, "days");
 
     log_date("display_date.begin:", display_date.begin);
-    log_date("display_date.end:", display_date.end);
+    log_date("display_date.end:", display_date.end)
 
-    var days_between = range1.end.diff(range1.begin, 'days');
-    console.debug(days_between);
+    var days_between = range.end.diff(range.begin, 'days');
 
     var display_range_str;
 
@@ -103,17 +117,20 @@ function join_ranges(range1, range2) {
 		return {begin: range1.begin, end: range1.end }; // 1.
 }
 
-// substract_ranges :: { begin: moment, end: moment} , {begin: moment, end: moment}, [{begin: moment, end: moment}] -> void
-function substract_ranges(range1, range2, rangelist) {
-    if (range1.begin > range2.begin)
-        substract_ranges(range2, range1, rangelist);
-    if (range2.end < range1.end) {
-        rangelist.push({begin: range1.begin, end: range2.begin})
-        rangelist.push({begin: range2.end, end: range1.end})
+// Substract range2 from range1. Returns an array of zero, one or two ranges.
+function subtract_range(range1, range2) {
+    if (if_disjoint(range1, range2)) return [range1];
+    if (range2.begin <= range1.begin) {
+        // range2 completely covers range1
+        if (range2.end >= range1.end) return new Array();
+        // range2 covers only beginning of range1
+        return [{begin: range2.end, end: range1.end}];
+    } else {
+        // range2 covers only ending of range1
+        if (range2.end >= range1.end) return [{begin: range1.begin, end: range2.begin}];
+        // range2 splits range1 into two ranges
+        return [{begin: range1.begin, end: range2.begin}, {begin: range2.end, end: range1.end}];
     }
-    if (range2.begin < range1.end)
-        rangelist.push({begin: range1.begin, end: range2.begin});
-
 }
 
 function mapAjaxAbsenceToRange(absence) {
@@ -138,3 +155,11 @@ $(document).on('click', '.rm-absence-selection', function(){
 
 	
 })
+
+// When passed as 'selectOverlap' calendar's parameter, this function disallows selections
+// intersecting with user's current absences.
+function checkSelectOverlap(cal_event) {
+    console.debug("checkSelectOverlap for event #" + cal_event.id + ": " + cal_event.title + ", "
+            + cal_event.user_id);
+    return cal_event.user_id !== global_logged_user_id;
+}
