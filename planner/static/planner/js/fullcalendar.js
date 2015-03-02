@@ -61,6 +61,7 @@ var defaults = {
 		today: 'today',
 		month: 'month',
 		week: 'week',
+        weekWorkers: 'week', //TODO: Change this name later
 		day: 'day'
 	},
 
@@ -5994,6 +5995,10 @@ var CustomResourceGrid = TimeGrid.extend({
             var currPerson = global_users[i];
             var name = currPerson.first_name + " "  + currPerson.last_name;
 
+            if (currPerson.id == global_logged_user_id) {
+                continue;
+            }
+            
             axisHtml =
 				'<td class="fc-axis fc-time ' + view.widgetContentClass + '" ' + view.axisStyleAttr() + '>' +
 						'<span>' + // for matchCellWidths
@@ -6828,7 +6833,7 @@ var View = fc.View = Class.extend({
 
 	/* Date Utils
 	------------------------------------------------------------------------------------------------------------------*/
-
+//TODO: Hidden days
 
 	// Initializes internal variables related to calculating hidden days-of-week
 	initHiddenDays: function() {
@@ -9447,7 +9452,6 @@ fcViews.basicDay = {
 setDefaults({
 	allDaySlot: true,
 	allDayText: 'all-day',
-    myName: 'Me', //Just for now
 	scrollTime: '06:00:00',
 	slotDuration: '00:30:00',
 	minTime: '00:00:00',
@@ -9457,7 +9461,8 @@ setDefaults({
 
 var AGENDA_ALL_DAY_EVENT_LIMIT = 5;
 
-fcViews.agenda = View.extend({ // AgendaView
+
+var agendaView = fcViews.agenda = View.extend({ // AgendaView
 
 	timeGrid: null, // the main time-grid subcomponent of this view
 	dayGrid: null, // the "all-day" subcomponent. if all-day is turned off, this will be null
@@ -9612,7 +9617,7 @@ fcViews.agenda = View.extend({ // AgendaView
 		return '' +
 			'<td class="fc-axis ' + this.widgetContentClass + '" ' + this.axisStyleAttr() + '>' +
 				'<span>' + // needed for matchCellWidths
-                    (this.opt('allDayHtml') || htmlEscape(this.opt('myName'))) +
+                    (this.opt('allDayHtml') || htmlEscape(this.opt('allDayText'))) +
 				'</span>' +
 			'</td>';
 	},
@@ -9759,6 +9764,7 @@ fcViews.agenda = View.extend({ // AgendaView
 
 		// render the events in the subcomponents
 		timedSegs = this.timeGrid.renderEvents(timedEvents);
+        //TODO: Here it renders
 		if (this.dayGrid) {
 			daySegs = this.dayGrid.renderEvents(dayEvents);
 		}
@@ -9850,7 +9856,7 @@ fcViews.agenda = View.extend({ // AgendaView
 
 fcViews.agendaWeek = {
 	type: 'agenda',
-	duration: { weeks: 1 }
+	duration: { week: 1 }
 };
 ;;
 
@@ -9861,6 +9867,55 @@ fcViews.agendaDay = {
 	type: 'agenda',
 	duration: { days: 1 }
 };
+;;
+
+fcViews.Workers = agendaView.extend ({
+
+    dayIntroHtml: function() {
+		return '' +
+			'<td class="fc-axis ' + this.widgetContentClass + '" ' + this.axisStyleAttr() + '>' +
+				'<span>' + // needed for matchCellWidths
+                    (this.opt('allDayHtml') || htmlEscape(global_logged_user_name)) +
+				'</span>' +
+			'</td>';
+	},
+
+    renderEvents: function(events) {
+
+		var myEvents = [];
+		var othersEvents = [];
+		var daySegs = [];
+		var timedSegs;
+		var i;
+
+		// separate the events into all-day and timed
+		for (i = 0; i < events.length; i++) {
+			if (events[i].creator_id == global_logged_user_id) {
+				myEvents.push(events[i]);
+			}
+			else {
+				othersEvents.push(events[i]);
+			}
+		}
+
+		// render the events in the subcomponents
+		timedSegs = this.timeGrid.renderEvents(othersEvents);
+        //TODO: Here it renders
+		if (this.dayGrid) {
+			daySegs = this.dayGrid.renderEvents(myEvents);
+		}
+
+		// the all-day area is flexible and might have a lot of events, so shift the height
+		this.updateHeight();
+	},
+});
+;;
+
+fcViews.weekWorkers = {
+	type: 'Workers',
+	duration: { week: 1 }
+};
+
 ;;
 
 });
