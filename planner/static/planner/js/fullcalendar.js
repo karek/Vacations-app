@@ -5959,6 +5959,10 @@ TimeGrid.mixin({
 });
 
 
+var UnclickableDayGrid = DayGrid.extend({
+    dayMousedown: function() {},
+});;
+
     /* A component that renders rows with custom values given by json (atm. Global Users)
 ----------------------------------------------------------------------------------------------------------------------*/
 
@@ -5998,7 +6002,7 @@ var CustomResourceGrid = TimeGrid.extend({
             if (currPerson.id == global_logged_user_id) {
                 continue;
             }
-            
+
             axisHtml =
 				'<td class="fc-axis fc-time ' + view.widgetContentClass + '" ' + view.axisStyleAttr() + '>' +
 						'<span>' + // for matchCellWidths
@@ -9764,7 +9768,7 @@ var agendaView = fcViews.agenda = View.extend({ // AgendaView
 
 		// render the events in the subcomponents
 		timedSegs = this.timeGrid.renderEvents(timedEvents);
-        //TODO: Here it renders
+
 		if (this.dayGrid) {
 			daySegs = this.dayGrid.renderEvents(dayEvents);
 		}
@@ -9870,6 +9874,11 @@ fcViews.agendaDay = {
 ;;
 
 fcViews.Workers = agendaView.extend ({
+
+    initialize: function() {
+        agendaView.prototype.initialize.call(this);
+        this.dayGrid = new UnclickableDayGrid(this);
+    },
 
     dayIntroHtml: function() {
 		return '' +
