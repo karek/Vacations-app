@@ -76,6 +76,7 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
                 for (i in ranges) {
                     event_objects[i] = {
                         id: ranges[i].id,
+                        creator_id: ranges[i].user_id,
                         title: global_users_by_id[ranges[i].user_id].full_name,
                         start: ranges[i].begin,
                         end: ranges[i].end
