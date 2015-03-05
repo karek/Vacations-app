@@ -59,9 +59,9 @@ var defaults = {
 		prevYear: "prev year",
 		nextYear: "next year",
 		today: 'today',
-		month: 'month',
+		month: 'Individual',
 		week: 'week',
-        weekWorkers: 'week', //TODO: Change this name later
+        weekWorkers: 'Team',
 		day: 'day'
 	},
 
@@ -9094,7 +9094,7 @@ var BasicView = fcViews.basic = View.extend({
 		this.dayGrid.setRange(range);
 	},
 
-
+//TODO: MOMENT.js ma funkcje Subtract!!
 	// Compute the value to feed into setRange. Overrides superclass.
 	computeRange: function(date) {
 		var range = View.prototype.computeRange.call(this, date); // get value from the super-method
@@ -9917,6 +9917,10 @@ fcViews.Workers = agendaView.extend ({
 		// the all-day area is flexible and might have a lot of events, so shift the height
 		this.updateHeight();
 	},
+
+
+//TODO: COmputeRange
+
 });
 ;;
 
