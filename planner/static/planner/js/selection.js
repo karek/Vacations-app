@@ -2,29 +2,39 @@ function log_date(msg, date) {
     console.debug(msg + " " + date.format("YYYY-MM-DD HH:mm:ss:SS") + " | " + date);
 }
 
+// Selection mode switch. If true, it means 'select' action was called by the user, so we must
+// check intersections and calculate the real selection range. Otherwise, the callback was called
+// just to refresh days highlighted in the calendar, so selectf may do nothing else.
+global_do_compute_selections = true;
+
 function selectf(begin, end) {
 	// console.debug("selectf")
+    // if we are called just to highlight the range, abort further calculations
+    if (!global_do_compute_selections) {
+        //console.debug('compute off');
+        return;
+    }
     log_date("selectf.begin:", begin);
     log_date("selectf.end:", end);
 	var range1 = { begin: moment(begin.format('YYYY-MM-DD')), end: moment(end.format('YYYY-MM-DD')) };
 	$(".s_range").each(function(index) { 
 		var range2 = { begin: moment($(this).attr("s_begin")), end: moment($(this).attr("s_end"))};
-        log_date("--- loop range2.begin:", range2.begin);
-        log_date("    loop range2.end:  ", range2.end);
+        //log_date("--- loop range2.begin:", range2.begin);
+        //log_date("    loop range2.end:  ", range2.end);
 		if (!if_disjoint(range1, range2)) {
 			range1 = join_ranges(range1, range2);
 			this.remove();
 		}
 	});
 
-    log_date("after disjoints .begin:", range1.begin);
-    log_date("after disjoints .end:", range1.end);
+    //log_date("after disjoints .begin:", range1.begin);
+    //log_date("after disjoints .end:", range1.end);
 
     // subtract already reserved absences and really select what's left
     for (var i in global_logged_users_absences) {
         var cur_range = mapAjaxAbsenceToRange(global_logged_users_absences[i]);
         subtracted = subtract_range(range1, cur_range);
-        console.debug("subtracted ", cur_range.begin, " - ", cur_range.end, " -> ", subtracted.length);
+        //console.debug("subtracted ", cur_range.begin, " - ", cur_range.end, " -> ", subtracted.length);
         switch(subtracted.length) {
             case 0: // current range covers whole remaining range, nothing more to do
                 range1 = null;
@@ -47,6 +57,8 @@ function selectf(begin, end) {
     }
     // if it wasn't erased, the remaining range is also valid
     if (range1 !== null) finalize_selectf(range1);
+    // when all work is done, refresh the selections, in case we deleted something
+    highlightSelectedRanges();
 }
 
 // finalize selectf's job on a cleaned and checked range
@@ -92,7 +104,7 @@ function finalize_selectf(range) {
 }
 
 function unselectf(view, jsEvent) {
-	console.debug("unselectf");
+	//console.debug("unselectf");
 	$('#yourCalendar').fullCalendar('unselect');
 }
 
@@ -142,19 +154,8 @@ $(document).on('click', '.rm-absence-selection', function(){
 	console.debug('removing selected range');
 	// if someone has more stupid idea to refresh all selected days, please show me
 	$(this).remove();
-	$('#calendar').fullCalendar('next');
-	$('#calendar').fullCalendar('prev');
-	
-	$(".s_range").each(function(index) {
-		console.debug($(this).attr("s_begin"));
-		console.debug($(this).attr("s_end"));
-		m1 = moment($(this).attr("s_begin"));
-		m2 = moment($(this).attr("s_end"));
-		$('#calendar').fullCalendar('select', m1, m2);
-	})
-
-	
-})
+    highlightSelectedRanges();
+});
 
 // When passed as 'selectOverlap' calendar's parameter, this function disallows selections
 // intersecting with user's current absences.
@@ -162,4 +163,26 @@ function checkSelectOverlap(cal_event) {
     console.debug("checkSelectOverlap for event #" + cal_event.id + ": " + cal_event.title + ", "
             + cal_event.user_id);
     return cal_event.user_id !== global_logged_user_id;
+}
+
+// Highlight ("select") all currently planned absence ranges on the calendar.
+// To be used on view switching or after manual unselect (to "unhighlight" some days).
+function highlightSelectedRanges() {
+    // switch off computing selections, to avoid recursive re-calculations inside `select` callback
+    global_do_compute_selections = false;
+    // first, delete all current selections (I see no way to do this partially or less brutally)
+    $('div.fc-highlight-skeleton').remove();
+	// then, reselect remaining selections
+	$(".s_range").each(function(index) {
+		m1 = moment($(this).attr("s_begin"));
+		m2 = moment($(this).attr("s_end"));
+		$('#calendar').fullCalendar('select', m1, m2);
+	});
+    // restore normal selection mode
+    global_do_compute_selections = true;
+}
+
+// To be connected to FC's viewRender callback, triggered after every view switch.
+function viewRenderCallback(view, element) {
+    highlightSelectedRanges();
 }

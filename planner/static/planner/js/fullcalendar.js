@@ -2877,9 +2877,9 @@ var Grid = fc.Grid = RowRenderer.extend({
 		var dragListener = new DragListener(this.coordMap, {
 			//distance: 5, // needs more work if we want dayClick to fire correctly
 			scroll: view.opt('dragScroll'),
-			// dragStart: function() {
-			// 	view.unselect(); // since we could be rendering a new selection, we want to clear any old one
-			// },
+			dragStart: function() {
+				view.unselect(); // since we could be rendering a new selection, we want to clear any old one
+			},
 			cellOver: function(cell, isOrig) {
 				var origCell = dragListener.origCell;
 				if (origCell) { // click needs to have started on a cell
@@ -6714,7 +6714,7 @@ var View = fc.View = Class.extend({
 	// Selects a date range on the view. `start` and `end` are both Moments.
 	// `ev` is the native mouse event that begin the interaction.
 	select: function(range, ev) {
-		// this.unselect(ev);
+		this.unselect(ev);
 		this.renderSelection(range);
 		this.reportSelection(range, ev);
 	},
@@ -7530,9 +7530,9 @@ function Calendar(element, instanceOptions) {
 			currentView.unselect();
 		}
 	}
-	
-	
-	
+
+
+
 	/* Date
 	-----------------------------------------------------------------------------*/
 	
