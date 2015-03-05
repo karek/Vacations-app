@@ -2906,6 +2906,8 @@ var Grid = fc.Grid = RowRenderer.extend({
 					view.trigger('dayClick', _this.getCellDayEl(dayClickCell), dayClickCell.start, ev);
 				}
 				if (selectionRange) {
+                    // save the originating cell for our checks
+                    global_selection_first_cell = dragListener.origCell;
 					// the selection will already have been rendered. just report it
 					view.reportSelection(selectionRange, ev);
 				}

@@ -7,7 +7,15 @@ function log_date(msg, date) {
 // just to refresh days highlighted in the calendar, so selectf may do nothing else.
 global_do_compute_selections = true;
 
-function selectf(begin, end) {
+// Reference to the cell where selection started (range's end that was clicked first)
+global_selection_first_cell = null;
+
+function selectf(begin, end, jsEvent, view) {
+    var origin = null;
+    if (global_selection_first_cell !== null) {
+        origin = global_selection_first_cell.start;
+        global_selection_first_cell = null;
+    }
 	// console.debug("selectf")
     if (global_do_compute_selections) {
         log_date("selectf.begin:", begin);
@@ -16,7 +24,7 @@ function selectf(begin, end) {
             begin: moment(begin.format('YYYY-MM-DD')),
             end: moment(end.format('YYYY-MM-DD')) 
         };
-        check_and_add_range(range);
+        check_and_add_range(range, origin);
     } else {
         // if we are called just to highlight the range, abort further calculations
         //console.debug('compute off');
@@ -25,22 +33,32 @@ function selectf(begin, end) {
 
 // Check the range selected by the user for intersections with [1] already selected ranges,
 // [2] previously booked user's absences; then append the remaining range[s] to absence list.
-function check_and_add_range(range) {
-    // [1] check with already selected ranges, merging them together
+// `origin` is the first clicked range's end, or null if this isn't a clicked range.
+function check_and_add_range(range, origin) {
+    // [1] check with already selected ranges
     // If the new range begins within any old one, we are deselecting days from the old ones,
     // otherwise we are merging new range with the old ones.
-    // Because old ranges are sorted and disjoint, we can safely detect both things at once.
+    log_date('origin: ', origin);
     var deselecting = false;
+    // first, check if we are deselecting
+    if (origin !== null) {
+        $(".s_range").each(function(index) { 
+            var old_range = { begin: moment($(this).attr("s_begin")), end: moment($(this).attr("s_end"))};
+            if (in_range(origin, old_range)) {
+                deselecting = true;
+                console.log('activating DESELECT');
+            }
+        });
+    }
+    // now, merge with old ranges (or subtract from them if we're deselecting)
 	$(".s_range").each(function(index) { 
 		var old_range = { begin: moment($(this).attr("s_begin")), end: moment($(this).attr("s_end"))};
         //log_date("--- loop old_range.begin:", old_range.begin);
         //log_date("    loop old_range.end:  ", old_range.end);
         // ranges intersect!
 		if (!if_disjoint(range, old_range)) {
-            if (in_range(range.begin, old_range) || deselecting) {
+            if (deselecting) {
                 // deselect: remove old range, add back what remains besides the new one
-                deselecting = true;
-                console.log('activating DESELECT');
                 this.remove();
                 var old_minus_new = subtract_range(old_range, range);
                 for (var i in old_minus_new) {
