@@ -27,46 +27,65 @@ function selectf(begin, end) {
 // [2] previously booked user's absences; then append the remaining range[s] to absence list.
 function check_and_add_range(range) {
     // [1] check with already selected ranges, merging them together
+    // If the new range begins within any old one, we are deselecting days from the old ones,
+    // otherwise we are merging new range with the old ones.
+    // Because old ranges are sorted and disjoint, we can safely detect both things at once.
+    var deselecting = false;
 	$(".s_range").each(function(index) { 
 		var old_range = { begin: moment($(this).attr("s_begin")), end: moment($(this).attr("s_end"))};
         //log_date("--- loop old_range.begin:", old_range.begin);
         //log_date("    loop old_range.end:  ", old_range.end);
-        // ranges intersect, delete the original range and extend the new one to contain it
+        // ranges intersect!
 		if (!if_disjoint(range, old_range)) {
-			range = join_ranges(range, old_range);
-			this.remove();
+            if (in_range(range.begin, old_range) || deselecting) {
+                // deselect: remove old range, add back what remains besides the new one
+                deselecting = true;
+                console.log('activating DESELECT');
+                this.remove();
+                var old_minus_new = subtract_range(old_range, range);
+                for (var i in old_minus_new) {
+                    add_checked_range(old_minus_new[i]);
+                }
+            } else {
+                // merge: delete the original range and extend the new one to contain it
+                range = join_ranges(range, old_range);
+                this.remove();
+            }
 		}
 	});
     //log_date("after disjoints .begin:", range.begin);
     //log_date("after disjoints .end:", range.end);
 
-    // [2] subtract already reserved absences and really select what's left
-    for (var i in global_logged_users_absences) {
-        var cur_range = mapAjaxAbsenceToRange(global_logged_users_absences[i]);
-        subtracted = subtract_range(range, cur_range);
-        //console.debug("subtracted ", cur_range.begin, " - ", cur_range.end, " -> ", subtracted.length);
-        switch(subtracted.length) {
-            case 0: // current range covers whole remaining range, nothing more to do
-                range = null;
-                break;
-            case 1: // ranges are disjoint or current range cut only one end of the remaining range
-                range = subtracted[0];
-                break;
-            case 2:
-                // Current range split the remaining range. We assume that the stored ranges are
-                // sorted and disjoint, thus we know that the first range is ready for displyaing,
-                // but we must still check the latter one.
-                add_checked_range(subtracted[0]);
-                range = subtracted[1];
-                break;
-            default:
-                console.error("this should never happen");
+    if (!deselecting) {
+        // [2] subtract already reserved absences and really select what's left
+        // (but only if we are adding a selection)
+        for (var i in global_logged_users_absences) {
+            var cur_range = mapAjaxAbsenceToRange(global_logged_users_absences[i]);
+            subtracted = subtract_range(range, cur_range);
+            //console.debug("subtracted ", cur_range.begin, " - ", cur_range.end, " -> ", subtracted.length);
+            switch(subtracted.length) {
+                case 0: // current range covers whole remaining range, nothing more to do
+                    range = null;
+                    break;
+                case 1: // ranges are disjoint or current range cut only one end of the remaining range
+                    range = subtracted[0];
+                    break;
+                case 2:
+                    // Current range split the remaining range. We assume that the stored ranges are
+                    // sorted and disjoint, thus we know that the first range is ready for displyaing,
+                    // but we must still check the latter one.
+                    add_checked_range(subtracted[0]);
+                    range = subtracted[1];
+                    break;
+                default:
+                    console.error("this should never happen");
+            }
+            // stop if there is nothing left
+            if (range === null) break;
         }
-        // stop if there is nothing left
-        if (range === null) break;
+        // if it wasn't erased, the remaining range is also valid
+        if (range !== null) add_checked_range(range);
     }
-    // if it wasn't erased, the remaining range is also valid
-    if (range !== null) add_checked_range(range);
 
     // when all work is done, refresh the selections, in case we modified the original range
     highlight_selected_ranges();
@@ -156,6 +175,11 @@ function subtract_range(range1, range2) {
     }
 }
 
+// Returns whether a moment is within given range.
+function in_range(point, range) {
+    return point >= range.begin && point < range.end;
+}
+
 function mapAjaxAbsenceToRange(absence) {
     return { begin: moment(absence.begin), 
              end: moment(absence.end) };
@@ -189,6 +213,7 @@ function highlight_selected_ranges() {
 		m2 = moment($(this).attr("s_end"));
 		$('#calendar').fullCalendar('select', m1, m2);
 	});
+    $('td.fc-highlight').addClass('confirmed-highlight')
     // restore normal selection mode
     global_do_compute_selections = true;
 }
