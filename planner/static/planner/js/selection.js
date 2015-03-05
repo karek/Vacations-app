@@ -9,60 +9,71 @@ global_do_compute_selections = true;
 
 function selectf(begin, end) {
 	// console.debug("selectf")
-    // if we are called just to highlight the range, abort further calculations
-    if (!global_do_compute_selections) {
+    if (global_do_compute_selections) {
+        log_date("selectf.begin:", begin);
+        log_date("selectf.end:", end);
+        var range = {
+            begin: moment(begin.format('YYYY-MM-DD')),
+            end: moment(end.format('YYYY-MM-DD')) 
+        };
+        check_and_add_range(range);
+    } else {
+        // if we are called just to highlight the range, abort further calculations
         //console.debug('compute off');
-        return;
     }
-    log_date("selectf.begin:", begin);
-    log_date("selectf.end:", end);
-	var range1 = { begin: moment(begin.format('YYYY-MM-DD')), end: moment(end.format('YYYY-MM-DD')) };
+}
+
+// Check the range selected by the user for intersections with [1] already selected ranges,
+// [2] previously booked user's absences; then append the remaining range[s] to absence list.
+function check_and_add_range(range) {
+    // [1] check with already selected ranges, merging them together
 	$(".s_range").each(function(index) { 
-		var range2 = { begin: moment($(this).attr("s_begin")), end: moment($(this).attr("s_end"))};
-        //log_date("--- loop range2.begin:", range2.begin);
-        //log_date("    loop range2.end:  ", range2.end);
-		if (!if_disjoint(range1, range2)) {
-			range1 = join_ranges(range1, range2);
+		var old_range = { begin: moment($(this).attr("s_begin")), end: moment($(this).attr("s_end"))};
+        //log_date("--- loop old_range.begin:", old_range.begin);
+        //log_date("    loop old_range.end:  ", old_range.end);
+        // ranges intersect, delete the original range and extend the new one to contain it
+		if (!if_disjoint(range, old_range)) {
+			range = join_ranges(range, old_range);
 			this.remove();
 		}
 	});
+    //log_date("after disjoints .begin:", range.begin);
+    //log_date("after disjoints .end:", range.end);
 
-    //log_date("after disjoints .begin:", range1.begin);
-    //log_date("after disjoints .end:", range1.end);
-
-    // subtract already reserved absences and really select what's left
+    // [2] subtract already reserved absences and really select what's left
     for (var i in global_logged_users_absences) {
         var cur_range = mapAjaxAbsenceToRange(global_logged_users_absences[i]);
-        subtracted = subtract_range(range1, cur_range);
+        subtracted = subtract_range(range, cur_range);
         //console.debug("subtracted ", cur_range.begin, " - ", cur_range.end, " -> ", subtracted.length);
         switch(subtracted.length) {
             case 0: // current range covers whole remaining range, nothing more to do
-                range1 = null;
+                range = null;
                 break;
             case 1: // ranges are disjoint or current range cut only one end of the remaining range
-                range1 = subtracted[0];
+                range = subtracted[0];
                 break;
             case 2:
                 // Current range split the remaining range. We assume that the stored ranges are
                 // sorted and disjoint, thus we know that the first range is ready for displyaing,
                 // but we must still check the latter one.
-                finalize_selectf(subtracted[0]);
-                range1 = subtracted[1];
+                add_checked_range(subtracted[0]);
+                range = subtracted[1];
                 break;
             default:
                 console.error("this should never happen");
         }
         // stop if there is nothing left
-        if (range1 === null) break;
+        if (range === null) break;
     }
     // if it wasn't erased, the remaining range is also valid
-    if (range1 !== null) finalize_selectf(range1);
-    // when all work is done, refresh the selections, in case we deleted something
-    highlightSelectedRanges();
+    if (range !== null) add_checked_range(range);
+
+    // when all work is done, refresh the selections, in case we modified the original range
+    highlight_selected_ranges();
 }
 
-// finalize selectf's job on a cleaned and checked range
-function finalize_selectf(range) {
+// finalize selectf's job -- add a cleaned and checked range to selected absences
+function add_checked_range(range) {
     var begin_str = range.begin.format('YYYY-MM-DD');
     var end_str = range.end.format('YYYY-MM-DD');
 
@@ -154,20 +165,20 @@ $(document).on('click', '.rm-absence-selection', function(){
 	console.debug('removing selected range');
 	// if someone has more stupid idea to refresh all selected days, please show me
 	$(this).remove();
-    highlightSelectedRanges();
+    highlight_selected_ranges();
 });
 
 // When passed as 'selectOverlap' calendar's parameter, this function disallows selections
 // intersecting with user's current absences.
-function checkSelectOverlap(cal_event) {
-    console.debug("checkSelectOverlap for event #" + cal_event.id + ": " + cal_event.title + ", "
+function check_select_overlap(cal_event) {
+    console.debug("check_select_overlap for event #" + cal_event.id + ": " + cal_event.title + ", "
             + cal_event.user_id);
     return cal_event.user_id !== global_logged_user_id;
 }
 
 // Highlight ("select") all currently planned absence ranges on the calendar.
 // To be used on view switching or after manual unselect (to "unhighlight" some days).
-function highlightSelectedRanges() {
+function highlight_selected_ranges() {
     // switch off computing selections, to avoid recursive re-calculations inside `select` callback
     global_do_compute_selections = false;
     // first, delete all current selections (I see no way to do this partially or less brutally)
@@ -183,6 +194,6 @@ function highlightSelectedRanges() {
 }
 
 // To be connected to FC's viewRender callback, triggered after every view switch.
-function viewRenderCallback(view, element) {
-    highlightSelectedRanges();
+function view_render_callback(view, element) {
+    highlight_selected_ranges();
 }
