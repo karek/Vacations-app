@@ -306,7 +306,7 @@ var momComputableOptions = {
 
 	// Produces format strings like "ddd MM/DD" -> "Fri 12/10"
 	dayOfMonthFormat: function(momOptions, fcOptions) {
-        var format = ("D/MM");
+        var format = ("DD.MM");
 
 		if (fcOptions.isRTL) {
 			format += ' ddd'; // for RTL, add day-of-week to end
@@ -9878,58 +9878,58 @@ fcViews.Workers = agendaView.extend ({
     },
 
     dayIntroHtml: function() {
-		return '' +
-			'<td class="fc-axis ' + this.widgetContentClass + '" ' + this.axisStyleAttr() + '>' +
-				'<span>' + // needed for matchCellWidths
-                    (this.opt('allDayHtml') || htmlEscape(global_logged_user_name)) +
-				'</span>' +
-			'</td>';
-	},
+        return '' +
+            '<td class="fc-axis ' + this.widgetContentClass + '" ' + this.axisStyleAttr() + '>' +
+            '<span>' + // needed for matchCellWidths
+            (this.opt('allDayHtml') || htmlEscape(global_logged_user_name)) +
+            '</span>' +
+            '</td>';
+    },
 
     renderEvents: function(events) {
 
-		var myEvents = [];
-		var othersEvents = [];
-		var daySegs = [];
-		var timedSegs;
-		var i;
+        var myEvents = [];
+        var othersEvents = [];
+        var daySegs = [];
+        var timedSegs;
+        var i;
 
-		// separate the events into all-day and timed
-		for (i = 0; i < events.length; i++) {
-			if (events[i].creator_id == global_logged_user_id) {
-				myEvents.push(events[i]);
-			}
-			else {
-				othersEvents.push(events[i]);
-			}
-		}
+// separate the events into all-day and timed
+        for (i = 0; i < events.length; i++) {
+            if (events[i].creator_id == global_logged_user_id) {
+                myEvents.push(events[i]);
+            }
+            else {
+                othersEvents.push(events[i]);
+            }
+        }
 
-		// render the events in the subcomponents
-		timedSegs = this.timeGrid.renderEvents(othersEvents);
+// render the events in the subcomponents
+        timedSegs = this.timeGrid.renderEvents(othersEvents);
 
-		if (this.dayGrid) {
-			daySegs = this.dayGrid.renderEvents(myEvents);
-		}
+        if (this.dayGrid) {
+            daySegs = this.dayGrid.renderEvents(myEvents);
+        }
 
-		// the all-day area is flexible and might have a lot of events, so shift the height
-		this.updateHeight();
-	},
+// the all-day area is flexible and might have a lot of events, so shift the height
+        this.updateHeight();
+    },
 
     computeRange: function(date) {
 
         var range = BasicView.prototype.computeRange.call(this, date);
-		range.intervalStart = date.clone().subtract(3, 'days');
-		range.intervalEnd = range.intervalStart.clone().add(10, 'days');
+        range.intervalStart = date.clone().subtract(3, 'days');
+        range.intervalEnd = range.intervalStart.clone().add(10, 'days');
 
         range.intervalStart.stripTime();
         range.intervalEnd.stripTime();
 
-		range.start = range.intervalStart.clone();
-		range.start = this.skipHiddenDays(range.start);
-		range.end = range.intervalEnd.clone();
-		range.end = this.skipHiddenDays(range.end, -1, true); // exclusively move backwards
+        range.start = range.intervalStart.clone();
+        range.start = this.skipHiddenDays(range.start);
+        range.end = range.intervalEnd.clone();
+        range.end = this.skipHiddenDays(range.end, -1, true); // exclusively move backwards
 
-		return range;
+        return range;
     },
 
 });
