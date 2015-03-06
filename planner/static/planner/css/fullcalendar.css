@@ -983,3 +983,9 @@ be a descendant of the grid when it is being dragged.
 	/*opacity: .1;*/
 	filter: alpha(opacity=30); /* for IE */
 }
+
+.deselect-highlight {
+	background: #e5aaaa!important;
+	/*opacity: .1;*/
+	filter: alpha(opacity=30); /* for IE */
+}

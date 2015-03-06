@@ -2877,7 +2877,11 @@ var Grid = fc.Grid = RowRenderer.extend({
 		var dragListener = new DragListener(this.coordMap, {
 			//distance: 5, // needs more work if we want dayClick to fire correctly
 			scroll: view.opt('dragScroll'),
-			//dragStart: function() {
+            listenStart: function(ev) {
+                //console.debug('listenStart');
+                set_selection_type(this.origCell.start);
+            },
+			//dragStart: function(ev) {
 				//view.unselect(); // since we could be rendering a new selection, we want to clear any old one
 			//},
 			cellOver: function(cell, isOrig) {
@@ -2906,8 +2910,6 @@ var Grid = fc.Grid = RowRenderer.extend({
 					view.trigger('dayClick', _this.getCellDayEl(dayClickCell), dayClickCell.start, ev);
 				}
 				if (selectionRange) {
-                    // save the originating cell for our checks
-                    global_selection_first_cell = dragListener.origCell;
 					// the selection will already have been rendered. just report it
 					view.reportSelection(selectionRange, ev);
 				}
@@ -3021,7 +3023,7 @@ var Grid = fc.Grid = RowRenderer.extend({
 
 	// Generates an array of classNames for rendering the highlight. Used by the fill system.
 	highlightSegClasses: function() {
-		return [ 'fc-highlight' ];
+		return get_selection_highlight_classes();
 	},
 
 

@@ -2,29 +2,44 @@ function log_date(msg, date) {
     console.debug(msg + " " + date.format("YYYY-MM-DD HH:mm:ss:SS") + " | " + date);
 }
 
-// Selection mode switch. If true, it means 'select' action was called by the user, so we must
-// check intersections and calculate the real selection range. Otherwise, the callback was called
+// Selection mode switch. If empty, it means the select action was called by the user, so we must
+// check intersections and calculate the real selection range. If 'confirmed', the callback was called
 // just to refresh days highlighted in the calendar, so selectf may do nothing else.
-global_do_compute_selections = true;
+// If 'deselect', the action was called by the user, but we are deselecting days.
+global_select_mode = 'deselect';
+function deselect_enabled() { return global_select_mode === 'deselect'; }
+function compute_selections() { return global_select_mode != 'confirmed'; }
 
-// Reference to the cell where selection started (range's end that was clicked first)
-global_selection_first_cell = null;
+function get_selection_highlight_classes() {
+    if (global_select_mode === 'deselect' ) return [ 'fc-highlight', 'deselect-highlight' ];
+    if (global_select_mode === 'confirmed' ) return [ 'fc-highlight', 'confirmed-highlight' ];
+    return [ 'fc-highlight' ];
+}
+
+// If the selection starts within an already selected range, set mode to deselecting
+function set_selection_type(start_point) {
+    global_select_mode = '';
+    if (start_point !== null) {
+        $(".s_range").each(function(index) { 
+            var old_range = { begin: moment($(this).attr("s_begin")), end: moment($(this).attr("s_end"))};
+            if (in_range(start_point, old_range)) {
+                console.log('activating DESELECT');
+                global_select_mode = 'deselect';
+            }
+        });
+    }
+}
 
 function selectf(begin, end, jsEvent, view) {
-    var origin = null;
-    if (global_selection_first_cell !== null) {
-        origin = global_selection_first_cell.start;
-        global_selection_first_cell = null;
-    }
 	// console.debug("selectf")
-    if (global_do_compute_selections) {
+    if (compute_selections()) {
         log_date("selectf.begin:", begin);
         log_date("selectf.end:", end);
         var range = {
             begin: moment(begin.format('YYYY-MM-DD')),
             end: moment(end.format('YYYY-MM-DD')) 
         };
-        check_and_add_range(range, origin);
+        check_and_add_range(range);
     } else {
         // if we are called just to highlight the range, abort further calculations
         //console.debug('compute off');
@@ -33,31 +48,16 @@ function selectf(begin, end, jsEvent, view) {
 
 // Check the range selected by the user for intersections with [1] already selected ranges,
 // [2] previously booked user's absences; then append the remaining range[s] to absence list.
-// `origin` is the first clicked range's end, or null if this isn't a clicked range.
-function check_and_add_range(range, origin) {
+function check_and_add_range(range) {
     // [1] check with already selected ranges
-    // If the new range begins within any old one, we are deselecting days from the old ones,
-    // otherwise we are merging new range with the old ones.
-    log_date('origin: ', origin);
-    var deselecting = false;
-    // first, check if we are deselecting
-    if (origin !== null) {
-        $(".s_range").each(function(index) { 
-            var old_range = { begin: moment($(this).attr("s_begin")), end: moment($(this).attr("s_end"))};
-            if (in_range(origin, old_range)) {
-                deselecting = true;
-                console.log('activating DESELECT');
-            }
-        });
-    }
-    // now, merge with old ranges (or subtract from them if we're deselecting)
-	$(".s_range").each(function(index) { 
+    // merge with old ranges (or subtract from them if we're deselecting)
+	$(".s_range").each(function(index) {
 		var old_range = { begin: moment($(this).attr("s_begin")), end: moment($(this).attr("s_end"))};
         //log_date("--- loop old_range.begin:", old_range.begin);
         //log_date("    loop old_range.end:  ", old_range.end);
         // ranges intersect!
 		if (!if_disjoint(range, old_range)) {
-            if (deselecting) {
+            if (deselect_enabled()) {
                 // deselect: remove old range, add back what remains besides the new one
                 this.remove();
                 var old_minus_new = subtract_range(old_range, range);
@@ -74,7 +74,7 @@ function check_and_add_range(range, origin) {
     //log_date("after disjoints .begin:", range.begin);
     //log_date("after disjoints .end:", range.end);
 
-    if (!deselecting) {
+    if (!deselect_enabled()) {
         // [2] subtract already reserved absences and really select what's left
         // (but only if we are adding a selection)
         for (var i in global_logged_users_absences) {
@@ -222,7 +222,7 @@ function check_select_overlap(cal_event) {
 // To be used on view switching or after manual unselect (to "unhighlight" some days).
 function highlight_selected_ranges() {
     // switch off computing selections, to avoid recursive re-calculations inside `select` callback
-    global_do_compute_selections = false;
+    global_select_mode = 'confirmed';
     // first, delete all current selections (I see no way to do this partially or less brutally)
     $('div.fc-highlight-skeleton').remove();
 	// then, reselect remaining selections
@@ -231,9 +231,8 @@ function highlight_selected_ranges() {
 		m2 = moment($(this).attr("s_end"));
 		$('#calendar').fullCalendar('select', m1, m2);
 	});
-    $('td.fc-highlight').addClass('confirmed-highlight')
     // restore normal selection mode
-    global_do_compute_selections = true;
+    global_select_mode = '';
 }
 
 // To be connected to FC's viewRender callback, triggered after every view switch.
