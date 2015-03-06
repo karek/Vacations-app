@@ -306,10 +306,7 @@ var momComputableOptions = {
 
 	// Produces format strings like "ddd MM/DD" -> "Fri 12/10"
 	dayOfMonthFormat: function(momOptions, fcOptions) {
-		var format = momOptions.longDateFormat('l'); // for the format like "M/D/YYYY"
-
-		// strip the year off the edge, as well as other misc non-whitespace chars
-		format = format.replace(/^Y+[^\w\s]*|[^\w\s]*Y+$/g, '');
+        var format = ("D/MM");
 
 		if (fcOptions.isRTL) {
 			format += ' ddd'; // for RTL, add day-of-week to end
