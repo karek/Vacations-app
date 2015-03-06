@@ -9909,7 +9909,7 @@ fcViews.Workers = agendaView.extend ({
 
 		// render the events in the subcomponents
 		timedSegs = this.timeGrid.renderEvents(othersEvents);
-        //TODO: Here it renders
+
 		if (this.dayGrid) {
 			daySegs = this.dayGrid.renderEvents(myEvents);
 		}
@@ -9918,38 +9918,21 @@ fcViews.Workers = agendaView.extend ({
 		this.updateHeight();
 	},
 
-
-//TODO: COmputeRange
     computeRange: function(date) {
 
-        var range = View.prototype.computeRange.call(this, date); // get value from the super-method
-		var intervalDuration = { days : 6 };
-        //Jesli IntervalDuration !== start - end -> przesuwanie bedzie takie jak grzesiu chcial
-//        var intervalUnit = 10;
-		var intervalUnit = 'days';
+        var range = BasicView.prototype.computeRange.call(this, date);
+		range.intervalStart = date.clone().subtract(3, 'days');
+		range.intervalEnd = range.intervalStart.clone().add(10, 'days');
 
-		var intervalStart = date.clone().subtract(3, 'days');
-		var intervalEnd = intervalStart.clone().add(10, 'days');
-		var start, end;
+        range.intervalStart.stripTime();
+        range.intervalEnd.stripTime();
 
+		range.start = range.intervalStart.clone();
+		range.start = this.skipHiddenDays(range.start);
+		range.end = range.intervalEnd.clone();
+		range.end = this.skipHiddenDays(range.end, -1, true); // exclusively move backwards
 
-        intervalStart.stripTime();
-        intervalEnd.stripTime();
-
-
-		start = intervalStart.clone();
-		start = this.skipHiddenDays(start);
-		end = intervalEnd.clone();
-		end = this.skipHiddenDays(end, -1, true); // exclusively move backwards
-
-		return {
-			intervalDuration: intervalDuration,
-			intervalUnit: intervalUnit,
-			intervalStart: intervalStart,
-			intervalEnd: intervalEnd,
-			start: start,
-			end: end
-		};
+		return range;
     },
 
 });
