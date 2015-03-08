@@ -9932,6 +9932,19 @@ fcViews.Workers = agendaView.extend ({
         return range;
     },
 
+    computePrevDate: function(date) {
+		return this.skipHiddenDays(
+			date.clone().subtract(1, 'week'), -1
+		);
+	},
+
+	// Computes the new date when the user hits the next button, given the current date
+	computeNextDate: function(date) {
+		return this.skipHiddenDays(
+			date.clone().add(1, 'week')
+		);
+	}
+
 });
 ;;
 
