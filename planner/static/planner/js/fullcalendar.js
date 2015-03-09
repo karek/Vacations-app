@@ -2877,9 +2877,13 @@ var Grid = fc.Grid = RowRenderer.extend({
 		var dragListener = new DragListener(this.coordMap, {
 			//distance: 5, // needs more work if we want dayClick to fire correctly
 			scroll: view.opt('dragScroll'),
-			// dragStart: function() {
-			// 	view.unselect(); // since we could be rendering a new selection, we want to clear any old one
-			// },
+			listenStart: function(ev) {
+				//console.debug('listenStart');
+				set_selection_type(this.origCell.start);
+			},
+			//dragStart: function(ev) {
+				//view.unselect(); // since we could be rendering a new selection, we want to clear any old one
+			//},
 			cellOver: function(cell, isOrig) {
 				var origCell = dragListener.origCell;
 				if (origCell) { // click needs to have started on a cell
@@ -3019,7 +3023,7 @@ var Grid = fc.Grid = RowRenderer.extend({
 
 	// Generates an array of classNames for rendering the highlight. Used by the fill system.
 	highlightSegClasses: function() {
-		return [ 'fc-highlight' ];
+		return get_selection_highlight_classes();
 	},
 
 
@@ -6714,7 +6718,7 @@ var View = fc.View = Class.extend({
 	// Selects a date range on the view. `start` and `end` are both Moments.
 	// `ev` is the native mouse event that begin the interaction.
 	select: function(range, ev) {
-		// this.unselect(ev);
+		//this.unselect(ev);
 		this.renderSelection(range);
 		this.reportSelection(range, ev);
 	},
@@ -7510,6 +7514,9 @@ function Calendar(element, instanceOptions) {
 
 	function select(start, end) {
 
+		// do not show selections on non-selectable views
+		if (!currentView.opt('selectable')) return;
+
 		start = t.moment(start);
 		if (end) {
 			end = t.moment(end);
@@ -7530,9 +7537,9 @@ function Calendar(element, instanceOptions) {
 			currentView.unselect();
 		}
 	}
-	
-	
-	
+
+
+
 	/* Date
 	-----------------------------------------------------------------------------*/
 	
@@ -9403,6 +9410,8 @@ fcViews.agenda = View.extend({ // AgendaView
 
 	initialize: function() {
 		this.timeGrid = new TimeGrid(this);
+		// we don't allow selections on agenda view
+		this.options['selectable'] = false;
 
 		if (this.opt('allDaySlot')) { // should we display the "all-day" area?
 			this.dayGrid = new DayGrid(this); // the all-day subcomponent of this view
