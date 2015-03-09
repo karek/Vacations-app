@@ -3,7 +3,7 @@ global_users = new Array();
 global_users_by_id = new Array();
 // These arrays will hold absences currently pulled in by the calendar (most likely the visible ones)
 global_absences = new Array();
-global_logged_users_absences = new Array();
+global_logged_user_absences = new Array();
 
 // Get and save absence ranges, and execute the function on them.
 // Pass empty users array to get everyone's absences.
@@ -70,7 +70,7 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
             [],
             function(ranges) {
                 var event_objects = new Array();
-                var logged_users_absences = new Array();
+                var logged_user_absences = new Array();
                 for (i in ranges) {
                     event_objects[i] = {
                         id: ranges[i].id,
@@ -81,15 +81,15 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
                     };
                     // pull out current user's absences
                     if (global_logged_user_id === ranges[i].user_id) {
-                        logged_users_absences.push(ranges[i]);
+                        logged_user_absences.push(ranges[i]);
                     }
                 }
                 callback(event_objects);
                 // copy data to global arrays, for convenience of other calculations
                 global_absences = ranges;
-                global_logged_users_absences = logged_users_absences;
+                global_logged_user_absences = logged_user_absences;
                 console.debug('saved ' + ranges.length + ' ranges');
-                console.debug('saved ' + logged_users_absences.length + ' logged user\'s ranges');
+                console.debug('saved ' + logged_user_absences.length + ' logged user\'s ranges');
             }
     );
 }

@@ -77,8 +77,8 @@ function check_and_add_range(range) {
     if (!deselect_enabled()) {
         // [2] subtract already reserved absences and really select what's left
         // (but only if we are adding a selection)
-        for (var i in global_logged_users_absences) {
-            var cur_range = mapAjaxAbsenceToRange(global_logged_users_absences[i]);
+        for (var i in global_logged_user_absences) {
+            var cur_range = mapAjaxAbsenceToRange(global_logged_user_absences[i]);
             subtracted = subtract_range(range, cur_range);
             //console.debug("subtracted ", cur_range.begin, " - ", cur_range.end, " -> ", subtracted.length);
             switch(subtracted.length) {
