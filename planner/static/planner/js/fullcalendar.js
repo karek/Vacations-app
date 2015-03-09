@@ -2888,6 +2888,10 @@ var Grid = fc.Grid = RowRenderer.extend({
 				var origCell = dragListener.origCell;
 				if (origCell) { // click needs to have started on a cell
 					dayClickCell = isOrig ? cell : null; // single-cell selection is a day click
+                    if (dayClickCell === null) {
+                        console.debug('not a day click');
+                        this.cellOut();
+                    }
 					if (isSelectable) {
 						selectionRange = _this.computeSelection(origCell, cell);
 						if (selectionRange) {
@@ -7514,6 +7518,9 @@ function Calendar(element, instanceOptions) {
 
 	function select(start, end) {
 
+        // do not show selections on non-selectable views
+        if (!currentView.opt('selectable')) return;
+
 		start = t.moment(start);
 		if (end) {
 			end = t.moment(end);
@@ -9407,6 +9414,8 @@ fcViews.agenda = View.extend({ // AgendaView
 
 	initialize: function() {
 		this.timeGrid = new TimeGrid(this);
+        // we don't allow selections on agenda view
+        this.options['selectable'] = false;
 
 		if (this.opt('allDaySlot')) { // should we display the "all-day" area?
 			this.dayGrid = new DayGrid(this); // the all-day subcomponent of this view
