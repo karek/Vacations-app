@@ -45,20 +45,20 @@ function selectf(begin, end) {
     }
 
     $('#absence_select').append(''
-        + '<a href="#" class="s_range list-group-item rm-absence-selection" '
+        + '<li class="s_range list-group-item" '
         + 's_begin=\'' + begin_str + '\' s_end=\'' + end_str + '\'>'
     	+ display_range_str
-        + ' <span class="badge">' + days_between
-//        + ' <span class="glyphicon glyphicon-remove"></span>'
-        + '</span>'
+        + '<span class="badge"><a href="#" class="rm-absence-selection" style="text-decoration: none; color: #ffffff">' + days_between
+        + ' <span class="glyphicon glyphicon-remove"></span>'
+        + '</a></span>'
         + '<input type="hidden" name="begin[]" value="' + begin_str + '" />'
         + '<input type="hidden" name="end[]" value="' + end_str + '" />'
-     	+ '</a>');
+     	+ '</li>');
 
     function comp(a,b) {
      	return ($(b).attr("s_begin") < $(a).attr("s_begin")) ?  1 : -1
      }
-    $('#absence_select a').sort(comp).appendTo('#absence_select');
+    $('#absence_select li').sort(comp).appendTo('#absence_select');
 }
 
 function unselectf(view, jsEvent) {
@@ -90,7 +90,7 @@ function join_ranges(range1, range2) {
 $(document).on('click', '.rm-absence-selection', function(){
 	console.debug('removing selected range');
 	// if someone has more stupid idea to refresh all selected days, please show me
-	$(this).remove();
+	$(this).closest('li').remove();
 	$('#calendar').fullCalendar('next');
 	$('#calendar').fullCalendar('prev');
 	

@@ -5,14 +5,14 @@
 {% block content %}
 <div class="row">
     <div class="col-lg-9">
-        <div id='calendar'></div>
+        <div id='calendar' style="padding-bottom: 20px"></div>
     </div>
     <div class="col-lg-3">
         <h2 style="margin-top: 0px;" align="center">Selected absence</h2>
         <form id='plan-absence' method='POST' action="{% url 'planner:plan-absence' %}">
             {% csrf_token %}
-            <div id='absence_select' class="list-group" style="padding-top: 9px">
-            </div>
+            <ul id='absence_select' class="list-group" style="padding-top: 9px">
+            </ul>
             <div class="form-actions"  style="text-align: center;">
                 {% if request.user.is_authenticated %}
                 <input type='submit' name='book-value-submit' value='Plan Absence' class='btn btn-primary'/>
@@ -30,7 +30,6 @@
     <ul id='all_ranges'>
     </ul>
 </div>
-
 
 {% endblock %}
 
