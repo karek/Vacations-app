@@ -1,8 +1,15 @@
+// Global arrays used by all scripts
+global_users = new Array();
+global_users_by_id = new Array();
+// These arrays will hold absences currently pulled in by the calendar (most likely the visible ones)
+global_absences = new Array();
+global_logged_user_absences = new Array();
+
 // Get and save absence ranges, and execute the function on them.
 // Pass empty users array to get everyone's absences.
 function getAbsencesBetween(begin, end, users, on_success) {
-    var req_url = global_range_url + '?begin=' + begin + '&end=' + end;
-    for (var i in users) req_url += '&user[]=' + users[i];
+    var req_url = global_range_url + '?begin=' + begin + '&end=' + end
+    for (var i in users) req_url += '&user[]=' + users[i]; 
     console.debug('ajax url: ' + req_url);
     $.ajax({
         type: "GET",
@@ -19,9 +26,6 @@ function getAbsencesBetween(begin, end, users, on_success) {
         }
     });
 }
-
-global_users = new Array();
-global_users_by_id = new Array();
 
 // Get and save users (and execute callback).
 function getAllUsers(on_success) {
@@ -66,15 +70,26 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
             [],
             function(ranges) {
                 var event_objects = new Array();
+                var logged_user_absences = new Array();
                 for (i in ranges) {
                     event_objects[i] = {
                         id: ranges[i].id,
                         title: global_users_by_id[ranges[i].user_id].full_name,
                         start: ranges[i].begin,
-                        end: ranges[i].end
+                        end: ranges[i].end,
+                        user_id: ranges[i].user_id
                     };
+                    // pull out current user's absences
+                    if (global_logged_user_id === ranges[i].user_id) {
+                        logged_user_absences.push(ranges[i]);
+                    }
                 }
                 callback(event_objects);
+                // copy data to global arrays, for convenience of other calculations
+                global_absences = ranges;
+                global_logged_user_absences = logged_user_absences;
+                console.debug('saved ' + ranges.length + ' ranges');
+                console.debug('saved ' + logged_user_absences.length + ' logged user\'s ranges');
             }
     );
 }
@@ -85,7 +100,6 @@ function debugShowRanges(ranges) {
     console.debug('showing ' + ranges.length + ' ranges');
     $('#all_ranges').append('<hr />');
     for (i in ranges) {
-        console.debug('appending range, i=' + i);
         var uid = ranges[i].user_id;
         var li = '<li>from ' + ranges[i].begin + ' to ' + ranges[i].end + ', by '
             + global_users_by_id[uid].full_name + ' (' + global_users_by_id[uid].email + ')'
