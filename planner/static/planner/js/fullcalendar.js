@@ -6016,7 +6016,45 @@ var CustomResourceGrid = TimeGrid.extend({
         }
 
 		return html;
-    }
+    },
+
+    // Renders the HTML for a single event segment's default rendering
+	fgSegHtml: function(seg, disableResizing) {
+		var view = this.view;
+		var event = seg.event;
+		var isDraggable = view.isEventDraggable(event);
+		var isResizable = !disableResizing && seg.isEnd && view.isEventResizable(event);
+		var classes = this.getSegClasses(seg, isDraggable, isResizable);
+		var skinCss = this.getEventSkinCss(event);
+
+		classes.unshift('fc-time-grid-event');
+
+		return '<a class="' + classes.join(' ') + '"' +
+			(event.url ?
+				' href="' + htmlEscape(event.url) + '"' :
+				''
+				) +
+			(skinCss ?
+				' style="' + skinCss + '"' :
+				''
+				) +
+			'>' +
+				'<div class="fc-content">' +
+					(event.title ?
+						'<div class="fc-title">' +
+							htmlEscape(event.title) +
+						'</div>' :
+						''
+						) +
+				'</div>' +
+				'<div class="fc-bg"/>' +
+				(isResizable ?
+					'<div class="fc-resizer"/>' :
+					''
+					) +
+			'</a>';
+	},
+
 
 });;
 
