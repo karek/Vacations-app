@@ -119,4 +119,4 @@ $(document).on('click', '.rm-absence-selection', function () {
 
     display_or_hide_plan_button();
 
-})
+});
