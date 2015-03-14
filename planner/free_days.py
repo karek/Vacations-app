@@ -18,5 +18,5 @@ def weekends(year):
 
 	return ((weekend, satOrSun(weekend)) for weekend in yearRange(2015) if weekend.weekday() == 5 or weekend.weekday() == 6)
 
-for day in weekends(2015):
-	print day
+# for day in weekends(2015):
+# 	print day
