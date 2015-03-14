@@ -12,7 +12,7 @@ from django.views.generic.edit import FormView
 from planner.forms import RegisterForm
 from planner.models import Absence, AbsenceRange
 from planner.utils import InternalError, stringToDate, dateToString, objListToJson
-
+from free_days import weekends
 
 class IndexView(View):
     def get(self, request, *args, **kwargs):
@@ -134,3 +134,14 @@ class RangeRestView(View):
             return _make_error_response(e.message)
         users = request.GET.getlist('user[]', '*')
         return _make_json_response(objListToJson(AbsenceRange.getBetween(users, rbegin, rend)))
+
+class SaveWeekendsOfYear(View):
+    def post(self, request):
+        """ 
+        """
+        if 'year' not in request.POST:
+            return _make_error_response('year not specified')
+        days = weekends(request.POST['year'])
+        holidays = [Holiday(day=day, name=name) for (day,name) in days]
+        bulk_create(holidays)
+
