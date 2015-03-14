@@ -60,6 +60,9 @@ function check_and_add_range(range) {
             if (deselect_enabled()) {
                 // deselect: remove old range, add back what remains besides the new one
                 this.remove();
+                //since this is not a merge of ranges, we have to check if this wasn't the last range on the list
+                //and if it is, we should hide Plan button
+                display_or_hide_plan_button();
                 var old_minus_new = subtract_range(old_range, range);
                 for (var i in old_minus_new) {
                     add_checked_range(old_minus_new[i]);
@@ -205,6 +208,7 @@ function mapAjaxAbsenceToRange(absence) {
              end: moment(absence.end) };
 }
 
+// Shows or hides Plan button if there are no ranges selected at the moment
 function display_or_hide_plan_button() {
     console.debug("display_or_hide_plan_button");
     var currently_selected_ranges = $('#absence_select > li').length;
@@ -221,7 +225,7 @@ function display_or_hide_plan_button() {
 $(document).on('click', '.rm-absence-selection', function(){
 	console.debug('removing selected range');
 	// if someone has more stupid idea to refresh all selected days, please show me
-	$(this).remove();
+	$(this).closest('li').remove();
     highlight_selected_ranges();
 	display_or_hide_plan_button();
 });
