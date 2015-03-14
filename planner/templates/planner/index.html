@@ -13,9 +13,9 @@
             {% csrf_token %}
             <ul id='absence_select' class="list-group" style="padding-top: 9px">
             </ul>
-            <div class="form-actions"  style="text-align: center;">
+            <div class="form-actions" id="submit_selected_days" style="text-align: center;">
                 {% if request.user.is_authenticated %}
-                <input type='submit' name='book-value-submit' value='Plan Absence' class='btn btn-primary'/>
+                <p>Select days for your absence by clicking on the calendar.</p>
                 {% else %}
                 <p>You have to be logged in to plan absences.</p>
                 {% endif %}

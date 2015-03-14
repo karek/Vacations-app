@@ -59,6 +59,7 @@ function selectf(begin, end) {
      	return ($(b).attr("s_begin") < $(a).attr("s_begin")) ?  1 : -1
      }
     $('#absence_select li').sort(comp).appendTo('#absence_select');
+    display_or_hide_plan_button();
 }
 
 function unselectf(view, jsEvent) {
@@ -103,4 +104,18 @@ $(document).on('click', '.rm-absence-selection', function(){
 	})
 
 	
+function display_or_hide_plan_button() {
+    console.debug("display_or_hide_plan_button");
+    var currently_selected_ranges = $('#absence_select > li').length;
+    var content = "hello";
+
+    if (currently_selected_ranges == 0) {
+       content = '<p>Select days for your absence by clicking on the calendar.</p>';
+    } else {
+        content = "<input type='submit' name='book-value-submit' value='Plan Absence' class='btn btn-primary'/>";
+    }
+    $('#submit_selected_days').html(content);
+}
+
+    display_or_hide_plan_button();
 })
