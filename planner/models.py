@@ -183,3 +183,12 @@ class Holiday(models.Model):
     day = models.DateField()
     name = models.CharField(max_length=30, blank=False)
     # TODO: FK to HolidayCalendar
+
+    def toDict(self):
+        return {
+            'id': self.id,
+            'day': dateToString(self.day),
+            'name': self.name,
+        }
+
+

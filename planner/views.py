@@ -10,7 +10,7 @@ from django.shortcuts import render
 from django.views.generic.base import View
 from django.views.generic.edit import FormView
 from planner.forms import RegisterForm
-from planner.models import Absence, AbsenceRange
+from planner.models import Absence, AbsenceRange, Holiday
 from planner.utils import InternalError, stringToDate, dateToString, objListToJson
 
 
@@ -134,3 +134,20 @@ class RangeRestView(View):
             return _make_error_response(e.message)
         users = request.GET.getlist('user[]', '*')
         return _make_json_response(objListToJson(AbsenceRange.getBetween(users, rbegin, rend)))
+
+
+class HolidayRestView(View):
+    def get(self, request):
+        """ Returns all holidays between given dates"""
+        # TODO: ^^ for given users (or holiday calendars?)
+        if 'begin' not in request.GET:
+            return _make_error_response('begin not specified')
+        if 'end' not in request.GET:
+            return _make_error_response('end not specified')
+        try:
+            rbegin = stringToDate(request.GET['begin'])
+            rend = stringToDate(request.GET['end'])
+        except InternalError as e:
+            return _make_error_response(e.message)
+        holidays = Holiday.objects.filter(day__gte=rbegin, day__lte=rend)
+        return _make_json_response(objListToJson(holidays))

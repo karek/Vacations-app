@@ -139,7 +139,7 @@ function add_checked_range(range) {
         + 's_begin=\'' + begin_str + '\' s_end=\'' + end_str + '\'>'
     	+ display_range_str
         + ' <span class="badge">' + days_between
-       + ' <span class="glyphicon glyphicon-remove"></span>'
+        + ' <span class="glyphicon glyphicon-remove"></span>'
         + '</span>'
         + '<input type="hidden" name="begin[]" value="' + begin_str + '" />'
         + '<input type="hidden" name="end[]" value="' + end_str + '" />'

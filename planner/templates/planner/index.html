@@ -43,6 +43,7 @@
 <script type="text/javascript">
     global_user_url = {% url 'planner:user' %};
     global_range_url = {% url 'planner:range' %};
+    global_holiday_url = {% url 'planner:holiday' %};
     {% if request.user.is_authenticated %}
         global_logged_user_id = {{ request.user.id }};
     {% else %}
