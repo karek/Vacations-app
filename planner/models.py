@@ -178,4 +178,8 @@ class AbsenceRange(models.Model):
         }
 
 
-
+class Holiday(models.Model):
+    """ A single work-free day. """
+    day = models.DateField()
+    name = models.CharField(max_length=30, blank=False)
+    # TODO: FK to HolidayCalendar
