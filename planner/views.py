@@ -6,12 +6,13 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, get_user_model
 from django.contrib.messages.views import SuccessMessageMixin
 from django.http.response import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.generic.base import View
 from django.views.generic.edit import FormView
 from planner.forms import RegisterForm, YearForm
-from planner.models import Absence, AbsenceRange
+from planner.models import Absence, AbsenceRange, Holiday
 from planner.utils import InternalError, stringToDate, dateToString, objListToJson
+from datetime import datetime
 
 class IndexView(View):
     def get(self, request, *args, **kwargs):
@@ -138,11 +139,16 @@ class YearFormView(FormView):
 
         template_name = 'planner/year_form.html'
         form_class = YearForm
-        success_url = '/admin'
+        success_url = '/save_weekends'
 
-            # if 'year' not in request.POST:
-            #     return _make_error_response('year not specified')
-            # days = Holiday.weekends(request.POST['year'])
-            # holidays = [Holiday(day=day, name=name) for (day,name) in days]
-            # bulk_create(holidays)
-            # return HttpResponseRedirect('/admin')
+        def form_valid(self, form):
+            self.request.session['_year'] = date.strftime(form.cleaned_data['year'], '%Y-%m-%d')
+            return HttpResponseRedirect('/save_weekends')
+
+def SaveWeekendsView(request):
+    date = datetime.strptime(request.session['_year'], '%Y-%m-%d')
+    print date.year
+    days = Holiday.weekends(date.year)
+    holidays = [Holiday(day=day, name=name) for (day,name) in days]
+    Holiday.objects.bulk_create(holidays)
+    return HttpResponseRedirect('/admin/planner/holiday')

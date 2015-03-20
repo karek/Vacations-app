@@ -39,9 +39,11 @@ class EmailUserAdmin(UserAdmin):
 class HolidayAdmin(admin.ModelAdmin):
     def get_urls(self):
         urls = super(HolidayAdmin, self).get_urls()
-        my_urls = patterns('', (r'^my_view/$', YearFormView.as_view())
+        my_urls = patterns('', url(r'^add_weekend/$', YearFormView.as_view(), name='planner_holiday_add_weekend')
         )
         return my_urls + urls
+
+    change_list_template = 'planner/change_list.html'
 
 
 
