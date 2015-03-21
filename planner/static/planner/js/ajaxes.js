@@ -65,11 +65,11 @@ function saveUserData(data) {
 // In future functions sort it in some other way
     global_users_sorted = global_users_sorted.filter(
         function (a) {
-            return a.id != global_logged_user_id
+            return a.id != global_logged_user_id;
         });
 
     sortAndSaveUsersOrder(function (a, b) {
-        return a.last_name < b.last_name
+        return a.last_name < b.last_name;
     });
 }
 
