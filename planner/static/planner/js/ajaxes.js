@@ -69,7 +69,7 @@ function saveUserData(data) {
         });
 
     sortAndSaveUsersOrder(function (a, b) {
-        return a.last_name < b.last_name;
+        return a.last_name > b.last_name;
     });
 }
 
