@@ -7,13 +7,13 @@ function getAbsencesBetween(begin, end, users, on_success) {
     $.ajax({
         type: "GET",
         url: req_url,
-        success: function(data) {
+        success: function (data) {
             console.debug('ajax returned: ' + data.length + ' absence ranges');
             // TODO: remove this in the future
             debugShowRanges(data);
             on_success(data);
         },
-        error: function(jqxhr, txt_status, error) {
+        error: function (jqxhr, txt_status, error) {
             console.debug('ajax error: ' + error + ', text: ' + jqxhr.responseText);
             alert('Error getting absences!');
         }
@@ -23,6 +23,8 @@ function getAbsencesBetween(begin, end, users, on_success) {
 global_users = new Array();
 global_users_by_id = new Array();
 global_users_loaded = false;
+global_users_sorted = new Array();
+global_users_order = new Array();
 
 // Get and save users (and execute callback).
 function getAllUsers(on_success) {
@@ -36,13 +38,13 @@ function getAllUsers(on_success) {
     $.ajax({
         type: "GET",
         url: req_url,
-        success: function(data) {
+        success: function (data) {
             console.debug('ajax returned ' + data.length + ' users');
 
             saveUserData(data);
             on_success(data);
         },
-        error: function(jqxhr, txt_status, error) {
+        error: function (jqxhr, txt_status, error) {
             console.debug('ajax error: ' + error + ', text: ' + jqxhr.responseText);
             alert('Error getting users!');
         }
@@ -57,33 +59,54 @@ function saveUserData(data) {
         data[u]['full_name'] = data[u].first_name + ' ' + data[u].last_name;
         console.debug('saving user ' + data[u].email);
         global_users_by_id[data[u].id] = data[u];
+        global_users_sorted[data[u].id] = data[u];
     }
+
+// In future functions sort it in some other way
+    global_users_sorted = global_users_sorted.filter(
+        function (a) {
+            return a.id != global_logged_user_id
+        });
+
+    sortAndSaveUsersOrder(function (a, b) {
+        return a.last_name < b.last_name
+    });
+}
+
+//Function used for sorting user and later Map users ids in the order to their position
+//Function f orders sort
+function sortAndSaveUsersOrder(f) {
+
+    global_users_sorted.sort(f);
+
+    for (i in global_users_sorted)
+        global_users_order[global_users_sorted[i].id] = i;
 }
 
 
 // Get all users in fullCalendar's format
 function getAbsencesForCalendar(begin, end, timezone, callback) {
     console.debug('calendar calls for events from ' + begin.format('YYYY-MM-DD')
-            + ' to ' + end.format('YYYY-MM-DD'));
+        + ' to ' + end.format('YYYY-MM-DD'));
     // TODO: should we be concerned about the timezone?
     // TODO: add user/team selection when it's needed
     getAbsencesBetween(
-            begin.format('YYYY-MM-DD'),
-            end.format('YYYY-MM-DD'),
-            [],
-            function(ranges) {
-                var event_objects = new Array();
-                for (i in ranges) {
-                    event_objects[i] = {
-                        id: ranges[i].id,
-                        creator_id: ranges[i].user_id,
-                        title: global_users_by_id[ranges[i].user_id].full_name,
-                        start: ranges[i].begin,
-                        end: ranges[i].end
-                    };
-                }
-                callback(event_objects);
+        begin.format('YYYY-MM-DD'),
+        end.format('YYYY-MM-DD'),
+        [],
+        function (ranges) {
+            var event_objects = new Array();
+            for (i in ranges) {
+                event_objects[i] = {
+                    id: ranges[i].id,
+                    creator_id: ranges[i].user_id,
+                    title: global_users_by_id[ranges[i].user_id].full_name,
+                    start: ranges[i].begin,
+                    end: ranges[i].end
+                };
             }
+            callback(event_objects);
+        }
     );
 }
 
