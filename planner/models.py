@@ -198,14 +198,6 @@ class Holiday(models.Model):
 
     @classmethod    
     def weekends(cls, year):
-        def satOrSun(day):
-            if day.weekday() == 5:
-                return 'Saturday'
-            elif day.weekday() == 6:
-                return 'Sunday'
-            else:
-                raise Exception('Not the saturday or sunday')
-
         return ((weekend, weekend.strftime("%A")) for weekend in cls.yearRange(year) 
             if weekend.weekday() == 5 or weekend.weekday() == 6)
 
