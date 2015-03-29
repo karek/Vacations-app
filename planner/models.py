@@ -7,7 +7,7 @@ from django.contrib.auth.models import (
 )
 
 from planner.utils import dateToString
-from datetime import date, timedelta, datetime
+from datetime import date, timedelta
 
 
 class EmailUserManager(BaseUserManager):
@@ -189,7 +189,7 @@ class Holiday(models.Model):
 
     @classmethod
     def dateRange(cls, start_date, end_date):
-        for n in range(int ((end_date - start_date).days)):
+        for n in xrange(int((end_date - start_date).days)):
             yield start_date + timedelta(n)
 
     @classmethod        
@@ -206,7 +206,7 @@ class Holiday(models.Model):
             else:
                 raise Exception('Not the saturday or sunday')
 
-        return ((weekend, satOrSun(weekend)) for weekend in cls.yearRange(year) 
+        return ((weekend, weekend.strftime("%A")) for weekend in cls.yearRange(year) 
             if weekend.weekday() == 5 or weekend.weekday() == 6)
 
     # TODO: FK to HolidayCalendar
