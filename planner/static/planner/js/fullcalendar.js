@@ -5140,7 +5140,7 @@ DayGrid.mixin({
 		// render each seg's `el` and only return the visible segs
 		segs = this.renderFgSegEls(segs, true); // disableResizing=true
 		this.popoverSegs = segs;
-popover
+
 		for (i = 0; i < segs.length; i++) {
 
 			// because segments in the popover are not part of a grid coordinate system, provide a hint to any
@@ -5425,7 +5425,7 @@ var TimeGrid = Grid.extend({
 		return moment.duration(this.minTime + this.snapDuration * row);
 	},
 
-//TODO: Here it slces
+//TODO: Here it slices
 	// Slices up a date range by column into an array of segments
 	rangeToSegs: function(range) {
 		var colCnt = this.colCnt;
