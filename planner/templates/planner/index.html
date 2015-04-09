@@ -78,9 +78,11 @@
             unSelectCancel: '.fc-day',
             select: selectf, // our function for select
             unselect: unselectf, // our function for clearing selection
+//            selectOverlap: check_select_overlap, // function for checking where selections can be made
             events: {
                 events: getAbsencesForCalendar
-            }
+            },
+            viewRender: view_render_callback
         });
     });
 </script>

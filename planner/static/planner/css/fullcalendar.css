@@ -50,7 +50,7 @@ body .fc { /* extra precedence to overcome jqui */
 }
 
 .fc-highlight { /* when user is selecting cells */
-	background: #bce8f1;
+	background: #ddd;
 	/*opacity: .1;*/
 	filter: alpha(opacity=30); /* for IE */
 }
@@ -974,4 +974,18 @@ be a descendant of the grid when it is being dragged.
 
 .fc-time-grid-event .fc-resizer:after {
 	content: "=";
+}
+
+/********************************************************************************************/
+
+.confirmed-highlight {
+	background: #bce8f1!important;
+	/*opacity: .1;*/
+	filter: alpha(opacity=30); /* for IE */
+}
+
+.deselect-highlight {
+	background: #e5aaaa!important;
+	/*opacity: .1;*/
+	filter: alpha(opacity=30); /* for IE */
 }
