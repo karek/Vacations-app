@@ -2,7 +2,7 @@ from planner.forms import YearForm, UserChangeForm, UserCreationForm
 from django.contrib import admin
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin
-from planner.models import EmailUser, Absence, AbsenceRange, Holiday
+from planner.models import *
 from django.conf.urls import patterns, url
 from planner.views import YearFormView
 
@@ -50,6 +50,7 @@ class HolidayAdmin(admin.ModelAdmin):
 # Now register the new UserAdmin...
 admin.site.register(EmailUser, EmailUserAdmin)
 admin.site.register(Absence)
+admin.site.register(Team)
 admin.site.register(AbsenceRange)
 admin.site.register(Holiday, HolidayAdmin)
 # ... and, since we're not using Django's built-in permissions,

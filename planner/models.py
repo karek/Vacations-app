@@ -10,6 +10,19 @@ from planner.utils import dateToString
 from datetime import date, timedelta
 
 
+class Team(models.Model):
+    name = models.CharField(max_length=30, blank=False)
+
+    def __unicode__(self):  # __unicode__ on Python 2
+        return self.name
+
+    def toDict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+        }
+
+
 class EmailUserManager(BaseUserManager):
     def create_user(self, email, first_name, last_name, password=None):
         if not email:

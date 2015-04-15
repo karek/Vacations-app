@@ -5,6 +5,4 @@ staticfiles
 .idea
 env/
 venv/
-!planner/migrations/__init__.py
-planner/migrations/*.py
 *.sqlite
