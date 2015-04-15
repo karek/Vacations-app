@@ -59,6 +59,7 @@ class EmailUser(AbstractBaseUser):
     last_name = models.CharField(max_length=50, blank=False)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
+    team = models.ForeignKey(Team, blank=True, null=True)
 
     objects = EmailUserManager()
 
