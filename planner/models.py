@@ -112,7 +112,7 @@ class EmailUser(AbstractBaseUser):
             'first_name': self.first_name,
             'last_name': self.last_name,
             'email': self.email,
-            'team' : self.team,
+            'team' : self.team.name,
             'is_teamleader' : self.is_teamleader,
         }
 
