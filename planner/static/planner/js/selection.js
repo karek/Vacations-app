@@ -60,6 +60,9 @@ function check_and_add_range(range) {
             if (deselect_enabled()) {
                 // deselect: remove old range, add back what remains besides the new one
                 this.remove();
+                //since this is not a merge of ranges, we have to check if this wasn't the last range on the list
+                //and if it is, we should hide Plan button
+                display_or_hide_plan_button();
                 var old_minus_new = subtract_range(old_range, range);
                 for (var i in old_minus_new) {
                     add_checked_range(old_minus_new[i]);
@@ -118,7 +121,7 @@ function add_checked_range(range) {
     display_date.end.subtract(1, "days");
 
     log_date("display_date.begin:", display_date.begin);
-    log_date("display_date.end:", display_date.end)
+    log_date("display_date.end:", display_date.end);
 
     var days_between = range.end.diff(range.begin, 'days');
 
@@ -135,20 +138,22 @@ function add_checked_range(range) {
     }
 
     $('#absence_select').append(''
-        + '<a href="#" class="s_range list-group-item rm-absence-selection" '
+        + '<li class="s_range list-group-item" '
         + 's_begin=\'' + begin_str + '\' s_end=\'' + end_str + '\'>'
-    	+ display_range_str
-        + ' <span class="badge">' + days_between
-       + ' <span class="glyphicon glyphicon-remove"></span>'
-        + '</span>'
+        + display_range_str
+        + '<span class="badge"><a href="#" class="rm-absence-selection" style="text-decoration: none; color: #ffffff">' + days_between
+        + ' <span class="glyphicon glyphicon-remove"></span>'
+        + '</a></span>'
         + '<input type="hidden" name="begin[]" value="' + begin_str + '" />'
         + '<input type="hidden" name="end[]" value="' + end_str + '" />'
-     	+ '</a>');
+        + '</li>');
 
-    function comp(a,b) {
-     	return ($(b).attr("s_begin") < $(a).attr("s_begin")) ?  1 : -1
-     }
-    $('#absence_select a').sort(comp).appendTo('#absence_select');
+    function comp(a, b) {
+        return ($(b).attr("s_begin") < $(a).attr("s_begin")) ? 1 : -1
+    }
+
+    $('#absence_select li').sort(comp).appendTo('#absence_select');
+    display_or_hide_plan_button();
 }
 
 function unselectf(view, jsEvent) {
@@ -160,21 +165,21 @@ function unselectf(view, jsEvent) {
 // 1. [b1  [b2   e2]  e1] -> [b1  e1]
 // 2. [b1  [b2   e1]  e2] -> [b1  e2]
 
-// if_disjoint :: { begin: moment, end: moment} , {begin: moment, end: moment} -> bool 
+// if_disjoint :: { begin: moment, end: moment} , {begin: moment, end: moment} -> bool
 function if_disjoint(range1, range2) {
-	if (range1.begin > range2.begin)
-		return if_disjoint(range2, range1); // now we know that range1.begin <= range2.begin
-	return range1.end < range2.begin;
+    if (range1.begin > range2.begin)
+        return if_disjoint(range2, range1); // now we know that range1.begin <= range2.begin
+    return range1.end < range2.begin;
 }
 
-// join_ranges :: { begin: moment, end: moment} , {begin: moment, end: moment} -> {moment, moment} 
+// join_ranges :: { begin: moment, end: moment} , {begin: moment, end: moment} -> {moment, moment}
 function join_ranges(range1, range2) {
-	if (range1.begin > range2.begin)
-		return join_ranges(range2, range1); // now we know that range1.begin <= range2.begin
-	if (range1.end <= range2.end) 
-		return {begin: range1.begin, end: range2.end }; // 2.
-	else
-		return {begin: range1.begin, end: range1.end }; // 1.
+    if (range1.begin > range2.begin)
+        return join_ranges(range2, range1); // now we know that range1.begin <= range2.begin
+    if (range1.end <= range2.end)
+        return {begin: range1.begin, end: range2.end }; // 2.
+    else
+        return {begin: range1.begin, end: range1.end }; // 1.
 }
 
 // Substract range2 from range1. Returns an array of zero, one or two ranges.
@@ -203,11 +208,26 @@ function mapAjaxAbsenceToRange(absence) {
              end: moment(absence.end) };
 }
 
+// Shows or hides Plan button if there are no ranges selected at the moment
+function display_or_hide_plan_button() {
+    console.debug("display_or_hide_plan_button");
+    var currently_selected_ranges = $('#absence_select > li').length;
+    var content = "hello";
+
+    if (currently_selected_ranges == 0) {
+       content = '<p>Select days for your absence by clicking on the calendar.</p>';
+    } else {
+        content = "<input type='submit' name='book-value-submit' value='Plan Absence' class='btn btn-primary'/>";
+    }
+    $('#submit_selected_days').html(content);
+}
+
 $(document).on('click', '.rm-absence-selection', function(){
 	console.debug('removing selected range');
 	// if someone has more stupid idea to refresh all selected days, please show me
-	$(this).remove();
+	$(this).closest('li').remove();
     highlight_selected_ranges();
+	display_or_hide_plan_button();
 });
 
 // When passed as 'selectOverlap' calendar's parameter, this function disallows selections
