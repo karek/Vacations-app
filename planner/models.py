@@ -7,6 +7,7 @@ from django.contrib.auth.models import (
 )
 
 from planner.utils import dateToString
+from datetime import date, timedelta
 
 
 class EmailUserManager(BaseUserManager):
@@ -178,4 +179,26 @@ class AbsenceRange(models.Model):
         }
 
 
+class Holiday(models.Model):
+    """ A single work-free day. """
+    day = models.DateField()
+    name = models.CharField(max_length=30, blank=False)
 
+    def __unicode__(self):
+        return '{0} : {1}'.format(self.day, self.name)
+
+    @classmethod
+    def dateRange(cls, start_date, end_date):
+        for n in xrange(int((end_date - start_date).days)):
+            yield start_date + timedelta(n)
+
+    @classmethod        
+    def yearRange(cls, year):
+        return cls.dateRange(date(year, 1, 1), date(year + 1, 1, 1))
+
+    @classmethod    
+    def weekends(cls, year):
+        return ((weekend, weekend.strftime("%A")) for weekend in cls.yearRange(year) 
+            if weekend.weekday() == 5 or weekend.weekday() == 6)
+
+    # TODO: FK to HolidayCalendar

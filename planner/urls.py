@@ -13,6 +13,8 @@ urlpatterns = patterns(
     url(r'^plan-absence/$', views.PlanAbsenceView.as_view(), name='plan-absence'),
     # urls for ajax calls (returning jsons):
     url(r'^user/$', views.UserRestView.as_view(), name='user'),
+    
     url(r'^range/$', views.RangeRestView.as_view(), name='range'),
+    url(r'^save_weekends/$', views.SaveWeekendsView, name='save_weekends'),
 )
 
