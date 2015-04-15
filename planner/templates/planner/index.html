@@ -45,8 +45,10 @@
     global_range_url = {% url 'planner:range' %};
     {% if request.user.is_authenticated %}
         global_logged_user_id = {{ request.user.id }};
+        global_logged_user_name = "{{ request.user.first_name }}" + " " + "{{ request.user.last_name }}";
     {% else %}
         global_logged_user_id = -1;
+        global_logged_user_name = "";
     {% endif %}
     {% autoescape off %}
     saveUserData({{ users }});
@@ -55,14 +57,21 @@
 {% endblock %}
 
 {% block calendarDeclaration %}
-<script type="text/javascript">
-    $(document).ready(function () {
+    <script type="text/javascript">
+    $(document).ready(function() {
         $('#calendar').fullCalendar({
             header: {
                 left: 'prev,next today',
                 center: 'title',
-                right: 'month,agendaWeek'
+                right: 'month,weekWorkers'
             },
+            eventLimit: 5,
+{#            views: {#}
+{#                agenda: {#}
+{#                    eventLimit: 5 // adjust to 6 only for agendaWeek/agendaDay#}
+{#                }#}
+{#            },#}
+            defaultView: 'weekWorkers', //TODO: Remove
             selectable: true,  // we can select days
             selectHelper: true, // we see our selection
             unselectAuto: false, // no autoclearing selection after clickng on page(not enough though)
