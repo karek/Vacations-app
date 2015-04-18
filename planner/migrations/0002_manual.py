@@ -48,8 +48,8 @@ def create_absences(apps, schema_editor):
 	User = apps.get_model("planner", "EmailUser")
 
 	u1 = User.objects.get(email='tytus.bomba@gwiezdaflota.pl')
-	u2 = User.objects.get(email='kapitan.glus@gwiezdaflota.pl')  
-	u3 = User.objects.get(email='sultan.kosmitow@kosmici.pl')
+	u2 = User.objects.get(email='chorazy.glus@gwiezdaflota.pl')  
+	u3 = User.objects.get(email='sultan.kosmitow@kosmici.ru')
 
 	a1 = Absence(user = u1, dateCreated=date(2015,4,16))
 	a1.save()
