@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
@@ -34,7 +35,6 @@ class EmailUserManager(BaseUserManager):
             first_name=first_name,
             last_name=last_name,
             is_teamleader=is_teamleader,
-            # team=team
         )
 
         user.set_password(password)
@@ -47,7 +47,6 @@ class EmailUserManager(BaseUserManager):
                                 first_name=first_name,
                                 last_name=last_name,
                                 is_teamleader=is_teamleader,
-                                team=team
         )
         user.is_admin = True
         user.save(using=self._db)
@@ -212,7 +211,7 @@ class Holiday(models.Model):
     name = models.CharField(max_length=30, blank=False)
 
     def __unicode__(self):
-        return '{0} : {1}'.format(self.day, self.name)
+        return '%s : %s' % (self.day, self.name)
 
     @classmethod
     def dateRange(cls, start_date, end_date):
