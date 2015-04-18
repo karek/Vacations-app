@@ -9951,7 +9951,8 @@ fcViews.Workers = agendaView.extend ({
 
 // separate the events into all-day and timed
         for (i = 0; i < events.length; i++) {
-            if (events[i].user_id == global_logged_user_id) {
+            if (events[i].user_id == global_logged_user_id ||
+                    events[i].user_id == global_event_is_holiday) {
                 myEvents.push(events[i]);
             }
             else {
