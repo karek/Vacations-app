@@ -2,6 +2,7 @@
 from django.db import models, migrations
 from datetime import date
 
+
 def create_teams(apps, schema_editor):
 	Team = apps.get_model("planner", "Team")
 
@@ -10,6 +11,7 @@ def create_teams(apps, schema_editor):
 	t3 = Team(name="Dowództwo")
 
 	Team.objects.bulk_create([t1,t2,t3])
+
 
 def create_users(apps, schema_editor):
     Team = apps.get_model("planner", "Team")
@@ -31,6 +33,7 @@ def create_users(apps, schema_editor):
     	]
     User.objects.bulk_create(users)
 
+
 def create_holidays(apps, schema_editor):
 	Holiday = apps.get_model("planner", "Holiday")
 
@@ -42,22 +45,50 @@ def create_holidays(apps, schema_editor):
 	]
 	Holiday.objects.bulk_create(holidays)
 
+
+def create_absences_kinds(apps, schema_editor):
+	AbsenceKind = apps.get_model("planner", "AbsenceKind")
+
+	kinds = [
+		AbsenceKind(name="Vacations"),
+		AbsenceKind(name="On request", require_acceptance=False),
+		AbsenceKind(name="Sickness", require_acceptance=False),
+		AbsenceKind(name="Parental", require_acceptance=False),
+		AbsenceKind(name="Homeworking", require_acceptance=False),
+		AbsenceKind(name="Delegation", require_acceptance=False)
+	]
+
+	AbsenceKind.objects.bulk_create(kinds)
+
+
 def create_absences(apps, schema_editor):
 	Absence = apps.get_model("planner", "Absence")
 	AbsenceRange = apps.get_model("planner", "AbsenceRange")
+	AbsenceKind = apps.get_model("planner", "AbsenceKind")
 	User = apps.get_model("planner", "EmailUser")
 
 	u1 = User.objects.get(email='tytus.bomba@gwiezdaflota.pl')
 	u2 = User.objects.get(email='kapitan.glus@gwiezdaflota.pl')  
 	u3 = User.objects.get(email='sultan.kosmitow@kosmici.pl')
 
-	a1 = Absence(user = u1, dateCreated=date(2015,4,16))
+	k1 = AbsenceKind.objects.get(name="Vacations")
+	k2 = AbsenceKind.objects.get(name="Parental")
+
+
+	#Status choices
+    #	PENDING = 0
+    #	ACCEPTED = 1
+    #	REJECTED = 2
+    # Cant use from Absence cos of migration semantics :D
+
+    
+	a1 = Absence(user = u1, dateCreated=date(2015,4,16), absence_kind=k1, status=1)
 	a1.save()
-	a2 = Absence(user = u1, dateCreated=date(2015,4,14))
+	a2 = Absence(user = u1, dateCreated=date(2015,4,14), absence_kind=k1, status=0)
 	a2.save()
-	a3 = Absence(user = u2, dateCreated=date(2015,4,15))
+	a3 = Absence(user = u2, dateCreated=date(2015,4,15), absence_kind=k1, status=1)
 	a3.save()
-	a4 = Absence(user = u3, dateCreated=date(2015,4,18))
+	a4 = Absence(user = u3, dateCreated=date(2015,4,18), absence_kind=k2, status=2)
 	a4.save()
 
 	absences_ranges = [
@@ -84,6 +115,7 @@ def create_absences(apps, schema_editor):
 		]
 	AbsenceRange.objects.bulk_create(absences_ranges)
 
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -94,5 +126,6 @@ class Migration(migrations.Migration):
         migrations.RunPython(create_teams),
         migrations.RunPython(create_users),
         migrations.RunPython(create_holidays),
+        migrations.RunPython(create_absences_kinds),
         migrations.RunPython(create_absences),
     ]
