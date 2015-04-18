@@ -119,3 +119,11 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 # one year should be sufficiently infinite :)
 SESSION_COOKIE_AGE = 31536000
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+
+# example email config
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'me@gmail.com'
+EMAIL_HOST_PASSWORD = 'password'
