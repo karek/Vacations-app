@@ -9,7 +9,7 @@ from django.contrib.auth.models import (
 
 from planner.utils import dateToString
 from datetime import date, timedelta
-
+from django.core.mail import send_mail
 
 class Team(models.Model):
     name = models.CharField(max_length=30, blank=False)
@@ -165,6 +165,7 @@ class Absence(models.Model):
             absence = AbsenceRange(absence=new_abs, begin=rbegin, end=rend)
             absence.full_clean()
             absence.save()
+            #send_mail
         return new_abs
 
 
