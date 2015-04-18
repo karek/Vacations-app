@@ -24,9 +24,9 @@ def create_users(apps, schema_editor):
     users = [
     	admin,
     	User(email='tytus.bomba@gwiezdaflota.pl',first_name='Tytus',last_name='Bomba',team=t1, is_teamleader=True),
-    	User(email='kapitan.glus@gwiezdaflota.pl',first_name='Kapitan',last_name='Głuś',team=t1),
-    	User(email='sultan.kosmitow@kosmici.pl',first_name='Sułtan',last_name='Kosmitów',team=t2, is_teamleader=True),
-    	User(email='michal.parchas@kosmici.pl',first_name='Michał',last_name='Parchaś',team=t2),
+    	User(email='chorazy.glus@gwiezdaflota.pl',first_name='Chorąży',last_name='Głuś',team=t1),
+    	User(email='sultan.kosmitow@kosmici.ru',first_name='Sułtan',last_name='Kosmitów',team=t2, is_teamleader=True),
+    	User(email='michal.parchas@kosmici.ru',first_name='Michał',last_name='Parchaś',team=t2),
     	User(email='admirał.torpeda@gwiezdaflota.pl',first_name='Admirał',last_name='Torpeda',team=t3)
     	]
     User.objects.bulk_create(users)
@@ -73,7 +73,7 @@ def create_absences(apps, schema_editor):
 			absence=a2, 
 			begin=date(2015,4,23), 
 			end=date(2015,4,24)),
-		AbsenceRange(
+        AbsenceRange(
 			absence=a3, 
 			begin=date(2015,4,28), 
 			end=date(2015,4,30)),
