@@ -247,3 +247,12 @@ class Holiday(models.Model):
             if weekend.weekday() == 5 or weekend.weekday() == 6)
 
     # TODO: FK to HolidayCalendar
+
+    def toDict(self):
+        return {
+            'id': self.id,
+            'day': dateToString(self.day),
+            'name': self.name,
+        }
+
+

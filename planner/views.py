@@ -14,6 +14,7 @@ from planner.models import Absence, AbsenceRange, Holiday
 from planner.utils import InternalError, stringToDate, dateToString, objListToJson
 from datetime import datetime
 
+
 class IndexView(View):
     def get(self, request, *args, **kwargs):
         d = date.today()
@@ -135,8 +136,25 @@ class RangeRestView(View):
         users = request.GET.getlist('user[]', '*')
         return _make_json_response(objListToJson(AbsenceRange.getBetween(users, rbegin, rend)))
 
-class YearFormView(FormView):
 
+class HolidayRestView(View):
+    def get(self, request):
+        """ Returns all holidays between given dates"""
+        # TODO: ^^ for given users (or holiday calendars?)
+        if 'begin' not in request.GET:
+            return _make_error_response('begin not specified')
+        if 'end' not in request.GET:
+            return _make_error_response('end not specified')
+        try:
+            rbegin = stringToDate(request.GET['begin'])
+            rend = stringToDate(request.GET['end'])
+        except InternalError as e:
+            return _make_error_response(e.message)
+        holidays = Holiday.objects.filter(day__gte=rbegin, day__lte=rend)
+        return _make_json_response(objListToJson(holidays))
+
+
+class YearFormView(FormView):
         template_name = 'planner/year_form.html'
         form_class = YearForm
         success_url = '/save_weekends'
@@ -144,6 +162,7 @@ class YearFormView(FormView):
         def form_valid(self, form):
             self.request.session['_year'] = date.strftime(form.cleaned_data['year'], '%Y-%m-%d')
             return HttpResponseRedirect('/save_weekends')
+
 
 def SaveWeekendsView(request):
     date = datetime.strptime(request.session['_year'], '%Y-%m-%d')

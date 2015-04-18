@@ -6061,8 +6061,8 @@ var CustomResourceGrid = TimeGrid.extend({
 
         for (i = 0; i < segs.length; i++) {
             seg = segs[i];
-            seg.top = this.slatTops[global_users_order[seg.event.creator_id]];
-            seg.bottom = this.slatTops[global_users_order[seg.event.creator_id]+1];
+            seg.top = this.slatTops[global_users_order[seg.event.user_id]];
+            seg.bottom = this.slatTops[global_users_order[seg.event.user_id]+1];
         }
     }
 
@@ -9951,7 +9951,8 @@ fcViews.Workers = agendaView.extend ({
 
 // separate the events into all-day and timed
         for (i = 0; i < events.length; i++) {
-            if (events[i].creator_id == global_logged_user_id) {
+            if (events[i].user_id == global_logged_user_id ||
+                    events[i].user_id == global_event_is_holiday) {
                 myEvents.push(events[i]);
             }
             else {
