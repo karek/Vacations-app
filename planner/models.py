@@ -107,12 +107,17 @@ class EmailUser(AbstractBaseUser):
         return self.is_admin
 
     def toDict(self):
+        if self.team:
+            team_name = self.team_name
+        else:
+            team_name = ''
+
         return {
             'id': self.id,
             'first_name': self.first_name,
             'last_name': self.last_name,
             'email': self.email,
-            'team' : self.team.name,
+            'team' : team.name,
             'is_teamleader' : self.is_teamleader,
         }
 
