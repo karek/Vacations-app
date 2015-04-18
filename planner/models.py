@@ -125,13 +125,31 @@ class EmailUser(AbstractBaseUser):
             'is_teamleader' : self.is_teamleader,
         }
 
+class AbsenceKind(models.Model):
+    name = models.CharField(max_length=30, blank=False, unique=True)
+    require_acceptance = models.BooleanField(default=True)
+
+    def __unicode__(self):  # __unicode__ on Python 2
+        return self.name
 
 class Absence(models.Model):
     """ User's whole Absence. Describes parameters and has many AbsenceRanges attached. """
+    
+    #Status choices
+    PENDING = 0
+    ACCEPTED = 1
+    REJECTED = 2
+
+    STATUS_CHOICES = (
+        (PENDING, 'Pending'),
+        (ACCEPTED, 'Accepted'),
+        (REJECTED, 'Rejected'),
+    )
+
     user = models.ForeignKey(EmailUser)
     dateCreated = models.DateTimeField(auto_now_add=True)
-    # TODO: rodzaj
-    # TODO: status
+    absence_kind = models.ForeignKey(AbsenceKind)
+    status = models.IntegerField(default=0, choices=STATUS_CHOICES)
     # TODO: komentarz
 
     def __unicode__(self):
