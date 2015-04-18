@@ -24,7 +24,8 @@ class Team(models.Model):
 
 
 class EmailUserManager(BaseUserManager):
-    def create_user(self, email, first_name, last_name, password=None):
+
+    def create_user(self, email, first_name, last_name, team, password=None, is_teamleader=False):
         if not email:
             raise ValueError('Users must have an email address')
 
@@ -32,17 +33,21 @@ class EmailUserManager(BaseUserManager):
             email=self.normalize_email(email),
             first_name=first_name,
             last_name=last_name,
+            is_teamleader=is_teamleader,
+            # team=team
         )
 
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, first_name, last_name, password):
+    def create_superuser(self, email, first_name, last_name, team, password, is_teamleader=False):
         user = self.create_user(email,
                                 password=password,
                                 first_name=first_name,
-                                last_name=last_name
+                                last_name=last_name,
+                                is_teamleader=is_teamleader,
+                                team=team
         )
         user.is_admin = True
         user.save(using=self._db)
@@ -108,7 +113,7 @@ class EmailUser(AbstractBaseUser):
 
     def toDict(self):
         if self.team:
-            team_name = self.team_name
+            team_name = self.team.name
         else:
             team_name = ''
 
@@ -117,7 +122,7 @@ class EmailUser(AbstractBaseUser):
             'first_name': self.first_name,
             'last_name': self.last_name,
             'email': self.email,
-            'team' : team.name,
+            'team' : team_name,
             'is_teamleader' : self.is_teamleader,
         }
 
