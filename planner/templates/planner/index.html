@@ -5,17 +5,17 @@
 {% block content %}
 <div class="row">
     <div class="col-lg-9">
-        <div id='calendar'></div>
+        <div id='calendar' style="padding-bottom: 20px"></div>
     </div>
     <div class="col-lg-3">
         <h2 style="margin-top: 0px;" align="center">Selected absence</h2>
         <form id='plan-absence' method='POST' action="{% url 'planner:plan-absence' %}">
             {% csrf_token %}
-            <div id='absence_select' class="list-group" style="padding-top: 9px">
-            </div>
-            <div class="form-actions"  style="text-align: center;">
+            <ul id='absence_select' class="list-group" style="padding-top: 9px">
+            </ul>
+            <div class="form-actions" id="submit_selected_days" style="text-align: center;">
                 {% if request.user.is_authenticated %}
-                <input type='submit' name='book-value-submit' value='Plan Absence' class='btn btn-primary'/>
+                <p>Select days for your absence by clicking on the calendar.</p>
                 {% else %}
                 <p>You have to be logged in to plan absences.</p>
                 {% endif %}
@@ -31,7 +31,6 @@
     </ul>
 </div>
 
-
 {% endblock %}
 
 {% block scripts %}
@@ -46,8 +45,10 @@
     global_holiday_url = {% url 'planner:holiday' %};
     {% if request.user.is_authenticated %}
         global_logged_user_id = {{ request.user.id }};
+        global_logged_user_name = "{{ request.user.first_name }}" + " " + "{{ request.user.last_name }}";
     {% else %}
         global_logged_user_id = -1;
+        global_logged_user_name = "";
     {% endif %}
     {% autoescape off %}
     saveUserData({{ users }});
@@ -56,14 +57,21 @@
 {% endblock %}
 
 {% block calendarDeclaration %}
-<script type="text/javascript">
-    $(document).ready(function () {
+    <script type="text/javascript">
+    $(document).ready(function() {
         $('#calendar').fullCalendar({
             header: {
                 left: 'prev,next today',
                 center: 'title',
-                right: 'month,agendaWeek'
+                right: 'month,weekWorkers'
             },
+            eventLimit: 5,
+{#            views: {#}
+{#                agenda: {#}
+{#                    eventLimit: 5 // adjust to 6 only for agendaWeek/agendaDay#}
+{#                }#}
+{#            },#}
+            defaultView: 'weekWorkers', //TODO: Remove
             selectable: true,  // we can select days
             selectHelper: true, // we see our selection
             unselectAuto: false, // no autoclearing selection after clickng on page(not enough though)

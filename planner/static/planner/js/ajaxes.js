@@ -8,6 +8,10 @@ global_holidays = new Array();
 // number to put in user_id field for holiday events
 global_event_is_holiday = -1;
 
+global_users_loaded = false;
+global_users_sorted = new Array();
+global_users_order = new Array();
+
 // Get and save absence ranges, and execute the function on them.
 // Pass empty users array to get everyone's absences.
 function getAbsencesBetween(begin, end, users, on_success) {
@@ -52,6 +56,11 @@ function getHolidaysBetween(begin, end, on_success) {
 
 // Get and save users (and execute callback).
 function getAllUsers(on_success) {
+    if (global_users_loaded) {
+        console.debug('users already loaded, running on_success immediately');
+        on_success(global_users);
+        return;
+    }
     var req_url = global_user_url;
     console.debug('ajax url: ' + req_url);
     $.ajax({
@@ -59,6 +68,7 @@ function getAllUsers(on_success) {
         url: req_url,
         success: function(data) {
             console.debug('ajax returned ' + data.length + ' users');
+
             saveUserData(data);
             on_success(data);
         },
@@ -77,7 +87,28 @@ function saveUserData(data) {
         data[u]['full_name'] = data[u].first_name + ' ' + data[u].last_name;
         console.debug('saving user ' + data[u].email);
         global_users_by_id[data[u].id] = data[u];
+        global_users_sorted[data[u].id] = data[u];
     }
+
+// In future functions sort it in some other way
+    global_users_sorted = global_users_sorted.filter(
+        function (a) {
+            return a.id != global_logged_user_id;
+        });
+
+    sortAndSaveUsersOrder(function (a, b) {
+        return a.last_name > b.last_name;
+    });
+}
+
+//Function used for sorting user and later Map users ids in the order to their position
+//Function f orders sort
+function sortAndSaveUsersOrder(f) {
+
+    global_users_sorted.sort(f);
+
+    for (i in global_users_sorted)
+        global_users_order[global_users_sorted[i].id] = i;
 }
 
 
@@ -90,54 +121,54 @@ function saveHolidays(data) {
 // Get all users in fullCalendar's format
 function getAbsencesForCalendar(begin, end, timezone, callback) {
     console.debug('calendar calls for events from ' + begin.format('YYYY-MM-DD')
-            + ' to ' + end.format('YYYY-MM-DD'));
+        + ' to ' + end.format('YYYY-MM-DD'));
     // TODO: should we be concerned about the timezone?
     // TODO: add user/team selection when it's needed
     getAbsencesBetween(
-            begin.format('YYYY-MM-DD'),
-            end.format('YYYY-MM-DD'),
-            [],
-            function(ranges) {
-                var event_objects = new Array();
-                var logged_user_absences = new Array();
-                for (i in ranges) {
-                    event_objects[i] = {
-                        id: ranges[i].id,
-                        title: global_users_by_id[ranges[i].user_id].full_name,
-                        start: ranges[i].begin,
-                        end: ranges[i].end,
-                        user_id: ranges[i].user_id
-                    };
-                    // pull out current user's absences
-                    if (global_logged_user_id === ranges[i].user_id) {
-                        logged_user_absences.push(ranges[i]);
-                    }
+        begin.format('YYYY-MM-DD'),
+        end.format('YYYY-MM-DD'),
+        [],
+        function(ranges) {
+            var event_objects = new Array();
+            var logged_user_absences = new Array();
+            for (i in ranges) {
+                event_objects[i] = {
+                    id: ranges[i].id,
+                    title: global_users_by_id[ranges[i].user_id].full_name,
+                    start: ranges[i].begin,
+                    end: ranges[i].end,
+                    user_id: ranges[i].user_id
+                };
+                // pull out current user's absences
+                if (global_logged_user_id === ranges[i].user_id) {
+                    logged_user_absences.push(ranges[i]);
                 }
-                // copy data to global arrays, for convenience of other calculations
-                global_absences = ranges;
-                global_logged_user_absences = logged_user_absences;
-                console.debug('saved ' + ranges.length + ' ranges');
-                console.debug('saved ' + logged_user_absences.length + ' logged user\'s ranges');
-                // now also get holidays for the given range
-                getHolidaysBetween(
-                        begin.format('YYYY-MM-DD'),
-                        end.format('YYYY-MM-DD'),
-                        function(holidays) {
-                            for (var i in holidays) {
-                                event_objects.push({
-                                    id: 'holiday' + holidays[i].id,
-                                    title: holidays[i].name,
-                                    start: holidays[i].day,
-                                    end: holidays[i].day,
-                                    color: 'red',
-                                    user_id: global_event_is_holiday
-                                });
-                            }
-                            saveHolidays(holidays);
-                            callback(event_objects);
-                        }
-                );
             }
+            // copy data to global arrays, for convenience of other calculations
+            global_absences = ranges;
+            global_logged_user_absences = logged_user_absences;
+            console.debug('saved ' + ranges.length + ' ranges');
+            console.debug('saved ' + logged_user_absences.length + ' logged user\'s ranges');
+            // now also get holidays for the given range
+            getHolidaysBetween(
+                begin.format('YYYY-MM-DD'),
+                end.format('YYYY-MM-DD'),
+                function(holidays) {
+                    for (var i in holidays) {
+                        event_objects.push({
+                            id: 'holiday' + holidays[i].id,
+                            title: holidays[i].name,
+                            start: holidays[i].day,
+                            end: holidays[i].day,
+                            color: 'red',
+                            user_id: global_event_is_holiday
+                        });
+                    }
+                    saveHolidays(holidays);
+                    callback(event_objects);
+                }
+            );
+        }
     );
 }
 

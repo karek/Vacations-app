@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
@@ -7,10 +8,25 @@ from django.contrib.auth.models import (
 )
 
 from planner.utils import dateToString
+from datetime import date, timedelta
+
+
+class Team(models.Model):
+    name = models.CharField(max_length=30, blank=False)
+
+    def __unicode__(self):  # __unicode__ on Python 2
+        return self.name
+
+    def toDict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+        }
 
 
 class EmailUserManager(BaseUserManager):
-    def create_user(self, email, first_name, last_name, password=None):
+
+    def create_user(self, email, first_name, last_name, team, password=None, is_teamleader=False):
         if not email:
             raise ValueError('Users must have an email address')
 
@@ -18,17 +34,19 @@ class EmailUserManager(BaseUserManager):
             email=self.normalize_email(email),
             first_name=first_name,
             last_name=last_name,
+            is_teamleader=is_teamleader,
         )
 
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, first_name, last_name, password):
+    def create_superuser(self, email, first_name, last_name, team, password, is_teamleader=False):
         user = self.create_user(email,
                                 password=password,
                                 first_name=first_name,
-                                last_name=last_name
+                                last_name=last_name,
+                                is_teamleader=is_teamleader,
         )
         user.is_admin = True
         user.save(using=self._db)
@@ -45,6 +63,8 @@ class EmailUser(AbstractBaseUser):
     last_name = models.CharField(max_length=50, blank=False)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
+    is_teamleader = models.BooleanField(default=False)
+    team = models.ForeignKey(Team, blank=True, null=True)
 
     objects = EmailUserManager()
 
@@ -91,11 +111,18 @@ class EmailUser(AbstractBaseUser):
         return self.is_admin
 
     def toDict(self):
+        if self.team:
+            team_name = self.team.name
+        else:
+            team_name = ''
+
         return {
             'id': self.id,
             'first_name': self.first_name,
             'last_name': self.last_name,
             'email': self.email,
+            'team' : team_name,
+            'is_teamleader' : self.is_teamleader,
         }
 
 
@@ -182,6 +209,24 @@ class Holiday(models.Model):
     """ A single work-free day. """
     day = models.DateField()
     name = models.CharField(max_length=30, blank=False)
+
+    def __unicode__(self):
+        return '%s : %s' % (self.day, self.name)
+
+    @classmethod
+    def dateRange(cls, start_date, end_date):
+        for n in xrange(int((end_date - start_date).days)):
+            yield start_date + timedelta(n)
+
+    @classmethod        
+    def yearRange(cls, year):
+        return cls.dateRange(date(year, 1, 1), date(year + 1, 1, 1))
+
+    @classmethod    
+    def weekends(cls, year):
+        return ((weekend, weekend.strftime("%A")) for weekend in cls.yearRange(year) 
+            if weekend.weekday() == 5 or weekend.weekday() == 6)
+
     # TODO: FK to HolidayCalendar
 
     def toDict(self):
