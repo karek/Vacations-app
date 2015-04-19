@@ -123,16 +123,19 @@ class ManageAbsenceView(View):
         }
         if 'absence-id' in request.GET:
             try:
-                context['accept_absence'] = Absence.objects.get(id=request.GET['absence-id']).toDict()
+                # TODO maybe we want to allow accepting rejected absences?
+                context['accept_absence'] = Absence.objects.get(
+                        id=request.GET['absence-id'], status=Absence.PENDING).toDict()
                 context['accept_ranges'] = objListToJson(
                         AbsenceRange.objects.filter(absence=request.GET['absence-id']))
             except ObjectDoesNotExist:
-                messages.error(request, 'Invalid absence to manage.')
+                messages.error(request, 'Invalid or already processed absence selected.')
         return render(request, 'planner/manage.html', context)
 
     def post(self, request, *args, **kwargs):
         try:
-            absence = Absence.objects.get(id=request.POST['absence-id'])
+            # TODO maybe we want to allow accepting rejected absences?
+            absence = Absence.objects.get(id=request.POST['absence-id'], status=Absence.PENDING)
             if not request.user.is_authenticated() or not request.user.is_manager_of(absence.user):
                 raise InternalError('Only the leader of team ' + absence.user.team.name +
                         ' can manage this absence.')
@@ -149,7 +152,7 @@ class ManageAbsenceView(View):
         except KeyError:
             messages.error(request, 'Invalid request: no absence given.')
         except ObjectDoesNotExist:
-            messages.error(request, 'Invalid absence to manage.')
+            messages.error(request, 'Invalid or already processed absence selected.')
         except InternalError as e:
             messages.error(request, e.message)
         return HttpResponseRedirect('/')
