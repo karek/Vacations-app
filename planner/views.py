@@ -72,7 +72,9 @@ class PlanAbsenceView(View):
             ranges = self.validateRanges(request.POST.getlist('begin[]'),
                                          request.POST.getlist('end[]'))
             self.addVacation(request.user, ranges)
-            messages.success(request, 'Absence booked successfully.')
+            # TODO better message with send email if needs acceptance
+            # or just hr email if not
+            messages.success(request, 'Absence booked successfully, email was sent to proper authorities.')
         except InternalError as e:
             messages.error(request, e.message)
         except ValidationError as e:

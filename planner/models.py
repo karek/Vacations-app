@@ -148,7 +148,9 @@ class Absence(models.Model):
 
     user = models.ForeignKey(EmailUser)
     dateCreated = models.DateTimeField(auto_now_add=True)
-    absence_kind = models.ForeignKey(AbsenceKind)
+    # Only for debug purpouse
+    # Change it when front allows
+    absence_kind = models.ForeignKey(AbsenceKind, null=True, blank=True)
     status = models.IntegerField(default=0, choices=STATUS_CHOICES)
     # TODO: komentarz
 
@@ -165,7 +167,9 @@ class Absence(models.Model):
             absence = AbsenceRange(absence=new_abs, begin=rbegin, end=rend)
             absence.full_clean()
             absence.save()
-            #send_mail
+            #send mail to our test email to check if its ok
+            send_mail('Absence acceptance', 'It is working.', 'tytusdjango@gmail.com',
+                        ['tytusdjango@gmail.com'])
         return new_abs
 
 
