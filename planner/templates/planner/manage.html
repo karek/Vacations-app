@@ -1,0 +1,52 @@
+{% extends "planner/index.html" %}
+
+{% block selected_absence_panel %}
+        <h2 style="margin-top: 0px;" align="center">Absence request</h2>
+        {% if accept_absence %}
+        <p>
+        request date: <b>{{ accept_absence.date_created }}</b><br/>
+        author: <b>{{ accept_absence.user_name }}</b><br/>
+        kind: <b>{{ accept_absence.kind_name }}</b/><br/>
+        </p>
+        {% endif %}
+        <form id='plan-absence' method='POST' action="{% url 'planner:manage-absence' %}">
+            {% csrf_token %}
+            {% if accept_absence %}
+            <input type="hidden" name="absence-id" value="{{ accept_absence.id }}"/>
+            {% endif %}
+            <ul id='absence_select' class="list-group" style="padding-top: 9px">
+            </ul>
+            <div class="form-actions" id="submit_selected_days" style="text-align: center;">
+                {% if request.user.is_authenticated %}
+                <p>No absences to manage.</p>
+                {% else %}
+                <p>You have to be logged in to manage absences.</p>
+                {% endif %}
+            </div>
+        </form>
+        <div style="text-align: center">
+            <a href="{% url 'planner:index' %}" class="btn btn-default">Exit manager mode</a>
+        </div>
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script type="text/javascript">
+    {% if accept_absence %}
+        {% autoescape off %}
+        global_accept_absence_id = {{ accept_absence.id }};
+        {% endautoescape %}
+    {% endif %}
+</script>
+{% endblock %}
+
+{% block calendarDeclaration %}
+{{ block.super }}
+<script type="text/javascript">
+    {% if accept_absence %}
+        {% autoescape off %}
+        select_ranges_from_json({{ accept_ranges }});
+        {% endautoescape %}
+    {% endif %}
+</script>
+{% endblock %}
