@@ -8,6 +8,7 @@
         <div id='calendar' style="padding-bottom: 20px"></div>
     </div>
     <div class="col-lg-3">
+        {% block selected_absence_panel %}
         <h2 style="margin-top: 0px;" align="center">Selected absence</h2>
         <form id='plan-absence' method='POST' action="{% url 'planner:plan-absence' %}">
             {% csrf_token %}
@@ -21,10 +22,11 @@
                 {% endif %}
             </div>
         </form>
+        {% endblock %}
     </div>
 </div>
 
-{% comment %} TODO: remove this when we no longer need such debug output. {% endcomment %}
+{# TODO: remove this when we no longer need such debug output. #}
 <div>
     <h3> Currently booked: </h3>
     <ul id='all_ranges'>
@@ -78,7 +80,6 @@
             unSelectCancel: '.fc-day',
             select: selectf, // our function for select
             unselect: unselectf, // our function for clearing selection
-//            selectOverlap: check_select_overlap, // function for checking where selections can be made
             events: {
                 events: getAbsencesForCalendar
             },

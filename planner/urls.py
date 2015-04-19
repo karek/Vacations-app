@@ -11,6 +11,7 @@ urlpatterns = patterns(
     # Example use: logout/?next=/register will redirect after logging user out
     url(r'^logout/$', 'django.contrib.auth.views.logout', {'next_page': '/'}, name='logout'),
     url(r'^plan-absence/$', views.PlanAbsenceView.as_view(), name='plan-absence'),
+    url(r'^manage-absence/$', views.ManageAbsenceView.as_view(), name='manage-absence'),
     url(r'^save_weekends/$', views.SaveWeekendsView, name='save_weekends'),
     # urls for ajax calls (returning jsons):
     url(r'^user/$', views.UserRestView.as_view(), name='user'),

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
@@ -125,6 +126,11 @@ class EmailUser(AbstractBaseUser):
             'is_teamleader' : self.is_teamleader,
         }
 
+    def is_manager_of(self, other):
+        """ Is this user manager of someone's team? """
+        # TODO: is a team leader his own manager?
+        return self.team == other.team and self.is_teamleader
+
 class AbsenceKind(models.Model):
     name = models.CharField(max_length=30, blank=False, unique=True)
     require_acceptance = models.BooleanField(default=True)
@@ -151,7 +157,7 @@ class Absence(models.Model):
     # Only for debug purpouse
     # Change it when front allows
     absence_kind = models.ForeignKey(AbsenceKind, null=True, blank=True)
-    status = models.IntegerField(default=0, choices=STATUS_CHOICES)
+    status = models.IntegerField(default=PENDING, choices=STATUS_CHOICES)
     # TODO: komentarz
 
     def __unicode__(self):
@@ -164,13 +170,80 @@ class Absence(models.Model):
         new_abs = cls(user=user)
         new_abs.save()
         for (rbegin, rend) in ranges:
-            absence = AbsenceRange(absence=new_abs, begin=rbegin, end=rend)
-            absence.full_clean()
-            absence.save()
+            new_range = AbsenceRange(absence=new_abs, begin=rbegin, end=rend)
+            new_range.full_clean()
+            new_range.save()
+        # if the absence doesn't need acceptance, skip to ACCEPTED
+        if new_abs.absence_kind and new_abs.absence_kind.reqiure_acceptance:
+            new_abs.accept()
+        else:
             #send mail to our test email to check if its ok
-            send_mail('Absence acceptance', 'It is working.', 'tytusdjango@gmail.com',
-                        ['tytusdjango@gmail.com'])
+            # TODO send a proper mail to the right address
+            send_mail(new_abs.mail_request_title(), new_abs.mail_request_body(),
+                    'tytusdjango@gmail.com', ['tytusdjango@gmail.com'])
         return new_abs
+
+    def toDict(self):
+        """ Returns needed Absence's attributes as dict, e.g. for converting to json. """
+        return {
+            'id': self.id,
+            'user_id': self.user.id,
+            'user_name': self.user.get_full_name(),
+            'date_created': dateToString(self.dateCreated),
+            # TODO delete the ifs below when we have obligatory kind selection
+            'kind': self.absence_kind.id if self.absence_kind else -1,
+            'kind_name': self.absence_kind.name if self.absence_kind else 'none',
+        }
+
+    def accept(self):
+        self.status = self.ACCEPTED
+        # TODO send a proper mail to the right address
+        # TODO in the current form the email could be send BOTH to user and HR
+        send_mail(self.mail_accepted_title(), self.mail_accepted_body(),
+                'tytusdjango@gmail.com', ['tytusdjango@gmail.com'])
+        self.save()
+
+    def reject(self):
+        # TODO co dalej sie dzieje z takim urlopem? przeciez nie ma po co wisiec w bazie na zawsze
+        self.status = self.REJECTED
+        # TODO send a proper mail to the right address
+        send_mail(self.mail_rejected_title(), self.mail_rejected_body(),
+                'tytusdjango@gmail.com', ['tytusdjango@gmail.com'])
+        self.save()
+
+    def description(self):
+        body = ('Absence by: ' + self.user.get_full_name() + '\n'
+                'Requested on: ' + dateToString(self.dateCreated) + '\n'
+                'Absence kind: ' + (self.absence_kind.name if self.absence_kind else 'none') + '\n'
+                'For days:\n')
+        for r in AbsenceRange.objects.filter(absence=self).order_by('begin', 'end'):
+            body += ' * ' + unicode(r) + '\n'
+        return body
+    
+    def mail_request_title(self):
+        return 'Absence request from ' + self.user.get_full_name()
+
+    def mail_request_body(self):
+        desc = self.description()
+        mng_url = settings.BASE_URL + '/manage-absence'
+        return desc + ('\n' +
+                'to accept: ' + mng_url + '?accept-submit&absence-id=' + str(self.id) + '\n'
+                'to reject: ' + mng_url + '?reject-submit&absence-id=' + str(self.id) + '\n'
+                'to view details: ' + mng_url + '?absence-id=' + str(self.id) + '\n')
+
+    def mail_accepted_title(self):
+        return 'Absence was accepted'
+
+    def mail_accepted_body(self):
+        return ('Absence request (listed below) was accepted. Have fun!\n\n' +
+                self.description())
+
+    def mail_rejected_title(self):
+        return 'Absence was REJECTED'
+
+    def mail_rejected_body(self):
+        return ('Absence request (listed below) was REJECTED. Try harder next time!\n\n' + 
+                self.description())
 
 
 class AbsenceRange(models.Model):
@@ -187,9 +260,12 @@ class AbsenceRange(models.Model):
         """ Returns all users' vacations intersecting with given period.
         
         users should be a list of users or '*' for everyone. """
-        user_ranges = cls.objects.all()
+        # first of all: don't show rejected absences
+        user_ranges = cls.objects.exclude(absence__status=Absence.REJECTED)
+        # second, filter needed users
         if users != '*':
             user_ranges = user_ranges.filter(absence__user__in=users)
+        # finally, filter given dates
         return user_ranges.filter(
             Q(begin__lt=rend, begin__gte=rbegin) | Q(end__gt=rbegin, end__lte=rend),
         ).order_by('begin', 'end')
@@ -200,7 +276,7 @@ class AbsenceRange(models.Model):
         
         Returns single (first if many) intersecting AbsenceRange or None. """
         try:
-            return cls.objects.filter(
+            return cls.objects.exclude(absence__status=Absence.REJECTED).filter(
                 Q(begin__lt=rend, begin__gte=rbegin) | Q(end__gt=rbegin, end__lte=rend),
                 absence__user=user)[0]
         except IndexError:
@@ -225,6 +301,7 @@ class AbsenceRange(models.Model):
             'end': dateToString(self.end),
             'absence_id': self.absence.id,
             'user_id': self.absence.user.id,
+            'status': self.absence.status,
         }
 
 

@@ -12,6 +12,10 @@ global_users_loaded = false;
 global_users_sorted = new Array();
 global_users_order = new Array();
 
+status_PENDING = 0;
+status_ACCEPTED = 1;
+status_REJECTED = 2;
+
 // Get and save absence ranges, and execute the function on them.
 // Pass empty users array to get everyone's absences.
 function getAbsencesBetween(begin, end, users, on_success) {
@@ -132,22 +136,27 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
             var event_objects = new Array();
             var logged_user_absences = new Array();
             for (i in ranges) {
-                event_objects[i] = {
-                    id: ranges[i].id,
-                    title: global_users_by_id[ranges[i].user_id].full_name,
-                    start: ranges[i].begin,
-                    end: ranges[i].end,
-                    user_id: ranges[i].user_id
-                };
-                // pull out current user's absences
-                if (global_logged_user_id === ranges[i].user_id) {
-                    logged_user_absences.push(ranges[i]);
+                if (!accept_mode_enabled() || ranges[i].absence_id != global_accept_absence_id) {
+                    var r_color = 'grey';
+                    if (ranges[i].status == status_ACCEPTED) r_color = '#428bca';
+                    event_objects.push({
+                        id: ranges[i].id,
+                        title: global_users_by_id[ranges[i].user_id].full_name,
+                        start: ranges[i].begin,
+                        end: ranges[i].end,
+                        user_id: ranges[i].user_id,
+                        color: r_color
+                    });
+                    // pull out current user's absences
+                    if (global_logged_user_id === ranges[i].user_id) {
+                        logged_user_absences.push(ranges[i]);
+                    }
                 }
             }
             // copy data to global arrays, for convenience of other calculations
             global_absences = ranges;
             global_logged_user_absences = logged_user_absences;
-            console.debug('saved ' + ranges.length + ' ranges');
+            console.debug('saved ' + event_objects.length + ' ranges');
             console.debug('saved ' + logged_user_absences.length + ' logged user\'s ranges');
             // now also get holidays for the given range
             getHolidaysBetween(
