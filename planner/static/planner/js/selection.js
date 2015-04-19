@@ -214,10 +214,20 @@ function display_or_hide_plan_button() {
     var currently_selected_ranges = $('#absence_select > li').length;
     var content = "hello";
 
-    if (currently_selected_ranges == 0) {
-       content = '<p>Select days for your absence by clicking on the calendar.</p>';
+    if (accept_mode_enabled()) {
+        if (currently_selected_ranges == 0) {
+            content = '<p>No absences to manage.</p>';
+        } else {
+            var btn_r = "<input type='submit' name='reject-submit' value='Reject' class='btn btn-danger'/>\n";
+            var btn_a = "<input type='submit' name='accept-submit' value='Accept' class='btn btn-success'/>\n";
+            content = "<div class='btn-group' role='group'>\n" + btn_r + btn_a + "</div>";
+        }
     } else {
-        content = "<input type='submit' name='book-value-submit' value='Plan Absence' class='btn btn-primary'/>";
+        if (currently_selected_ranges == 0) {
+            content = '<p>Select days for your absence by clicking on the calendar.</p>';
+        } else {
+            content = "<input type='submit' name='book-value-submit' value='Plan Absence' class='btn btn-primary'/>";
+        }
     }
     $('#submit_selected_days').html(content);
 }
@@ -258,4 +268,22 @@ function highlight_selected_ranges() {
 // To be connected to FC's viewRender callback, triggered after every view switch.
 function view_render_callback(view, element) {
     highlight_selected_ranges();
+}
+
+// Manually add selection from given ranges (from DB's json)
+function select_ranges_from_json(ranges) {
+    console.debug('select from json: ' + ranges.length + 'ranges');
+    for (i in ranges) {
+        var range = {
+            begin: moment(ranges[i].begin),
+            end: moment(ranges[i].end) 
+        };
+        // we trust data from DB enough to skip checks :)
+        add_checked_range(range);
+    }
+    highlight_selected_ranges();
+}
+
+function accept_mode_enabled() {
+    return (typeof global_accept_absence_id !== 'undefined');
 }

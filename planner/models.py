@@ -151,7 +151,7 @@ class Absence(models.Model):
     # Only for debug purpouse
     # Change it when front allows
     absence_kind = models.ForeignKey(AbsenceKind, null=True, blank=True)
-    status = models.IntegerField(default=0, choices=STATUS_CHOICES)
+    status = models.IntegerField(default=PENDING, choices=STATUS_CHOICES)
     # TODO: komentarz
 
     def __unicode__(self):
@@ -168,9 +168,36 @@ class Absence(models.Model):
             absence.full_clean()
             absence.save()
             #send mail to our test email to check if its ok
+            # TODO send a proper mail to the right address
             send_mail('Absence acceptance', 'It is working.', 'tytusdjango@gmail.com',
                         ['tytusdjango@gmail.com'])
         return new_abs
+
+    def toDict(self):
+        """ Returns needed Absence's attributes as dict, e.g. for converting to json. """
+        return {
+            'id': self.id,
+            'user_id': self.user.id,
+            'user_name': self.user.get_full_name(),
+            'date_created': dateToString(self.dateCreated),
+            'kind': self.absence_kind.id,
+            'kind_name': self.absence_kind.name,
+        }
+
+    def accept(self):
+        self.status = self.ACCEPTED
+        # TODO send a proper mail to the right address
+        send_mail('Absence ' + str(self.id) + ' accepted', 'have a nice absence!',
+                'tytusdjango@gmail.com', ['tytusdjango@gmail.com'])
+        self.save()
+
+    def reject(self):
+        # TODO co dalej sie dzieje z takim urlopem? przeciez nie ma po co wisiec w bazie na zawsze
+        self.status = self.REJECTED
+        # TODO send a proper mail to the right address
+        send_mail('Absence ' + str(self.id) + ' rejected', 'Work harder and earn your break!',
+                'tytusdjango@gmail.com', ['tytusdjango@gmail.com'])
+        self.save()
 
 
 class AbsenceRange(models.Model):
@@ -187,9 +214,12 @@ class AbsenceRange(models.Model):
         """ Returns all users' vacations intersecting with given period.
         
         users should be a list of users or '*' for everyone. """
-        user_ranges = cls.objects.all()
+        # first of all: don't show rejected absences
+        user_ranges = cls.objects.exclude(absence__status=Absence.REJECTED)
+        # second, filter needed users
         if users != '*':
             user_ranges = user_ranges.filter(absence__user__in=users)
+        # finally, filter given dates
         return user_ranges.filter(
             Q(begin__lt=rend, begin__gte=rbegin) | Q(end__gt=rbegin, end__lte=rend),
         ).order_by('begin', 'end')
@@ -225,6 +255,7 @@ class AbsenceRange(models.Model):
             'end': dateToString(self.end),
             'absence_id': self.absence.id,
             'user_id': self.absence.user.id,
+            'status': self.absence.status,
         }
 
 

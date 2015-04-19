@@ -23,6 +23,10 @@ def dateToString(obj):
     return obj.strftime('%Y-%m-%d')
 
 
+def objToJson(obj):
+    return json.dumps(obj.toDict())
+
+
 def objListToJson(objs):
     obj_list = map(lambda o: o.toDict(), objs)
     return json.dumps(obj_list)
