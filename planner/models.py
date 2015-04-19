@@ -236,7 +236,7 @@ class AbsenceRange(models.Model):
         
         Returns single (first if many) intersecting AbsenceRange or None. """
         try:
-            return cls.objects.filter(
+            return cls.objects.exclude(absence__status=Absence.REJECTED).filter(
                 Q(begin__lt=rend, begin__gte=rbegin) | Q(end__gt=rbegin, end__lte=rend),
                 absence__user=user)[0]
         except IndexError:
