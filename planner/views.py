@@ -108,6 +108,11 @@ class PlanAbsenceView(View):
 
 class ManageAbsenceView(View):
     def get(self, request, *args, **kwargs):
+        # redirect direct accept/reject links to POST
+        if 'accept-submit' in request.GET or 'reject-submit' in request.GET:
+            request.POST = request.GET
+            return self.post(request, args, kwargs)
+        # otherwise, show management panel
         d = date.today()
         month_begin = date(d.year, d.month, 1)
         month_end = date(d.year, d.month, monthrange(d.year, d.month)[1])
@@ -116,11 +121,11 @@ class ManageAbsenceView(View):
             'month_end': dateToString(month_end),
             'users': objListToJson(get_user_model().objects.all()),
         }
-        if 'absence' in request.GET:
+        if 'absence-id' in request.GET:
             try:
-                context['accept_absence'] = Absence.objects.get(id=request.GET['absence']).toDict()
+                context['accept_absence'] = Absence.objects.get(id=request.GET['absence-id']).toDict()
                 context['accept_ranges'] = objListToJson(
-                        AbsenceRange.objects.filter(absence=request.GET['absence']))
+                        AbsenceRange.objects.filter(absence=request.GET['absence-id']))
             except ObjectDoesNotExist:
                 messages.error(request, 'Invalid absence to manage.')
         return render(request, 'planner/manage.html', context)

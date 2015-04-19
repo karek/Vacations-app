@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
@@ -169,13 +170,17 @@ class Absence(models.Model):
         new_abs = cls(user=user)
         new_abs.save()
         for (rbegin, rend) in ranges:
-            absence = AbsenceRange(absence=new_abs, begin=rbegin, end=rend)
-            absence.full_clean()
-            absence.save()
+            new_range = AbsenceRange(absence=new_abs, begin=rbegin, end=rend)
+            new_range.full_clean()
+            new_range.save()
+        # if the absence doesn't need acceptance, skip to ACCEPTED
+        if new_abs.absence_kind and new_abs.absence_kind.reqiure_acceptance:
+            new_abs.accept()
+        else:
             #send mail to our test email to check if its ok
             # TODO send a proper mail to the right address
-            send_mail('Absence acceptance', 'It is working.', 'tytusdjango@gmail.com',
-                        ['tytusdjango@gmail.com'])
+            send_mail(new_abs.mail_request_title(), new_abs.mail_request_body(),
+                    'tytusdjango@gmail.com', ['tytusdjango@gmail.com'])
         return new_abs
 
     def toDict(self):
@@ -193,7 +198,8 @@ class Absence(models.Model):
     def accept(self):
         self.status = self.ACCEPTED
         # TODO send a proper mail to the right address
-        send_mail('Absence ' + str(self.id) + ' accepted', 'have a nice absence!',
+        # TODO in the current form the email could be send BOTH to user and HR
+        send_mail(self.mail_accepted_title(), self.mail_accepted_body(),
                 'tytusdjango@gmail.com', ['tytusdjango@gmail.com'])
         self.save()
 
@@ -201,9 +207,43 @@ class Absence(models.Model):
         # TODO co dalej sie dzieje z takim urlopem? przeciez nie ma po co wisiec w bazie na zawsze
         self.status = self.REJECTED
         # TODO send a proper mail to the right address
-        send_mail('Absence ' + str(self.id) + ' rejected', 'Work harder and earn your break!',
+        send_mail(self.mail_rejected_title(), self.mail_rejected_body(),
                 'tytusdjango@gmail.com', ['tytusdjango@gmail.com'])
         self.save()
+
+    def description(self):
+        body = ('Absence by: ' + self.user.get_full_name() + '\n'
+                'Requested on: ' + dateToString(self.dateCreated) + '\n'
+                'Absence kind: ' + (self.absence_kind.name if self.absence_kind else 'none') + '\n'
+                'For days:\n')
+        for r in AbsenceRange.objects.filter(absence=self).order_by('begin', 'end'):
+            body += ' * ' + unicode(r) + '\n'
+        return body
+    
+    def mail_request_title(self):
+        return 'Absence request from ' + self.user.get_full_name()
+
+    def mail_request_body(self):
+        desc = self.description()
+        mng_url = settings.BASE_URL + '/manage-absence'
+        return desc + ('\n' +
+                'to accept: ' + mng_url + '?accept-submit&absence-id=' + str(self.id) + '\n'
+                'to reject: ' + mng_url + '?reject-submit&absence-id=' + str(self.id) + '\n'
+                'to view details: ' + mng_url + '?absence-id=' + str(self.id) + '\n')
+
+    def mail_accepted_title(self):
+        return 'Absence was accepted'
+
+    def mail_accepted_body(self):
+        return ('Absence request (listed below) was accepted. Have fun!\n\n' +
+                self.description())
+
+    def mail_rejected_title(self):
+        return 'Absence was REJECTED'
+
+    def mail_rejected_body(self):
+        return ('Absence request (listed below) was REJECTED. Try harder next time!\n\n' + 
+                self.description())
 
 
 class AbsenceRange(models.Model):
