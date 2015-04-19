@@ -126,10 +126,11 @@ class ManageAbsenceView(View):
         return render(request, 'planner/manage.html', context)
 
     def post(self, request, *args, **kwargs):
-        print 'POST: '
-        print request.POST
         try:
             absence = Absence.objects.get(id=request.POST['absence-id'])
+            if not request.user.is_authenticated() or not request.user.is_manager_of(absence.user):
+                raise InternalError('Only the leader of team ' + absence.user.team.name +
+                        ' can manage this absence.')
             if 'accept-submit' in request.POST:
                 absence.accept()
                 messages.success(request,
@@ -144,6 +145,8 @@ class ManageAbsenceView(View):
             messages.error(request, 'Invalid request: no absence given.')
         except ObjectDoesNotExist:
             messages.error(request, 'Invalid absence to manage.')
+        except InternalError as e:
+            messages.error(request, e.message)
         return HttpResponseRedirect('/')
 
 

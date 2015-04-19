@@ -125,6 +125,11 @@ class EmailUser(AbstractBaseUser):
             'is_teamleader' : self.is_teamleader,
         }
 
+    def is_manager_of(self, other):
+        """ Is this user manager of someone's team? """
+        # TODO: is a team leader his own manager?
+        return self.team == other.team and self.is_teamleader
+
 class AbsenceKind(models.Model):
     name = models.CharField(max_length=30, blank=False, unique=True)
     require_acceptance = models.BooleanField(default=True)
@@ -180,8 +185,9 @@ class Absence(models.Model):
             'user_id': self.user.id,
             'user_name': self.user.get_full_name(),
             'date_created': dateToString(self.dateCreated),
-            'kind': self.absence_kind.id,
-            'kind_name': self.absence_kind.name,
+            # TODO delete the ifs below when we have obligatory kind selection
+            'kind': self.absence_kind.id if self.absence_kind else -1,
+            'kind_name': self.absence_kind.name if self.absence_kind else 'none',
         }
 
     def accept(self):
