@@ -32,7 +32,7 @@ def create_users(apps, schema_editor):
         User(email='sultan.kosmitow@kosmici.ru', first_name='Sułtan', last_name='Kosmitów', team=t2,
              is_teamleader=True),
         User(email='michal.parchas@kosmici.ru', first_name='Michał', last_name='Parchaś', team=t2),
-        User(email='admirał.torpeda@gwiezdaflota.pl', first_name='Admirał', last_name='Torpeda', team=t3)
+        User(email='admiral.torpeda@gwiezdaflota.pl', first_name='Admirał', last_name='Torpeda', team=t3)
     ]
     User.objects.bulk_create(users)
 
