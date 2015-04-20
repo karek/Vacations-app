@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from datetime import date, timedelta
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -7,10 +9,9 @@ from django.db import transaction
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
-
 from planner.utils import dateToString
-from datetime import date, timedelta
 from django.core.mail import send_mail
+
 
 class Team(models.Model):
     name = models.CharField(max_length=30, blank=False)
@@ -26,7 +27,6 @@ class Team(models.Model):
 
 
 class EmailUserManager(BaseUserManager):
-
     def create_user(self, email, first_name, last_name, team, password=None, is_teamleader=False):
         if not email:
             raise ValueError('Users must have an email address')
@@ -122,14 +122,15 @@ class EmailUser(AbstractBaseUser):
             'first_name': self.first_name,
             'last_name': self.last_name,
             'email': self.email,
-            'team' : team_name,
-            'is_teamleader' : self.is_teamleader,
+            'team': team_name,
+            'is_teamleader': self.is_teamleader,
         }
 
     def is_manager_of(self, other):
         """ Is this user manager of someone's team? """
         # TODO: is a team leader his own manager?
         return self.team == other.team and self.is_teamleader
+
 
 class AbsenceKind(models.Model):
     name = models.CharField(max_length=30, blank=False, unique=True)
@@ -138,10 +139,11 @@ class AbsenceKind(models.Model):
     def __unicode__(self):  # __unicode__ on Python 2
         return self.name
 
+
 class Absence(models.Model):
     """ User's whole Absence. Describes parameters and has many AbsenceRanges attached. """
-    
-    #Status choices
+
+    # Status choices
     PENDING = 0
     ACCEPTED = 1
     REJECTED = 2
@@ -177,10 +179,10 @@ class Absence(models.Model):
         if new_abs.absence_kind and new_abs.absence_kind.reqiure_acceptance:
             new_abs.accept()
         else:
-            #send mail to our test email to check if its ok
+            # send mail to our test email to check if its ok
             # TODO send a proper mail to the right address
             send_mail(new_abs.mail_request_title(), new_abs.mail_request_body(),
-                    'tytusdjango@gmail.com', ['tytusdjango@gmail.com'])
+                      'tytusdjango@gmail.com', ['tytusdjango@gmail.com'])
         return new_abs
 
     def toDict(self):
@@ -200,7 +202,7 @@ class Absence(models.Model):
         # TODO send a proper mail to the right address
         # TODO in the current form the email could be send BOTH to user and HR
         send_mail(self.mail_accepted_title(), self.mail_accepted_body(),
-                'tytusdjango@gmail.com', ['tytusdjango@gmail.com'])
+                  'tytusdjango@gmail.com', ['tytusdjango@gmail.com'])
         self.save()
 
     def reject(self):
@@ -208,18 +210,19 @@ class Absence(models.Model):
         self.status = self.REJECTED
         # TODO send a proper mail to the right address
         send_mail(self.mail_rejected_title(), self.mail_rejected_body(),
-                'tytusdjango@gmail.com', ['tytusdjango@gmail.com'])
+                  'tytusdjango@gmail.com', ['tytusdjango@gmail.com'])
         self.save()
 
     def description(self):
         body = ('Absence by: ' + self.user.get_full_name() + '\n'
-                'Requested on: ' + dateToString(self.dateCreated) + '\n'
-                'Absence kind: ' + (self.absence_kind.name if self.absence_kind else 'none') + '\n'
-                'For days:\n')
+                                                             'Requested on: ' + dateToString(self.dateCreated) + '\n'
+                                                                                                                 'Absence kind: ' + (
+                    self.absence_kind.name if self.absence_kind else 'none') + '\n'
+                                                                               'For days:\n')
         for r in AbsenceRange.objects.filter(absence=self).order_by('begin', 'end'):
             body += ' * ' + unicode(r) + '\n'
         return body
-    
+
     def mail_request_title(self):
         return 'Absence request from ' + self.user.get_full_name()
 
@@ -227,9 +230,10 @@ class Absence(models.Model):
         desc = self.description()
         mng_url = settings.BASE_URL + '/manage-absence'
         return desc + ('\n' +
-                'to accept: ' + mng_url + '?accept-submit&absence-id=' + str(self.id) + '\n'
-                'to reject: ' + mng_url + '?reject-submit&absence-id=' + str(self.id) + '\n'
-                'to view details: ' + mng_url + '?absence-id=' + str(self.id) + '\n')
+                       'to accept: ' + mng_url + '?accept-submit&absence-id=' + str(self.id) + '\n'
+                                                                                               'to reject: ' + mng_url + '?reject-submit&absence-id=' + str(
+            self.id) + '\n'
+                       'to view details: ' + mng_url + '?absence-id=' + str(self.id) + '\n')
 
     def mail_accepted_title(self):
         return 'Absence was accepted'
@@ -242,7 +246,7 @@ class Absence(models.Model):
         return 'Absence was REJECTED'
 
     def mail_rejected_body(self):
-        return ('Absence request (listed below) was REJECTED. Try harder next time!\n\n' + 
+        return ('Absence request (listed below) was REJECTED. Try harder next time!\n\n' +
                 self.description())
 
 
@@ -318,14 +322,14 @@ class Holiday(models.Model):
         for n in xrange(int((end_date - start_date).days)):
             yield start_date + timedelta(n)
 
-    @classmethod        
+    @classmethod
     def yearRange(cls, year):
         return cls.dateRange(date(year, 1, 1), date(year + 1, 1, 1))
 
-    @classmethod    
+    @classmethod
     def weekends(cls, year):
-        return ((weekend, weekend.strftime("%A")) for weekend in cls.yearRange(year) 
-            if weekend.weekday() == 5 or weekend.weekday() == 6)
+        return ((weekend, weekend.strftime("%A")) for weekend in cls.yearRange(year)
+                if weekend.weekday() == 5 or weekend.weekday() == 6)
 
     # TODO: FK to HolidayCalendar
 

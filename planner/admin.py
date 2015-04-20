@@ -1,11 +1,10 @@
-from planner.forms import YearForm, UserChangeForm, UserCreationForm
+from planner.forms import UserChangeForm, UserCreationForm
 from django.contrib import admin
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin
 from planner.models import *
 from django.conf.urls import patterns, url
 from planner.views import YearFormView
-
 
 
 class EmailUserAdmin(UserAdmin):
@@ -20,7 +19,7 @@ class EmailUserAdmin(UserAdmin):
     list_filter = ('is_admin',)
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        ('Personal info', {'fields': ('first_name', 'last_name', 'team','is_teamleader')}),
+        ('Personal info', {'fields': ('first_name', 'last_name', 'team', 'is_teamleader')}),
         ('Permissions', {'fields': ('is_admin',)}),
     )
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
@@ -36,6 +35,7 @@ class EmailUserAdmin(UserAdmin):
     ordering = ('email', 'first_name', 'last_name', 'team')
     filter_horizontal = ()
 
+
 class HolidayAdmin(admin.ModelAdmin):
     def get_urls(self):
         urls = super(HolidayAdmin, self).get_urls()
@@ -44,7 +44,6 @@ class HolidayAdmin(admin.ModelAdmin):
         return my_urls + urls
 
     change_list_template = 'planner/change_list.html'
-
 
 
 # Now register the new UserAdmin...
