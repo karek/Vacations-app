@@ -161,7 +161,7 @@ class Absence(models.Model):
     # TODO: komentarz
 
     def __unicode__(self):
-        return "Absence by %s" % (self.id, self.user)
+        return "Absence by %s" % self.user
 
     @classmethod
     @transaction.atomic
