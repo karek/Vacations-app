@@ -45,11 +45,22 @@ class HolidayAdmin(admin.ModelAdmin):
 
     change_list_template = 'planner/change_list.html'
 
+class EmailUserInline(admin.TabularInline):
+    model = EmailUser
+    fields = ['email', 'first_name', 'last_name', 'is_teamleader']
+    template = 'admin/tabular.html'
+    extra = 1
+
+class TeamAdmin(admin.ModelAdmin):
+    fields = ['name']
+    inlines = [EmailUserInline]
+
+
 
 # Now register the new UserAdmin...
 admin.site.register(EmailUser, EmailUserAdmin)
 admin.site.register(Absence)
-admin.site.register(Team)
+admin.site.register(Team, TeamAdmin)
 admin.site.register(AbsenceRange)
 admin.site.register(Holiday, HolidayAdmin)
 # ... and, since we're not using Django's built-in permissions,
