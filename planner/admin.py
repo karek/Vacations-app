@@ -32,7 +32,7 @@ class EmailUserAdmin(UserAdmin):
         ),
     )
     search_fields = ('email', 'first_name', 'last_name', 'team')
-    ordering = ('email', 'first_name', 'last_name', 'team')
+    ordering = ('team', 'last_name', 'first_name', 'email')
     filter_horizontal = ()
 
 
@@ -44,6 +44,8 @@ class HolidayAdmin(admin.ModelAdmin):
         return my_urls + urls
 
     change_list_template = 'planner/change_list.html'
+    list_display = ('name', 'day')
+    ordering = ('-day', 'name')
 
 
 class EmailUserInline(admin.TabularInline):
@@ -56,6 +58,7 @@ class EmailUserInline(admin.TabularInline):
 class TeamAdmin(admin.ModelAdmin):
     fields = ['name']
     inlines = [EmailUserInline]
+    list_display = ('name', 'member_count', 'has_teamleader')
 
     def member_count(self, obj):
         return obj.emailuser_set.count()
@@ -65,14 +68,51 @@ class TeamAdmin(admin.ModelAdmin):
         return teamleaders.exists()
     has_teamleader.boolean = True
 
-    list_display = ('name', 'member_count', 'has_teamleader')
 
 
-# Now register the new UserAdmin...
+class AbsenceRangeAdmin(admin.ModelAdmin):
+    fieldsets = (
+        # ('Absence', {'fields': ('absence',)}),
+        ('Day range', {'fields': ('begin', 'end',)}),
+    )
+    #TODO display how many working days in the absence range
+    list_display = ('begin', 'end', 'absence')
+    ordering = ('-begin', '-end')
+
+
+class AbsenceRangeInline(admin.TabularInline):
+    model = AbsenceRange
+    fields = ['begin', 'end']
+    template = 'admin/tabular.html'
+    extra = 1
+
+
+class AbsenceAdmin(admin.ModelAdmin):
+    #TODO display how many working days in the absence
+    list_display = ('user', 'first_day', 'last_day', 'ranges', 'absence_kind', 'status')
+    fieldsets = (
+        ('Basic information', {'fields': ('user', 'absence_kind')}),
+        ('Status', {'fields': ('status',)})
+    )
+    inlines = [AbsenceRangeInline]
+
+    def first_day(self, obj):
+        first_range = obj.absencerange_set.earliest('begin')
+        return first_range.begin
+
+    def last_day(self, obj):
+        last_range = obj.absencerange_set.latest('end')
+        return last_range.end
+
+
+    def ranges(self, obj):
+        return obj.absencerange_set.count()
+
+
 admin.site.register(EmailUser, EmailUserAdmin)
-admin.site.register(Absence)
+admin.site.register(Absence, AbsenceAdmin)
 admin.site.register(Team, TeamAdmin)
-admin.site.register(AbsenceRange)
+admin.site.register(AbsenceRange, AbsenceRangeAdmin)
 admin.site.register(Holiday, HolidayAdmin)
 # ... and, since we're not using Django's built-in permissions,
 # unregister the Group model from admin.

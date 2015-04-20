@@ -311,8 +311,8 @@ class AbsenceRange(models.Model):
 
 class Holiday(models.Model):
     """ A single work-free day. """
-    day = models.DateField()
     name = models.CharField(max_length=30, blank=False)
+    day = models.DateField()
 
     def __unicode__(self):
         return '%s : %s' % (self.day, self.name)
