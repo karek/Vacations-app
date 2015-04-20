@@ -45,16 +45,27 @@ class HolidayAdmin(admin.ModelAdmin):
 
     change_list_template = 'planner/change_list.html'
 
+
 class EmailUserInline(admin.TabularInline):
     model = EmailUser
     fields = ['email', 'first_name', 'last_name', 'is_teamleader']
     template = 'admin/tabular.html'
     extra = 1
 
+
 class TeamAdmin(admin.ModelAdmin):
     fields = ['name']
     inlines = [EmailUserInline]
 
+    def member_count(self, obj):
+        return obj.emailuser_set.count()
+
+    def has_teamleader(self, obj):
+        teamleaders = obj.emailuser_set.filter(is_teamleader=True)
+        return teamleaders.exists()
+    has_teamleader.boolean = True
+
+    list_display = ('name', 'member_count', 'has_teamleader')
 
 
 # Now register the new UserAdmin...
