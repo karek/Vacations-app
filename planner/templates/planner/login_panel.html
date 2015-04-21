@@ -8,7 +8,7 @@
 </div>
 {% else %}
 <form class="navbar-form navbar-right" method="post" id="loginForm"
-      action="{% url 'planner:login' %}?next={{ request.path }}">
+      action="{% url 'planner:login' %}?next={{ request.path }}?{{ request.GET.urlencode }}">
     {% csrf_token %}
     <div class="form-group">
         <input type="email" name="email" maxlength="255" id="login_email" class="form-control typeahead"
