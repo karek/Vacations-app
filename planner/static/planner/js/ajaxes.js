@@ -12,6 +12,8 @@ global_users_loaded = false;
 global_users_sorted = new Array();
 global_users_order = new Array();
 
+normal_absence_text = "Absence";
+
 status_PENDING = 0;
 status_ACCEPTED = 1;
 status_REJECTED = 2;
@@ -145,7 +147,9 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
                         start: ranges[i].begin,
                         end: ranges[i].end,
                         user_id: ranges[i].user_id,
-                        color: r_color
+                        color: r_color,
+            //TODO: Change this type later - maybe in abscence selection
+                        type: normal_absence_text
                     });
                     // pull out current user's absences
                     if (global_logged_user_id === ranges[i].user_id) {
@@ -170,6 +174,7 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
                             start: holidays[i].day,
                             end: holidays[i].day,
                             color: 'red',
+//                            rendering: 'background',
                             user_id: global_event_is_holiday
                         });
                     }

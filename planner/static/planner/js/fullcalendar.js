@@ -3968,14 +3968,19 @@ Grid.mixin({
 			segs = this.rangeToSegs(eventRange); // defined by the subclass
 		}
 
-		for (i = 0; i < segs.length; i++) {
-			seg = segs[i];
-			seg.event = eventRange.event;
-			seg.eventStartMS = eventRange.eventStartMS;
-			seg.eventDurationMS = eventRange.eventDurationMS;
-		}
+        for (i = 0; i < segs.length; i++) {
+            seg = segs[i];
+            seg.event = eventRange.event;
+            var user = seg.event.user_id;
 
-		return segs;
+            if (user != global_event_is_holiday)
+                seg.event.title = global_users_by_id[user].full_name;
+
+            seg.eventStartMS = eventRange.eventStartMS;
+            seg.eventDurationMS = eventRange.eventDurationMS;
+        }
+
+        return segs;
 	}
 
 });
@@ -5958,9 +5963,39 @@ TimeGrid.mixin({
 
 });
 
+// Slices ranges into segs and sets titles on them
+
+function evRangeToSegs(gridTarget, eventRange, rangeToSegsFunc) {
+    var segs;
+    var i, seg;
+
+    if (rangeToSegsFunc) {
+        segs = rangeToSegsFunc(eventRange);
+    }
+    else {
+        segs = gridTarget.rangeToSegs(eventRange); // defined by the subclass
+    }
+
+    for (i = 0; i < segs.length; i++) {
+        seg = segs[i];
+        seg.event = eventRange.event;
+        if(seg.event.user_id != global_event_is_holiday)
+            seg.event.title = seg.event.type;
+        seg.eventStartMS = eventRange.eventStartMS;
+        seg.eventDurationMS = eventRange.eventDurationMS;
+    }
+
+    return segs;
+}
 
 var UnclickableDayGrid = DayGrid.extend({
+
     dayMousedown: function() {},
+
+    eventRangeToSegs: function(eventRange, rangeToSegsFunc) {
+		return evRangeToSegs(this, eventRange, rangeToSegsFunc);
+	}
+
 });;
 
     /* A component that renders rows with custom values given by json (atm. Global Users)
@@ -6018,6 +6053,11 @@ var CustomResourceGrid = TimeGrid.extend({
 
 		return html;
     },
+
+	eventRangeToSegs: function(eventRange, rangeToSegsFunc) {
+		return evRangeToSegs(this, eventRange, rangeToSegsFunc);
+	},
+
 
     // Renders the HTML for a single event segment's default rendering
 	fgSegHtml: function(seg, disableResizing) {
