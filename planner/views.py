@@ -10,7 +10,7 @@ from django.shortcuts import render, redirect
 from django.views.generic.base import View
 from django.views.generic.edit import FormView
 from planner.forms import RegisterForm, YearForm
-from planner.models import Absence, AbsenceRange, Holiday
+from planner.models import Absence, AbsenceRange, Holiday, AbsenceKind
 from planner.utils import InternalError, stringToDate, dateToString, objToJson, objListToJson
 from datetime import datetime
 
@@ -24,6 +24,7 @@ class IndexView(View):
             'month_begin': dateToString(month_begin),
             'month_end': dateToString(month_end),
             'users': objListToJson(get_user_model().objects.all()),
+            'absence_kinds': AbsenceKind.objects.all()
         }
         return render(request, 'planner/index.html', context)
 
@@ -72,7 +73,8 @@ class PlanAbsenceView(View):
                 raise InternalError("You must log in to plan absences.")
             ranges = self.validateRanges(request.POST.getlist('begin[]'),
                                          request.POST.getlist('end[]'))
-            self.addVacation(request.user, ranges)
+            absence_kind = request.POST.get('absence_kind')
+            self.addVacation(request.user, ranges, absence_kind)
             # TODO better message with send email if needs acceptance
             # or just hr email if not
             messages.success(request, 'Absence booked successfully, email was sent to proper authorities.')
@@ -97,12 +99,12 @@ class PlanAbsenceView(View):
         # Return the ranges, AbsenceRange's clean() will validate the rest
         return sorted(zip(map(stringToDate, begins), map(stringToDate, ends)))
 
-    def addVacation(self, user, ranges):
+    def addVacation(self, user, ranges, absence_kind):
         """ Takes a list of ranges (date pairs) and saves them as a vacation.
         
         AbsenceRange's clean() checks if the ranges are valid and not intersecting (with themselves
         nor with previous user's absences). """
-        Absence.createFromRanges(user, ranges)
+        Absence.createFromRanges(user, ranges, absence_kind)
         # nothing really to do here
 
 

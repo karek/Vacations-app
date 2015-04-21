@@ -14,6 +14,11 @@
             {% csrf_token %}
             <ul id='absence_select' class="list-group" style="padding-top: 9px">
             </ul>
+                <select name='absence_kind' class="form-control" style="margin-bottom: 15px;">
+                    {% for kind in absence_kinds %}
+                        <option value="{{ kind.id }}">{{ kind }}</option>
+                    {% endfor %}
+                </select>
             <div class="form-actions" id="submit_selected_days" style="text-align: center;">
                 {% if request.user.is_authenticated %}
                 <p>Select days for your absence by clicking on the calendar.</p>
