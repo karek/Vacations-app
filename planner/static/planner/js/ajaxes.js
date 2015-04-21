@@ -12,7 +12,9 @@ global_users_loaded = false;
 global_users_sorted = new Array();
 global_users_order = new Array();
 
-normal_absence_text = "Absence";
+absence_text_accepted = "Accepted";
+absence_text_pending = "Pending";
+absence_text_rejected = "Rejected";
 
 status_PENDING = 0;
 status_ACCEPTED = 1;
@@ -134,13 +136,19 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
         begin.format('YYYY-MM-DD'),
         end.format('YYYY-MM-DD'),
         [],
-        function(ranges) {
+        function (ranges) {
             var event_objects = new Array();
             var logged_user_absences = new Array();
             for (i in ranges) {
                 if (!accept_mode_enabled() || ranges[i].absence_id != global_accept_absence_id) {
                     var r_color = 'grey';
-                    if (ranges[i].status == status_ACCEPTED) r_color = '#339933';
+                    var abs_type = absence_text_pending;
+
+                    if (ranges[i].status == status_ACCEPTED) {
+                        r_color = '#339933';
+                        abs_type = absence_text_accepted;
+                    }
+
                     event_objects.push({
                         id: ranges[i].id,
                         title: global_users_by_id[ranges[i].user_id].full_name,
@@ -148,8 +156,8 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
                         end: ranges[i].end,
                         user_id: ranges[i].user_id,
                         color: r_color,
-            //TODO: Change this type later - maybe in abscence selection
-                        type: normal_absence_text
+                //TODO: Change this type later - maybe in abscence selection ?
+                        type: abs_type
                     });
                     // pull out current user's absences
                     if (global_logged_user_id === ranges[i].user_id) {
