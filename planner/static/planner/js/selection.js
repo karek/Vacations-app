@@ -225,7 +225,9 @@ function display_or_hide_plan_button() {
     } else {
         if (currently_selected_ranges == 0) {
             content = '<p>Select days for your absence by clicking on the calendar.</p>';
+            $('#absence_other_fields').hide();
         } else {
+            $('#absence_other_fields').show();
             content = "<input type='submit' name='book-value-submit' value='Plan Absence' class='btn btn-primary'/>";
         }
     }
