@@ -6,7 +6,7 @@
         <p>
         request date: <b>{{ accept_absence.date_created }}</b><br/>
         author: <b>{{ accept_absence.user_name }}</b><br/>
-        kind: <b>{{ accept_absence.kind_name }}</b/><br/>
+        kind: <b>{{ accept_absence.kind_name }}</b><br/>
         </p>
         {% endif %}
         <form id='plan-absence' method='POST' action="{% url 'planner:manage-absence' %}">
