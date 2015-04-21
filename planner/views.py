@@ -107,55 +107,71 @@ class PlanAbsenceView(View):
 
 
 class ManageAbsenceView(View):
+    
+    template = 'planner/manage.html'
+
     def get(self, request, *args, **kwargs):
-        # redirect direct accept/reject links to POST
-        if 'accept-submit' in request.GET or 'reject-submit' in request.GET:
-            request.POST = request.GET
-            return self.post(request, args, kwargs)
-        # otherwise, show management panel
+        # unless management succeeds, we go to the same page
+        self.destination = request.path
+        # prepare data for management panel
         d = date.today()
         month_begin = date(d.year, d.month, 1)
         month_end = date(d.year, d.month, monthrange(d.year, d.month)[1])
-        context = {
+        self.context = {
             'month_begin': dateToString(month_begin),
             'month_end': dateToString(month_end),
             'users': objListToJson(get_user_model().objects.all()),
         }
         if 'absence-id' in request.GET:
             try:
-                # TODO maybe we want to allow accepting rejected absences?
-                context['accept_absence'] = Absence.objects.get(
-                        id=request.GET['absence-id'], status=Absence.PENDING).toDict()
-                context['accept_ranges'] = objListToJson(
-                        AbsenceRange.objects.filter(absence=request.GET['absence-id']))
+                absence = Absence.objects.get(id=request.POST['absence-id'], status=Absence.PENDING)
+                self.handle_absence_management(request, absence)
             except ObjectDoesNotExist:
                 messages.error(request, 'Invalid or already processed absence selected.')
-        return render(request, 'planner/manage.html', context)
+        return render(request, self.template, self.context)
 
     def post(self, request, *args, **kwargs):
-        try:
-            # TODO maybe we want to allow accepting rejected absences?
-            absence = Absence.objects.get(id=request.POST['absence-id'], status=Absence.PENDING)
-            if not request.user.is_authenticated() or not request.user.is_manager_of(absence.user):
-                raise InternalError('Only the leader of team ' + absence.user.team.name +
-                        ' can manage this absence.')
-            if 'accept-submit' in request.POST:
-                absence.accept()
-                messages.success(request,
-                        'Absence request by ' + absence.user.get_full_name() + ' accepted')
-            elif 'reject-submit' in request.POST:
-                absence.reject()
-                messages.info(request,
-                        'Absence request by ' + absence.user.get_full_name() + ' rejected')
-            else:
-                messages.error(request, 'Invalid request: no decision made.')
-        except KeyError:
-            messages.error(request, 'Invalid request: no absence given.')
-        except ObjectDoesNotExist:
-            messages.error(request, 'Invalid or already processed absence selected.')
-        except InternalError as e:
-            messages.error(request, e.message)
-        return HttpResponseRedirect('/')
+        # Accept/Reject request from POST form, redirect to GET for processing
+        request.GET = request.POST
+        return self.get(request, args, kwargs)
+
+    def handle_absence_management(self, request, absence):
+        # process Accept/Reject request if any
+        if 'accept-submit' in request.GET or 'reject-submit' in request.GET:
+            try:
+                self.accept_reject_absence(request, absence) # throws on error
+                return
+            except InternalError as e:
+                messages.error(request, e.message)
+        # otherwise, or on processing error, prepare the management panel
+        if not request.user.is_authenticated():
+            messages.warning(request, 'View-only mode, log in to make any changes.')
+            self.context['accept_absence'] = absence.toDict()
+            self.context['accept_ranges'] = objListToJson(
+                    AbsenceRange.objects.filter(absence=request.GET['absence-id']))
+
+    def accept_reject_absence(self, request, absence):
+        """ Common part for managing an absence from POST form and direct GET links.
+        
+        Expects request data in GET.
+        Returns if the operation succeeded, otherwise raises InternalError. """
+        if not request.user.is_authenticated():
+            raise InternalError('Log in now to commit your changes.')
+        if not request.user.is_manager_of(absence.user):
+            raise InternalError('Only the leader of team ' + absence.user.team.name +
+                    ' can manage this absence.')
+        if 'accept-submit' in request.POST:
+            absence.accept()
+            messages.success(request,
+                    'Absence request by ' + absence.user.get_full_name() + ' accepted')
+            return
+        elif 'reject-submit' in request.POST:
+            absence.reject()
+            messages.info(request,
+                    'Absence request by ' + absence.user.get_full_name() + ' rejected')
+            return
+        else:
+            messages.error(request, 'Invalid request: no decision made.')
 
 
 def _make_json_response(data):
