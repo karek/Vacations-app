@@ -138,7 +138,7 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
             for (i in ranges) {
                 if (!accept_mode_enabled() || ranges[i].absence_id != global_accept_absence_id) {
                     var r_color = 'grey';
-                    if (ranges[i].status == status_ACCEPTED) r_color = '#428bca';
+                    if (ranges[i].status == status_ACCEPTED) r_color = '#339933';
                     event_objects.push({
                         id: ranges[i].id,
                         title: global_users_by_id[ranges[i].user_id].full_name,
