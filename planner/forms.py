@@ -10,7 +10,7 @@ class UserCreationForm(forms.ModelForm):
 
     class Meta:
         model = EmailUser
-        fields = ('email', 'first_name', 'last_name')
+        fields = ('email', 'first_name', 'last_name', 'team', 'is_teamleader')
 
     # def clean_password2(self):
     #     # Check that the two password entries match
@@ -37,7 +37,7 @@ class UserChangeForm(forms.ModelForm):
 
     class Meta:
         model = EmailUser
-        fields = ('email', 'password', 'first_name', 'last_name', 'is_active', 'is_admin')
+        fields = ('email', 'password', 'first_name', 'last_name', 'team', 'is_active', 'is_admin', 'is_teamleader')
         # fields = ('email', 'first_name', 'last_name', 'is_active', 'is_admin')
 
     def clean_password(self):
@@ -52,12 +52,13 @@ class RegisterForm(UserCreationForm):
 
     class Meta:
         model = EmailUser
-        fields = ("email", "first_name", "last_name")
+        fields = ("email", "first_name", "last_name", "team")
 
     def save(self, commit=True):
         user = super(RegisterForm, self).save(commit=False)
         user.first_name = self.cleaned_data["first_name"]
         user.last_name = self.cleaned_data["last_name"]
+        user.team = self.cleaned_data["team"]
         if commit:
             user.save()
         return user
