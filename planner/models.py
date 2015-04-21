@@ -167,16 +167,17 @@ class Absence(models.Model):
 
     @classmethod
     @transaction.atomic
-    def createFromRanges(cls, user, ranges):
+    def createFromRanges(cls, user, ranges, kind):
         """ Create an absence together with all its absence ranges (in one atomic transaction)."""
-        new_abs = cls(user=user)
+        absence_kind = AbsenceKind.objects.get(id=kind)
+        new_abs = cls(user=user, absence_kind=absence_kind)
         new_abs.save()
         for (rbegin, rend) in ranges:
             new_range = AbsenceRange(absence=new_abs, begin=rbegin, end=rend)
             new_range.full_clean()
             new_range.save()
         # if the absence doesn't need acceptance, skip to ACCEPTED
-        if new_abs.absence_kind and new_abs.absence_kind.reqiure_acceptance:
+        if new_abs.absence_kind and not new_abs.absence_kind.require_acceptance:
             new_abs.accept()
         else:
             # send mail to our test email to check if its ok

@@ -66,8 +66,8 @@ class TeamAdmin(admin.ModelAdmin):
     def has_teamleader(self, obj):
         teamleaders = obj.emailuser_set.filter(is_teamleader=True)
         return teamleaders.exists()
-    has_teamleader.boolean = True
 
+    has_teamleader.boolean = True
 
 
 class AbsenceRangeAdmin(admin.ModelAdmin):
@@ -75,7 +75,7 @@ class AbsenceRangeAdmin(admin.ModelAdmin):
         # ('Absence', {'fields': ('absence',)}),
         ('Day range', {'fields': ('begin', 'end',)}),
     )
-    #TODO display how many working days in the absence range
+    # TODO display how many working days in the absence range
     list_display = ('begin', 'end', 'absence')
     ordering = ('-begin', '-end')
 
@@ -88,7 +88,7 @@ class AbsenceRangeInline(admin.TabularInline):
 
 
 class AbsenceAdmin(admin.ModelAdmin):
-    #TODO display how many working days in the absence
+    # TODO display how many working days in the absence
     list_display = ('user', 'first_day', 'last_day', 'ranges', 'absence_kind', 'status')
     fieldsets = (
         ('Basic information', {'fields': ('user', 'absence_kind')}),
@@ -109,10 +109,19 @@ class AbsenceAdmin(admin.ModelAdmin):
         return obj.absencerange_set.count()
 
 
+class AbsenceKindAdmin(admin.ModelAdmin):
+    fieldsets = (
+        ('Basic information', {'fields': ('name',)}),
+        ('Acceptance', {'fields': ('require_acceptance',)})
+    )
+    list_display = ('name', 'require_acceptance')
+
+
 admin.site.register(EmailUser, EmailUserAdmin)
 admin.site.register(Absence, AbsenceAdmin)
 admin.site.register(Team, TeamAdmin)
 admin.site.register(AbsenceRange, AbsenceRangeAdmin)
+admin.site.register(AbsenceKind, AbsenceKindAdmin)
 admin.site.register(Holiday, HolidayAdmin)
 # ... and, since we're not using Django's built-in permissions,
 # unregister the Group model from admin.
