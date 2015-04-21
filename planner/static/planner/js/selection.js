@@ -62,7 +62,7 @@ function check_and_add_range(range) {
                 this.remove();
                 //since this is not a merge of ranges, we have to check if this wasn't the last range on the list
                 //and if it is, we should hide Plan button
-                display_or_hide_plan_button();
+                display_or_hide_planning_controls();
                 var old_minus_new = subtract_range(old_range, range);
                 for (var i in old_minus_new) {
                     add_checked_range(old_minus_new[i]);
@@ -153,7 +153,7 @@ function add_checked_range(range) {
     }
 
     $('#absence_select li').sort(comp).appendTo('#absence_select');
-    display_or_hide_plan_button();
+    display_or_hide_planning_controls();
 }
 
 function unselectf(view, jsEvent) {
@@ -209,29 +209,68 @@ function mapAjaxAbsenceToRange(absence) {
 }
 
 // Shows or hides Plan button if there are no ranges selected at the moment
-function display_or_hide_plan_button() {
-    console.debug("display_or_hide_plan_button");
+function display_or_hide_planning_controls() {
+    console.debug("display_or_hide_planning_controls");
     var currently_selected_ranges = $('#absence_select > li').length;
-    var content = "hello";
+    var ranges_not_selected = currently_selected_ranges == 0;
+
+    console.debug("accept_mode_enabled = " + accept_mode_enabled());
+    console.debug("user_is_logged_in = " + user_is_logged_in());
+    console.debug("ranges_not_selected = " + ranges_not_selected);
+
+    var manage_no_absences = $('#manage_no_absences');
+    var manage_buttons = $('#manage_buttons');
+    var manage_invitation_log_in = $('#manage_invitation_log_in');
+    var invitation_select_days = $('#invitation_select_days');
+    var absence_other_fields = $('#absence_other_fields');
+    var plan_absence_button = $('#plan_absence_button');
+    var invitation_log_in = $('#invitation_log_in');
+    var exit_manager_mode = $('#exit_manager_mode');
+
+    manage_no_absences.hide();
+    manage_buttons.hide();
+    manage_invitation_log_in.hide();
+    invitation_select_days.hide();
+    absence_other_fields.hide();
+    plan_absence_button.hide();
+    invitation_log_in.hide();
+    exit_manager_mode.hide();
 
     if (accept_mode_enabled()) {
-        if (currently_selected_ranges == 0) {
-            content = '<p>No absences to manage.</p>';
+        // TODO zmienilem tutaj zarzadzanie widocznymi elementami,
+        // mozna ukryc cos jak uzytkownik nie jest zalogowany w trybie akceptowania
+        // wywoluje ta funkcje przy renderowaniu index.html i manage.html
+
+        exit_manager_mode.show();
+        if (ranges_not_selected) {
+            if(user_is_logged_in()) {
+                manage_no_absences.show();
+            } else {
+                manage_invitation_log_in.show();
+            }
         } else {
-            var btn_r = "<input type='submit' name='reject-submit' value='Reject' class='btn btn-danger'/>\n";
-            var btn_a = "<input type='submit' name='accept-submit' value='Accept' class='btn btn-success'/>\n";
-            content = "<div class='btn-group' role='group'>\n" + btn_r + btn_a + "</div>";
+            if (user_is_logged_in()) {
+                manage_buttons.show();
+            } else {
+                manage_invitation_log_in.show();
+            }
         }
     } else {
-        if (currently_selected_ranges == 0) {
-            content = '<p>Select days for your absence by clicking on the calendar.</p>';
-            $('#absence_other_fields').hide();
+        if (ranges_not_selected) {
+            if (user_is_logged_in()) {
+                invitation_select_days.show();
+            } else {
+                invitation_log_in.show();
+            }
         } else {
-            $('#absence_other_fields').show();
-            content = "<input type='submit' name='book-value-submit' value='Plan Absence' class='btn btn-primary'/>";
+            if (user_is_logged_in()) {
+                absence_other_fields.show();
+                plan_absence_button.show();
+            } else {
+                invitation_log_in.show();
+            }
         }
     }
-    $('#submit_selected_days').html(content);
 }
 
 $(document).on('click', '.rm-absence-selection', function(){
@@ -239,7 +278,7 @@ $(document).on('click', '.rm-absence-selection', function(){
 	// if someone has more stupid idea to refresh all selected days, please show me
 	$(this).closest('li').remove();
     highlight_selected_ranges();
-	display_or_hide_plan_button();
+	display_or_hide_planning_controls();
 });
 
 // When passed as 'selectOverlap' calendar's parameter, this function disallows selections
@@ -288,4 +327,8 @@ function select_ranges_from_json(ranges) {
 
 function accept_mode_enabled() {
     return (typeof global_accept_absence_id !== 'undefined');
+}
+
+function user_is_logged_in() {
+    return global_logged_user_id != -1;
 }

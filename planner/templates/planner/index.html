@@ -21,13 +21,7 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="form-actions" id="submit_selected_days" style="text-align: center;">
-                {% if request.user.is_authenticated %}
-                <p>Select days for your absence by clicking on the calendar.</p>
-                {% else %}
-                <p>You have to be logged in to plan absences.</p>
-                {% endif %}
-            </div>
+            {% include 'planner/planning_controls.html' %}
         </form>
         {% endblock %}
     </div>
@@ -68,6 +62,7 @@
 {% block calendarDeclaration %}
     <script type="text/javascript">
     $(document).ready(function() {
+        display_or_hide_planning_controls();
         $('#calendar').fullCalendar({
             header: {
                 left: 'prev,next today',

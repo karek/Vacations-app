@@ -16,17 +16,8 @@
             {% endif %}
             <ul id='absence_select' class="list-group" style="padding-top: 9px">
             </ul>
-            <div class="form-actions" id="submit_selected_days" style="text-align: center;">
-                {% if request.user.is_authenticated %}
-                <p>No absences to manage.</p>
-                {% else %}
-                <p>You have to be logged in to manage absences.</p>
-                {% endif %}
-            </div>
+            {% include 'planner/planning_controls.html' %}
         </form>
-        <div style="text-align: center">
-            <a href="{% url 'planner:index' %}" class="btn btn-default">Exit manager mode</a>
-        </div>
 {% endblock %}
 
 {% block scripts %}
