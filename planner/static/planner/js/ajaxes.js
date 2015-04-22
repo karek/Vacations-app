@@ -2,9 +2,10 @@
 global_users = new Array();
 global_users_by_id = new Array();
 // These arrays will hold absences currently pulled in by the calendar (most likely the visible ones)
-global_absences = new Array();
+global_ranges = new Array();
 global_logged_user_absences = new Array();
 global_holidays = new Array();
+global_mng_absences = new Array()
 // number to put in user_id field for holiday events
 global_event_is_holiday = -1;
 
@@ -18,7 +19,7 @@ status_REJECTED = 2;
 
 // Get and save absence ranges, and execute the function on them.
 // Pass empty users array to get everyone's absences.
-function getAbsencesBetween(begin, end, users, on_success) {
+function getAbsenceRangesBetween(begin, end, users, on_success) {
     var req_url = global_range_url + '?begin=' + begin + '&end=' + end;
     for (var i in users) req_url += '&user[]=' + users[i]; 
     console.debug('ajax url: ' + req_url);
@@ -33,7 +34,7 @@ function getAbsencesBetween(begin, end, users, on_success) {
         },
         error: function(jqxhr, txt_status, error) {
             console.debug('ajax error: ' + error + ', text: ' + jqxhr.responseText);
-            alert('Error getting absences!');
+            alert('Error getting absence ranges!');
         }
     });
 }
@@ -128,14 +129,14 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
         + ' to ' + end.format('YYYY-MM-DD'));
     // TODO: should we be concerned about the timezone?
     // TODO: add user/team selection when it's needed
-    getAbsencesBetween(
+    getAbsenceRangesBetween(
         begin.format('YYYY-MM-DD'),
         end.format('YYYY-MM-DD'),
         [],
         function(ranges) {
             var event_objects = new Array();
             var logged_user_absences = new Array();
-            for (i in ranges) {
+            for (var i in ranges) {
                 if (!accept_mode_enabled() || ranges[i].absence_id != global_accept_absence_id) {
                     var r_color = 'grey';
                     if (ranges[i].status == status_ACCEPTED) r_color = '#428bca';
@@ -154,7 +155,7 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
                 }
             }
             // copy data to global arrays, for convenience of other calculations
-            global_absences = ranges;
+            global_ranges = ranges;
             global_logged_user_absences = logged_user_absences;
             console.debug('saved ' + event_objects.length + ' ranges');
             console.debug('saved ' + logged_user_absences.length + ' logged user\'s ranges');
@@ -198,4 +199,66 @@ function debugShowRanges(ranges) {
             + '</li>';
         $('#all_ranges').append(li);
     }
+}
+
+function make_get_param(url, param, value) {
+    var paramstr = param + '=' + encodeURI(value);
+    if (url.indexOf('?') != -1) return '&' + paramstr;
+    return '?' + paramstr;
+}
+
+// Get absences (without AbsenceRanges), e.g. for management panel
+function getMatchingAbsences(user_id, team_id, status, on_success) {
+    var req_url = global_absence_url;
+    if (user_id != null) req_url += make_get_param(req_url, 'user-id', user_id);
+    if (team_id != null) req_url += make_get_param(req_url, 'team-id', team_id);
+    if (status != null) req_url += make_get_param(req_url, 'status', status);
+    console.debug('ajax url: ' + req_url);
+    $.ajax({
+        type: "GET",
+        url: req_url,
+        success: function(data) {
+            console.debug('ajax returned: ' + data.length + ' absences');
+            on_success(data);
+        },
+        error: function(jqxhr, txt_status, error) {
+            console.debug('ajax error: ' + error + ', text: ' + jqxhr.responseText);
+            alert('Error getting absences!');
+        }
+    });
+}
+
+// Get absences for management panel ( = PENDING absences of manager's team)
+function get_management_absences() {
+    getMatchingAbsences(
+        null, // filter by team, not by user
+        global_logged_user_team_id,
+        status_PENDING,
+        function(absences) {
+            global_mng_absences = absences;
+            show_management_absences();
+        });
+}
+
+// Show absences on management panel from data fetched into global_mng_absences.
+function show_management_absences() {
+    var manage_hdr = $('#manage_no_absences');
+    var manage_list = $('#manage_absence_list');
+    manage_hdr.show();
+    if (global_mng_absences.length == 0) {
+        manage_hdr.html('No pending absence requests.');
+        manage_list.hide();
+        return;
+    }
+    manage_hdr.html('<b>Pending requests:</b>');
+    var absences = global_mng_absences.map(show_mng_absence_as_li).join('\n');
+    manage_list.html('<ul>\n' + absences + '</ul>\n');
+    manage_list.show()
+}
+
+// Show absence (as returned from DB) as list element, with link to its management
+function show_mng_absence_as_li(absence) {
+    var link = global_manage_url + '?absence-id=' + absence.id
+    return '<li><a href="' + link + '">' + absence.kind_name + '</a> requested on ' +
+        absence.date_created + ' by <b>' + absence.user_name + '</b></li>';
 }

@@ -15,6 +15,9 @@
         <div class="collapse navbar-collapse" id="collapse">
             <ul class="nav navbar-nav">
                 <li><a href="{% url 'admin:index' %}">Admin</a></li>
+                {% if request.user.is_authenticated and request.user.is_teamleader %}
+                <li><a href="{% url 'planner:manage-absence' %}">Manage</a></li>
+                {% endif %}
             </ul>
             {% include 'planner/login_panel.html' %}
         </div>

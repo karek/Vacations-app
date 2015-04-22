@@ -1,7 +1,7 @@
 {% extends "planner/index.html" %}
 
 {% block selected_absence_panel %}
-        <h2 style="margin-top: 0px;" align="center">Absence request</h2>
+        <h2 style="margin-top: 0px;" align="center">Absence requests</h2>
         {% if accept_absence %}
         <p>
         request date: <b>{{ accept_absence.date_created }}</b><br/>
@@ -23,6 +23,7 @@
 {% block scripts %}
 {{ block.super }}
 <script type="text/javascript">
+    global_manage_mode = true;
     {% if accept_absence %}
         {% autoescape off %}
         global_accept_absence_id = {{ accept_absence.id }};

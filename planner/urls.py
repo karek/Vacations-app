@@ -17,5 +17,6 @@ urlpatterns = patterns(
     url(r'^user/$', views.UserRestView.as_view(), name='user'),
     url(r'^range/$', views.RangeRestView.as_view(), name='range'),
     url(r'^holiday/$', views.HolidayRestView.as_view(), name='holiday'),
+    url(r'^absence/$', views.AbsenceRestView.as_view(), name='absence'),
 )
 

@@ -11,8 +11,10 @@
     <p id="manage_no_absences" hidden="hidden">
         No absences to manage.
     </p>
+    <p id="manage_absence_list" hiddeh="hidden" style="text-align: left;"></p>
     <div id="manage_buttons" class='btn-group' role='group' style="display: none;">
         <input type='submit' name='reject-submit' value='Reject' class='btn btn-danger'/>
+        <a href="{% url 'planner:manage-absence' %}" class="btn btn-default">Back</a>
         <input type='submit' name='accept-submit' value='Accept' class='btn btn-success'/>
     </div>
     <div id="plan_absence_button" hidden="hidden">
