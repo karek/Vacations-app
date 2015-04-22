@@ -137,13 +137,17 @@ function add_checked_range(range) {
         }
     }
 
+    var accept_mode = accept_mode_enabled();
+
     $('#absence_select').append(''
         + '<li class="s_range list-group-item" '
         + 's_begin=\'' + begin_str + '\' s_end=\'' + end_str + '\'>'
         + display_range_str
-        + '<span class="badge"><a href="#" class="rm-absence-selection" style="text-decoration: none; color: #ffffff">' + days_between
-        + ' <span class="glyphicon glyphicon-remove"></span>'
-        + '</a></span>'
+        + '<span class="badge">'
+        + (accept_mode ? "" : '<a href="#" class="rm-absence-selection" style="text-decoration: none; color: #ffffff">')
+        + days_between
+        + (accept_mode ? "" : ' <span class="glyphicon glyphicon-remove"></span></a>')
+        + '</span>'
         + '<input type="hidden" name="begin[]" value="' + begin_str + '" />'
         + '<input type="hidden" name="end[]" value="' + end_str + '" />'
         + '</li>');
