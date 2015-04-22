@@ -45,7 +45,7 @@ class RegisterView(SuccessMessageMixin, FormView):
 
 
 def user_login(request):
-    next_page = request.GET.get('next', '/')
+    next_page = request.GET.get('next', request.POST.get('next', '/'))
     if request.method == 'POST':
         email = request.POST['email']
         user = authenticate(email=email)
@@ -150,19 +150,24 @@ class ManageAbsenceView(View):
         Expects request data in GET.
         Returns if the operation succeeded, otherwise raises InternalError. """
         if not request.user.is_authenticated():
-            raise InternalError('Log in now to commit your changes.')
+            raise InternalError(
+                    'Log in now to commit your changes to request from %s.'
+                    % absence.user.get_full_name())
         if not request.user.is_manager_of(absence.user):
-            raise InternalError('Only the leader of team ' + absence.user.team.name +
-                    ' can manage this absence.')
+            raise InternalError(
+                    'Only the leader of team %s can manage this absence.'
+                    % absence.user.team.name)
         if 'accept-submit' in request.GET:
             absence.accept()
-            messages.success(request,
-                    'Absence request by ' + absence.user.get_full_name() + ' accepted')
+            messages.success(
+                    request,
+                    'Absence request by %s accepted' % absence.user.get_full_name())
             return
         elif 'reject-submit' in request.GET:
             absence.reject()
-            messages.info(request,
-                    'Absence request by ' + absence.user.get_full_name() + ' rejected')
+            messages.info(
+                    request,
+                    'Absence request by %s rejected' % absence.user.get_full_name())
             return
         else:
             messages.error(request, 'Invalid request: no decision made.')
