@@ -80,7 +80,6 @@ class PlanAbsenceView(View):
             messages.error(request, e.message)
         except ValidationError as e:
             messages.error(request, '\n'.join(e.messages))
-            print "added error %s" % e.message
         return HttpResponseRedirect('/')
 
     def validateRanges(self, begins, ends):
@@ -124,16 +123,11 @@ class ManageAbsenceView(View):
         }
         if 'absence-id' in request.GET:
             try:
-                absence = Absence.objects.get(id=request.POST['absence-id'], status=Absence.PENDING)
+                absence = Absence.objects.get(id=request.GET['absence-id'], status=Absence.PENDING)
                 self.handle_absence_management(request, absence)
             except ObjectDoesNotExist:
                 messages.error(request, 'Invalid or already processed absence selected.')
         return render(request, self.template, self.context)
-
-    def post(self, request, *args, **kwargs):
-        # Accept/Reject request from POST form, redirect to GET for processing
-        request.GET = request.POST
-        return self.get(request, args, kwargs)
 
     def handle_absence_management(self, request, absence):
         # process Accept/Reject request if any
@@ -143,15 +137,15 @@ class ManageAbsenceView(View):
                 return
             except InternalError as e:
                 messages.error(request, e.message)
-        # otherwise, or on processing error, prepare the management panel
-        if not request.user.is_authenticated():
+        elif not request.user.is_authenticated():
             messages.warning(request, 'View-only mode, log in to make any changes.')
-            self.context['accept_absence'] = absence.toDict()
-            self.context['accept_ranges'] = objListToJson(
-                    AbsenceRange.objects.filter(absence=request.GET['absence-id']))
+        # otherwise, or on processing error, prepare the management panel
+        self.context['accept_absence'] = absence.toDict()
+        self.context['accept_ranges'] = objListToJson(
+                AbsenceRange.objects.filter(absence=request.GET['absence-id']))
 
     def accept_reject_absence(self, request, absence):
-        """ Common part for managing an absence from POST form and direct GET links.
+        """ Method for handling Accept/Reject requests.
         
         Expects request data in GET.
         Returns if the operation succeeded, otherwise raises InternalError. """
@@ -160,12 +154,12 @@ class ManageAbsenceView(View):
         if not request.user.is_manager_of(absence.user):
             raise InternalError('Only the leader of team ' + absence.user.team.name +
                     ' can manage this absence.')
-        if 'accept-submit' in request.POST:
+        if 'accept-submit' in request.GET:
             absence.accept()
             messages.success(request,
                     'Absence request by ' + absence.user.get_full_name() + ' accepted')
             return
-        elif 'reject-submit' in request.POST:
+        elif 'reject-submit' in request.GET:
             absence.reject()
             messages.info(request,
                     'Absence request by ' + absence.user.get_full_name() + ' rejected')
@@ -236,7 +230,6 @@ class YearFormView(FormView):
 
 def SaveWeekendsView(request):
     date = datetime.strptime(request.session['_year'], '%Y-%m-%d')
-    print date.year
     days = Holiday.weekends(date.year)
     holidays = [Holiday(day=day, name=name) for (day,name) in days]
     Holiday.objects.bulk_create(holidays)

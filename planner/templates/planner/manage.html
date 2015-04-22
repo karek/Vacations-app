@@ -9,7 +9,7 @@
         kind: <b>{{ accept_absence.kind_name }}</b><br/>
         </p>
         {% endif %}
-        <form id='plan-absence' method='POST' action="{% url 'planner:manage-absence' %}">
+        <form id='plan-absence' method='GET' action="{% url 'planner:manage-absence' %}">
             {% csrf_token %}
             {% if accept_absence %}
             <input type="hidden" name="absence-id" value="{{ accept_absence.id }}"/>
