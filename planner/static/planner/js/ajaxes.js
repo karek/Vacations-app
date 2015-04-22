@@ -176,7 +176,7 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
                 end.format('YYYY-MM-DD'),
                 function(holidays) {
                     for (var i in holidays) {
-                        event_objects.push({
+                        var event = {
                             id: 'holiday' + holidays[i].id,
                             title: holidays[i].name,
                             start: holidays[i].day,
@@ -184,7 +184,13 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
                             color: 'red',
 //                            rendering: 'background',
                             user_id: global_event_is_holiday
-                        });
+                        };
+
+// Could cloning object be done in even more stupid way ?
+                        var event2 = JSON.parse(JSON.stringify(event));
+                        event2.rendering = 'background';
+                        event_objects.push(event);
+                        event_objects.push(event2);
                     }
                     saveHolidays(holidays);
                     callback(event_objects);

@@ -9998,6 +9998,10 @@ fcViews.Workers = agendaView.extend ({
             else {
                 othersEvents.push(events[i]);
             }
+
+            if (events[i].rendering && events[i].rendering == "background") {
+                othersEvents.push(events[i]);
+            }
         }
 
 // render the events in the subcomponents
