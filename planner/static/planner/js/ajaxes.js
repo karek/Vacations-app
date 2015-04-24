@@ -149,6 +149,10 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
                         abs_type = absence_text_accepted;
                     }
 
+                    if(ranges[i].kind_name){
+                        abs_type = ranges[i].kind_name;
+                    }
+
                     event_objects.push({
                         id: ranges[i].id,
                         title: global_users_by_id[ranges[i].user_id].full_name,

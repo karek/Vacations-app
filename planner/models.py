@@ -174,7 +174,7 @@ class Absence(models.Model):
             new_range.full_clean()
             new_range.save()
         # if the absence doesn't need acceptance, skip to ACCEPTED
-        if new_abs.absence_kind and new_abs.absence_kind.reqiure_acceptance:
+        if new_abs.absence_kind and new_abs.absence_kind.require_acceptance:
             new_abs.accept()
         else:
             #send mail to our test email to check if its ok
@@ -302,6 +302,9 @@ class AbsenceRange(models.Model):
             'absence_id': self.absence.id,
             'user_id': self.absence.user.id,
             'status': self.absence.status,
+            # TODO delete the ifs below when we have obligatory kind selection
+            'kind_id': self.absence.absence_kind.id if self.absence.absence_kind else -1,
+            'kind_name': self.absence.absence_kind.name if self.absence.absence_kind else 'none',
         }
 
 
