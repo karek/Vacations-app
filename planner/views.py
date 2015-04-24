@@ -10,7 +10,7 @@ from django.shortcuts import render, redirect
 from django.views.generic.base import View
 from django.views.generic.edit import FormView
 from planner.forms import RegisterForm, YearForm
-from planner.models import Absence, AbsenceRange, Holiday
+from planner.models import Absence, AbsenceRange, Holiday, AbsenceKind
 from planner.utils import InternalError, stringToDate, dateToString, objToJson, objListToJson
 from datetime import datetime
 
@@ -24,6 +24,7 @@ class IndexView(View):
             'month_begin': dateToString(month_begin),
             'month_end': dateToString(month_end),
             'users': objListToJson(get_user_model().objects.all()),
+            'absence_kinds': AbsenceKind.objects.all()
         }
         return render(request, 'planner/index.html', context)
 
@@ -45,7 +46,7 @@ class RegisterView(SuccessMessageMixin, FormView):
 
 
 def user_login(request):
-    next_page = request.GET.get('next', '/')
+    next_page = request.GET.get('next', request.POST.get('next', '/'))
     if request.method == 'POST':
         email = request.POST['email']
         user = authenticate(email=email)
@@ -72,7 +73,8 @@ class PlanAbsenceView(View):
                 raise InternalError("You must log in to plan absences.")
             ranges = self.validateRanges(request.POST.getlist('begin[]'),
                                          request.POST.getlist('end[]'))
-            self.addVacation(request.user, ranges)
+            absence_kind = request.POST.get('absence_kind')
+            self.addVacation(request.user, ranges, absence_kind)
             # TODO better message with send email if needs acceptance
             # or just hr email if not
             messages.success(request, 'Absence booked successfully, email was sent to proper authorities.')
@@ -80,7 +82,6 @@ class PlanAbsenceView(View):
             messages.error(request, e.message)
         except ValidationError as e:
             messages.error(request, '\n'.join(e.messages))
-            print "added error %s" % e.message
         return HttpResponseRedirect('/')
 
     def validateRanges(self, begins, ends):
@@ -97,65 +98,81 @@ class PlanAbsenceView(View):
         # Return the ranges, AbsenceRange's clean() will validate the rest
         return sorted(zip(map(stringToDate, begins), map(stringToDate, ends)))
 
-    def addVacation(self, user, ranges):
+    def addVacation(self, user, ranges, absence_kind):
         """ Takes a list of ranges (date pairs) and saves them as a vacation.
         
         AbsenceRange's clean() checks if the ranges are valid and not intersecting (with themselves
         nor with previous user's absences). """
-        Absence.createFromRanges(user, ranges)
+        Absence.createFromRanges(user, ranges, absence_kind)
         # nothing really to do here
 
 
 class ManageAbsenceView(View):
+    
+    template = 'planner/manage.html'
+
     def get(self, request, *args, **kwargs):
-        # redirect direct accept/reject links to POST
-        if 'accept-submit' in request.GET or 'reject-submit' in request.GET:
-            request.POST = request.GET
-            return self.post(request, args, kwargs)
-        # otherwise, show management panel
+        # unless management succeeds, we go to the same page
+        self.destination = request.path
+        # prepare data for management panel
         d = date.today()
         month_begin = date(d.year, d.month, 1)
         month_end = date(d.year, d.month, monthrange(d.year, d.month)[1])
-        context = {
+        self.context = {
             'month_begin': dateToString(month_begin),
             'month_end': dateToString(month_end),
             'users': objListToJson(get_user_model().objects.all()),
         }
         if 'absence-id' in request.GET:
             try:
-                # TODO maybe we want to allow accepting rejected absences?
-                context['accept_absence'] = Absence.objects.get(
-                        id=request.GET['absence-id'], status=Absence.PENDING).toDict()
-                context['accept_ranges'] = objListToJson(
-                        AbsenceRange.objects.filter(absence=request.GET['absence-id']))
+                absence = Absence.objects.get(id=request.GET['absence-id'], status=Absence.PENDING)
+                self.handle_absence_management(request, absence)
             except ObjectDoesNotExist:
                 messages.error(request, 'Invalid or already processed absence selected.')
-        return render(request, 'planner/manage.html', context)
+        return render(request, self.template, self.context)
 
-    def post(self, request, *args, **kwargs):
-        try:
-            # TODO maybe we want to allow accepting rejected absences?
-            absence = Absence.objects.get(id=request.POST['absence-id'], status=Absence.PENDING)
-            if not request.user.is_authenticated() or not request.user.is_manager_of(absence.user):
-                raise InternalError('Only the leader of team ' + absence.user.team.name +
-                        ' can manage this absence.')
-            if 'accept-submit' in request.POST:
-                absence.accept()
-                messages.success(request,
-                        'Absence request by ' + absence.user.get_full_name() + ' accepted')
-            elif 'reject-submit' in request.POST:
-                absence.reject()
-                messages.info(request,
-                        'Absence request by ' + absence.user.get_full_name() + ' rejected')
-            else:
-                messages.error(request, 'Invalid request: no decision made.')
-        except KeyError:
-            messages.error(request, 'Invalid request: no absence given.')
-        except ObjectDoesNotExist:
-            messages.error(request, 'Invalid or already processed absence selected.')
-        except InternalError as e:
-            messages.error(request, e.message)
-        return HttpResponseRedirect('/')
+    def handle_absence_management(self, request, absence):
+        # process Accept/Reject request if any
+        if 'accept-submit' in request.GET or 'reject-submit' in request.GET:
+            try:
+                self.accept_reject_absence(request, absence) # throws on error
+                return
+            except InternalError as e:
+                messages.error(request, e.message)
+        elif not request.user.is_authenticated():
+            messages.warning(request, 'View-only mode, log in to make any changes.')
+        # otherwise, or on processing error, prepare the management panel
+        self.context['accept_absence'] = absence.toDict()
+        self.context['accept_ranges'] = objListToJson(
+                AbsenceRange.objects.filter(absence=request.GET['absence-id']))
+
+    def accept_reject_absence(self, request, absence):
+        """ Method for handling Accept/Reject requests.
+        
+        Expects request data in GET.
+        Returns if the operation succeeded, otherwise raises InternalError. """
+        if not request.user.is_authenticated():
+            raise InternalError(
+                    'Log in now to commit your changes to request from %s.'
+                    % absence.user.get_full_name())
+        if not request.user.is_manager_of(absence.user):
+            raise InternalError(
+                    'Only the leader of team %s can manage this absence.'
+                    % absence.user.team.name)
+        if 'accept-submit' in request.GET:
+            absence.accept()
+            messages.success(
+                    request,
+                    'Absence request by %s accepted' % absence.user.get_full_name())
+            return
+        elif 'reject-submit' in request.GET:
+            absence.reject()
+            messages.info(
+                    request,
+                    'Absence request by %s rejected' % absence.user.get_full_name())
+            return
+        else:
+            messages.error(request, 'Invalid request: no decision made.')
 
 
 def _make_json_response(data):
@@ -220,7 +237,6 @@ class YearFormView(FormView):
 
 def SaveWeekendsView(request):
     date = datetime.strptime(request.session['_year'], '%Y-%m-%d')
-    print date.year
     days = Holiday.weekends(date.year)
     holidays = [Holiday(day=day, name=name) for (day,name) in days]
     Holiday.objects.bulk_create(holidays)

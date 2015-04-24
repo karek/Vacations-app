@@ -1,0 +1,24 @@
+<div class="form-actions" id="submit_selected_days" style="text-align: center;">
+    <p id="invitation_select_days" hidden="hidden">
+        Select days for your absence by clicking on the calendar.
+    </p>
+    <p id="invitation_log_in" hidden="hidden">
+        You have to be logged in to plan absences.
+    </p>
+    <p id="manage_invitation_log_in" hidden="hidden">
+        You have to be logged in to manage absences.
+    </p>
+    <p id="manage_no_absences" hidden="hidden">
+        No absences to manage.
+    </p>
+    <div id="manage_buttons" class='btn-group' role='group' style="display: none;">
+        <input type='submit' name='reject-submit' value='Reject' class='btn btn-danger'/>
+        <input type='submit' name='accept-submit' value='Accept' class='btn btn-success'/>
+    </div>
+    <div id="plan_absence_button" hidden="hidden">
+        <input type='submit' name='book-value-submit' value='Plan Absence' class='btn btn-primary'/>
+    </div>
+    <div id="exit_manager_mode" style="margin-top: 15px">
+        <a href="{% url 'planner:index' %}" class="btn btn-default">Exit manager mode</a>
+    </div>
+</div>
