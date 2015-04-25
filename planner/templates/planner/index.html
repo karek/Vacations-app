@@ -6,6 +6,7 @@
 <div class="row">
     <div class="col-lg-9">
         <div id='calendar' style="padding-bottom: 20px"></div>
+        <input id="toggle-others-absences" type="checkbox" name="toggle-others-absences" checked="checked"/>
     </div>
     <div class="col-lg-3">
         {% block selected_absence_panel %}
@@ -74,13 +75,17 @@
                 center: 'title',
                 right: 'month,weekWorkers'
             },
-            eventLimit: 5,
-{#            views: {#}
-{#                agenda: {#}
-{#                    eventLimit: 5 // adjust to 6 only for agendaWeek/agendaDay#}
-{#                }#}
-{#            },#}
-            defaultView: 'weekWorkers', //TODO: Remove
+            eventLimit: true,    
+            views: {
+                month: {
+                    eventLimit: 2,
+                    weekends: false
+                },
+                weekWorkers: {
+                    eventLimit: false,
+                    weekends: true
+                }
+            },
             selectable: true,  // we can select days
             selectHelper: true, // we see our selection
             unselectAuto: false, // no autoclearing selection after clickng on page(not enough though)
@@ -91,7 +96,13 @@
                 events: getAbsencesForCalendar
             },
             viewRender: view_render_callback,
-            firstDay: 1
+            firstDay: 1,
+        });
+        $('#toggle-others-absences').bootstrapSwitch({
+            state: true,
+            size: 'small',
+            labelText: 'show others\' absences',
+            onSwitchChange: toggle_others_absences
         });
     });
 </script>

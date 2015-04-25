@@ -126,7 +126,6 @@ function saveHolidays(data) {
     global_holidays = data;
 }
 
-
 // Get all users in fullCalendar's format
 function getAbsencesForCalendar(begin, end, timezone, callback) {
     console.debug('calendar calls for events from ' + begin.format('YYYY-MM-DD')
@@ -141,26 +140,31 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
             var event_objects = new Array();
             var logged_user_absences = new Array();
             for (var i in ranges) {
-                if (!accept_mode_enabled() || ranges[i].absence_id != global_accept_absence_id) {
-                    var r_color = 'grey';
-                    // TODO: think of a way to set color according to absence kind, but 
-                    // without hardcoding the colors here
-                    if (ranges[i].status == status_ACCEPTED) r_color = '#339933';
+                // in accept mode, don't show the processed absence as events
+                if (accept_mode_enabled() && ranges[i].absence_id == global_accept_absence_id) {
+                    continue;
+                }
+                if (!global_show_others_absences && ranges[i].user_id != global_logged_user_id) {
+                    continue;
+                }
+                var r_color = 'grey';
+                // TODO: think of a way to set color according to absence kind, but 
+                // without hardcoding the colors here
+                if (ranges[i].status == status_ACCEPTED) r_color = '#339933';
 
-                    event_objects.push({
-                        id: ranges[i].id,
-                        title: global_users_by_id[ranges[i].user_id].full_name,
-                        start: ranges[i].begin,
-                        end: ranges[i].end,
-                        user_id: ranges[i].user_id,
-                        color: r_color,
-                        type: ranges[i].kind_name
-                    });
+                event_objects.push({
+                    id: ranges[i].id,
+                    title: global_users_by_id[ranges[i].user_id].full_name,
+                    start: ranges[i].begin,
+                    end: ranges[i].end,
+                    user_id: ranges[i].user_id,
+                    color: r_color,
+                    type: ranges[i].kind_name
+                });
 
-                    // pull out current user's absences
-                    if (global_logged_user_id === ranges[i].user_id) {
-                        logged_user_absences.push(ranges[i]);
-                    }
+                // pull out current user's absences
+                if (global_logged_user_id === ranges[i].user_id) {
+                    logged_user_absences.push(ranges[i]);
                 }
             }
             // copy data to global arrays, for convenience of other calculations
@@ -180,14 +184,12 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
                             start: holidays[i].day,
                             end: holidays[i].day,
                             color: 'red',
-//                            rendering: 'background',
                             user_id: global_event_is_holiday
                         };
-
-// Could cloning object be done in even more stupid way ?
+                        event_objects.push(event);
+                        // clone the holiday as a background event
                         var event2 = JSON.parse(JSON.stringify(event));
                         event2.rendering = 'background';
-                        event_objects.push(event);
                         event_objects.push(event2);
                     }
                     saveHolidays(holidays);
