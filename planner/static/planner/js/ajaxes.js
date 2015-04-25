@@ -142,16 +142,9 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
             for (i in ranges) {
                 if (!accept_mode_enabled() || ranges[i].absence_id != global_accept_absence_id) {
                     var r_color = 'grey';
-                    var abs_type = absence_text_pending;
-
-                    if (ranges[i].status == status_ACCEPTED) {
-                        r_color = '#339933';
-                        abs_type = absence_text_accepted;
-                    }
-
-                    if(ranges[i].kind_name){
-                        abs_type = ranges[i].kind_name;
-                    }
+                    // TODO: think of a way to set color according to absence kind, but 
+                    // without hardcoding the colors here
+                    if (ranges[i].status == status_ACCEPTED) r_color = '#339933';
 
                     event_objects.push({
                         id: ranges[i].id,
@@ -160,9 +153,9 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
                         end: ranges[i].end,
                         user_id: ranges[i].user_id,
                         color: r_color,
-                //TODO: Change this type later - maybe in abscence selection ?
-                        type: abs_type
+                        type: ranges[i].kind_name
                     });
+
                     // pull out current user's absences
                     if (global_logged_user_id === ranges[i].user_id) {
                         logged_user_absences.push(ranges[i]);
