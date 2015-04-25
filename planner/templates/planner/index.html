@@ -43,15 +43,20 @@
 <script src="{% static 'planner/js/selection.js' %}"></script>
 <script src="{% static 'planner/js/ajaxes.js' %}"></script>
 <script type="text/javascript">
-    global_user_url = {% url 'planner:user' %};
-    global_range_url = {% url 'planner:range' %};
-    global_holiday_url = {% url 'planner:holiday' %};
+    {# construct strings explicitly, because '/users/' becomes a RegExp in js....... #}
+    global_user_url = new String({% url 'planner:user' %});
+    global_range_url = new String({% url 'planner:range' %});
+    global_holiday_url = new String({% url 'planner:holiday' %});
+    global_absence_url = new String({% url 'planner:absence' %});
+    global_manage_url = new String({% url 'planner:manage-absence' %});
     {% if request.user.is_authenticated %}
         global_logged_user_id = {{ request.user.id }};
         global_logged_user_name = "{{ request.user.first_name }}" + " " + "{{ request.user.last_name }}";
+        global_logged_user_team_id = {{ request.user.team.id }};
     {% else %}
         global_logged_user_id = -1;
         global_logged_user_name = "";
+        global_logged_user_team_id = -1;
     {% endif %}
     {% autoescape off %}
     saveUserData({{ users }});

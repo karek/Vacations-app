@@ -218,7 +218,7 @@ function display_or_hide_planning_controls() {
     var currently_selected_ranges = $('#absence_select > li').length;
     var ranges_not_selected = currently_selected_ranges == 0;
 
-    console.debug("accept_mode_enabled = " + accept_mode_enabled());
+    console.debug("manage_mode_enabled = " + manage_mode_enabled());
     console.debug("user_is_logged_in = " + user_is_logged_in());
     console.debug("ranges_not_selected = " + ranges_not_selected);
 
@@ -240,7 +240,7 @@ function display_or_hide_planning_controls() {
     invitation_log_in.hide();
     exit_manager_mode.hide();
 
-    if (accept_mode_enabled()) {
+    if (manage_mode_enabled()) {
         // TODO zmienilem tutaj zarzadzanie widocznymi elementami,
         // mozna ukryc cos jak uzytkownik nie jest zalogowany w trybie akceptowania
         // wywoluje ta funkcje przy renderowaniu index.html i manage.html
@@ -249,6 +249,7 @@ function display_or_hide_planning_controls() {
         if (ranges_not_selected) {
             if(user_is_logged_in()) {
                 manage_no_absences.show();
+                get_management_absences();
             } else {
                 manage_invitation_log_in.show();
             }
@@ -329,6 +330,12 @@ function select_ranges_from_json(ranges) {
     highlight_selected_ranges();
 }
 
+// Returns true if we are in management mode
+function manage_mode_enabled() {
+    return (typeof global_manage_mode !== 'undefined');
+}
+
+// Returns true if we are in management mode AND processing an absence request
 function accept_mode_enabled() {
     return (typeof global_accept_absence_id !== 'undefined');
 }

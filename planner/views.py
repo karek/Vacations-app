@@ -208,6 +208,24 @@ class RangeRestView(View):
         return _make_json_response(objListToJson(AbsenceRange.getBetween(users, rbegin, rend)))
 
 
+class AbsenceRestView(View):
+    def get(self, request):
+        """ Returns all absences (without ranges) matching requested parameters:
+         * user id
+         * team id
+         * status
+        Filter by dates is not yet needed.
+        """
+        absences = Absence.objects.filter()
+        if 'user-id' in request.GET:
+            absences = absences.filter(user__id=request.GET['user-id'])
+        if 'team-id' in request.GET:
+            absences = absences.filter(user__team__id=request.GET['team-id'])
+        if 'status' in request.GET:
+            absences = absences.filter(status=request.GET['status'])
+        return _make_json_response(objListToJson(absences.order_by('dateCreated', 'user')))
+
+
 class HolidayRestView(View):
     def get(self, request):
         """ Returns all holidays between given dates"""
