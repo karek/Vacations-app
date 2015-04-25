@@ -275,6 +275,7 @@ function show_management_absences() {
 // Show absence (as returned from DB) as list element, with link to its management
 function show_mng_absence_as_li(absence) {
     var link = global_manage_url + '?absence-id=' + absence.id
-    return '<li><a href="' + link + '">' + absence.kind_name + '</a> requested on ' +
+    return '<li><a href="' + link + '">' + absence.total_workdays + ' workdays of ' +
+        absence.kind_name + '</a> requested on ' +
         absence.date_created + ' by <b>' + absence.user_name + '</b></li>';
 }
