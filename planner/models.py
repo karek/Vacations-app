@@ -199,7 +199,7 @@ class Absence(models.Model):
             # TODO delete the ifs below when we have obligatory kind selection
             'kind': self.absence_kind.id if self.absence_kind else -1,
             'kind_name': self.absence_kind.name if self.absence_kind else 'none',
-            'workday_count': self.workday_count,
+            'total_workdays': self.total_workdays,
         }
 
     def accept(self):
@@ -220,11 +220,17 @@ class Absence(models.Model):
 
     def description(self):
         body = (
-                'Absence by: ' + self.user.get_full_name() + '\n' +
-                'Requested on: ' + dateToString(self.dateCreated) + '\n' +
-                'Absence kind: ' + (self.absence_kind.name if self.absence_kind else 'none') + '\n' +
-                'Total workdays: ' + str(self.total_workdays) + '\n' +
-                'For days:\n')
+                'Absence by: %(name)s\n'
+                'Requested on: %(date)s\n'
+                'Absence kind: %(kind)s\n'
+                'Total workdays: %(workdays)d\n'
+                'For days:\n'
+            ) % {
+                'name': self.user.get_full_name(),
+                'date': dateToString(self.dateCreated),
+                'kind': (self.absence_kind.name if self.absence_kind else 'none'),
+                'workdays': self.total_workdays,
+            }
         for r in AbsenceRange.objects.filter(absence=self).order_by('begin', 'end'):
             body += ' * ' + unicode(r) + '\n'
         return body
@@ -234,12 +240,15 @@ class Absence(models.Model):
 
     def mail_request_body(self):
         desc = self.description()
-        mng_url = settings.BASE_URL + '/manage-absence'
+        mng_url = settings.BASE_URL + '/manage-absence?absence-id=' + str(self.id)
         return desc + (
-                '\n' +
-                'to accept: ' + mng_url + '?accept-submit&absence-id=' + str(self.id) + '\n'
-                'to reject: ' + mng_url + '?reject-submit&absence-id=' + str(self.id) + '\n'
-                'to view details: ' + mng_url + '?absence-id=' + str(self.id) + '\n')
+                '\n'
+                'to accept: %(mng_url)s&accept-submit\n'
+                'to reject: %(mng_url)s&reject-submit\n'
+                'to view details: %(mng_url)s\n'
+            ) % {
+                'mng_url': mng_url
+            }
 
     def mail_accepted_title(self):
         return 'Absence was accepted'
