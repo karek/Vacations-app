@@ -13,6 +13,10 @@ global_users_loaded = false;
 global_users_sorted = new Array();
 global_users_order = new Array();
 
+absence_text_accepted = "Accepted";
+absence_text_pending = "Pending";
+absence_text_rejected = "Rejected";
+
 status_PENDING = 0;
 status_ACCEPTED = 1;
 status_REJECTED = 2;
@@ -133,21 +137,26 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
         begin.format('YYYY-MM-DD'),
         end.format('YYYY-MM-DD'),
         [],
-        function(ranges) {
+        function (ranges) {
             var event_objects = new Array();
             var logged_user_absences = new Array();
             for (var i in ranges) {
                 if (!accept_mode_enabled() || ranges[i].absence_id != global_accept_absence_id) {
                     var r_color = 'grey';
-                    if (ranges[i].status == status_ACCEPTED) r_color = '#428bca';
+                    // TODO: think of a way to set color according to absence kind, but 
+                    // without hardcoding the colors here
+                    if (ranges[i].status == status_ACCEPTED) r_color = '#339933';
+
                     event_objects.push({
                         id: ranges[i].id,
                         title: global_users_by_id[ranges[i].user_id].full_name,
                         start: ranges[i].begin,
                         end: ranges[i].end,
                         user_id: ranges[i].user_id,
-                        color: r_color
+                        color: r_color,
+                        type: ranges[i].kind_name
                     });
+
                     // pull out current user's absences
                     if (global_logged_user_id === ranges[i].user_id) {
                         logged_user_absences.push(ranges[i]);
@@ -165,14 +174,21 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
                 end.format('YYYY-MM-DD'),
                 function(holidays) {
                     for (var i in holidays) {
-                        event_objects.push({
+                        var event = {
                             id: 'holiday' + holidays[i].id,
                             title: holidays[i].name,
                             start: holidays[i].day,
                             end: holidays[i].day,
                             color: 'red',
+//                            rendering: 'background',
                             user_id: global_event_is_holiday
-                        });
+                        };
+
+// Could cloning object be done in even more stupid way ?
+                        var event2 = JSON.parse(JSON.stringify(event));
+                        event2.rendering = 'background';
+                        event_objects.push(event);
+                        event_objects.push(event2);
                     }
                     saveHolidays(holidays);
                     callback(event_objects);
