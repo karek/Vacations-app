@@ -160,6 +160,7 @@ class Absence(models.Model):
     # Change it when front allows
     absence_kind = models.ForeignKey(AbsenceKind, null=True, blank=True)
     status = models.IntegerField(default=PENDING, choices=STATUS_CHOICES)
+    total_workdays = models.IntegerField(default=0, null=False, blank=False)
     # TODO: komentarz
 
     def __unicode__(self):
@@ -170,14 +171,16 @@ class Absence(models.Model):
     def createFromRanges(cls, user, ranges, kind):
         """ Create an absence together with all its absence ranges (in one atomic transaction)."""
         absence_kind = AbsenceKind.objects.get(id=kind)
-        new_abs = cls(user=user, absence_kind=absence_kind)
+        new_abs = cls(user=user, absence_kind=absence_kind, total_workdays=0)
         new_abs.save()
         for (rbegin, rend) in ranges:
             new_range = AbsenceRange(absence=new_abs, begin=rbegin, end=rend)
             new_range.full_clean()
             new_range.save()
+            new_abs.total_workdays += new_range.workday_count
+        new_abs.save()
         # if the absence doesn't need acceptance, skip to ACCEPTED
-        if new_abs.absence_kind and new_abs.absence_kind.require_acceptance:
+        if new_abs.absence_kind and not new_abs.absence_kind.require_acceptance:
             new_abs.accept()
         else:
             # send mail to our test email to check if its ok
@@ -196,6 +199,7 @@ class Absence(models.Model):
             # TODO delete the ifs below when we have obligatory kind selection
             'kind': self.absence_kind.id if self.absence_kind else -1,
             'kind_name': self.absence_kind.name if self.absence_kind else 'none',
+            'workday_count': self.workday_count,
         }
 
     def accept(self):
@@ -215,11 +219,12 @@ class Absence(models.Model):
         self.save()
 
     def description(self):
-        body = ('Absence by: ' + self.user.get_full_name() + '\n'
-                                                             'Requested on: ' + dateToString(self.dateCreated) + '\n'
-                                                                                                                 'Absence kind: ' + (
-                    self.absence_kind.name if self.absence_kind else 'none') + '\n'
-                                                                               'For days:\n')
+        body = (
+                'Absence by: ' + self.user.get_full_name() + '\n' +
+                'Requested on: ' + dateToString(self.dateCreated) + '\n' +
+                'Absence kind: ' + (self.absence_kind.name if self.absence_kind else 'none') + '\n' +
+                'Total workdays: ' + str(self.total_workdays) + '\n' +
+                'For days:\n')
         for r in AbsenceRange.objects.filter(absence=self).order_by('begin', 'end'):
             body += ' * ' + unicode(r) + '\n'
         return body
@@ -230,11 +235,11 @@ class Absence(models.Model):
     def mail_request_body(self):
         desc = self.description()
         mng_url = settings.BASE_URL + '/manage-absence'
-        return desc + ('\n' +
-                       'to accept: ' + mng_url + '?accept-submit&absence-id=' + str(self.id) + '\n'
-                                                                                               'to reject: ' + mng_url + '?reject-submit&absence-id=' + str(
-            self.id) + '\n'
-                       'to view details: ' + mng_url + '?absence-id=' + str(self.id) + '\n')
+        return desc + (
+                '\n' +
+                'to accept: ' + mng_url + '?accept-submit&absence-id=' + str(self.id) + '\n'
+                'to reject: ' + mng_url + '?reject-submit&absence-id=' + str(self.id) + '\n'
+                'to view details: ' + mng_url + '?absence-id=' + str(self.id) + '\n')
 
     def mail_accepted_title(self):
         return 'Absence was accepted'
@@ -292,7 +297,6 @@ class AbsenceRange(models.Model):
         if self.begin >= self.end:
             raise ValidationError("Range begin (%s) is after its end (%s)"
                                   % (dateToString(self.begin), dateToString(self.end)))
-        print "clean for range %s" % self
         # TODO: we should allow intersections with absences of other types in the future
         intersecting = self.getIntersection(self.absence.user, self.begin, self.end)
         if intersecting:
@@ -311,6 +315,12 @@ class AbsenceRange(models.Model):
             'kind_id': self.absence.absence_kind.id if self.absence.absence_kind else -1,
             'kind_name': self.absence.absence_kind.name if self.absence.absence_kind else 'none',
         }
+
+    @property
+    def workday_count(self):
+        holidays = (Holiday.objects.filter(day__gte=self.begin, day__lt=self.end)
+                .values('day').distinct())
+        return (self.end - self.begin).days - holidays.count()
 
 
 class Holiday(models.Model):
