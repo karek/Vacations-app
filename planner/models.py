@@ -220,17 +220,12 @@ class Absence(models.Model):
 
     def description(self):
         body = (
-                'Absence by: %(name)s\n'
-                'Requested on: %(date)s\n'
-                'Absence kind: %(kind)s\n'
-                'Total workdays: %(workdays)d\n'
+                'Absence by: %(user_name)s\n'
+                'Requested on: %(date_created)s\n'
+                'Absence kind: %(kind_name)s\n'
+                'Total workdays: %(total_workdays)d\n'
                 'For days:\n'
-            ) % {
-                'name': self.user.get_full_name(),
-                'date': dateToString(self.dateCreated),
-                'kind': (self.absence_kind.name if self.absence_kind else 'none'),
-                'workdays': self.total_workdays,
-            }
+            ) % self.toDict()
         for r in AbsenceRange.objects.filter(absence=self).order_by('begin', 'end'):
             body += ' * ' + unicode(r) + '\n'
         return body
