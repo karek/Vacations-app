@@ -56,7 +56,7 @@ def create_absences_kinds(apps, schema_editor):
         AbsenceKind(name="Vacations"),
         AbsenceKind(name="On request", require_acceptance=False),
         AbsenceKind(name="Sickness", require_acceptance=False),
-        AbsenceKind(name="Parental", require_acceptance=False),
+        AbsenceKind(name="Parental"),
         AbsenceKind(name="Homeworking", require_acceptance=False),
         AbsenceKind(name="Delegation", require_acceptance=False)
     ]
@@ -89,7 +89,7 @@ def create_absences(apps, schema_editor):
     a1.save()
     a2 = Absence(user=u1, dateCreated=date(2015, 4, 14), absence_kind=k1, status=0)
     a2.save()
-    a3 = Absence(user=u2, dateCreated=date(2015, 4, 15), absence_kind=k1, status=1)
+    a3 = Absence(user=u2, dateCreated=date(2015, 4, 15), absence_kind=k2, status=1)
     a3.save()
     a4 = Absence(user=u3, dateCreated=date(2015, 4, 18), absence_kind=k2, status=2)
     a4.save()

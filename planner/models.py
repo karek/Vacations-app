@@ -11,6 +11,7 @@ from django.contrib.auth.models import (
 )
 from planner.utils import dateToString
 from django.core.mail import send_mail
+from colorful.fields import RGBColorField
 
 
 class Team(models.Model):
@@ -135,6 +136,13 @@ class EmailUser(AbstractBaseUser):
 class AbsenceKind(models.Model):
     name = models.CharField(max_length=30, blank=False, unique=True)
     require_acceptance = models.BooleanField(default=True)
+    text_color = RGBColorField(default='#ffffff', null=False, blank=False,
+            verbose_name='Event text color')
+    bg_color = RGBColorField(default='#888888', null=False, blank=False,
+            verbose_name='Event background color')
+    icon_name = models.CharField(max_length=20, null=True, blank=True,
+            verbose_name='Glyphicon name',
+            help_text='See glyphicon-NAME here: http://getbootstrap.com/components/#glyphicons')
 
     def __unicode__(self):  # __unicode__ on Python 2
         return self.name
@@ -200,6 +208,7 @@ class Absence(models.Model):
             'kind': self.absence_kind.id if self.absence_kind else -1,
             'kind_name': self.absence_kind.name if self.absence_kind else 'none',
             'total_workdays': self.total_workdays,
+            'kind_icon': self.absence_kind.icon_name if self.absence_kind else None
         }
 
     def accept(self):
@@ -318,6 +327,7 @@ class AbsenceRange(models.Model):
             # TODO delete the ifs below when we have obligatory kind selection
             'kind_id': self.absence.absence_kind.id if self.absence.absence_kind else -1,
             'kind_name': self.absence.absence_kind.name if self.absence.absence_kind else 'none',
+            'kind_icon': self.absence.absence_kind.icon_name if self.absence.absence_kind else None
         }
 
     @property
