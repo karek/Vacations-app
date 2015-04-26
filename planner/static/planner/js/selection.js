@@ -152,6 +152,13 @@ function add_checked_range(range) {
         + '<input type="hidden" name="end[]" value="' + end_str + '" />'
         + '</li>');
 
+    var absence_length = 0;
+    $(".s_range").each(function(index) {
+        absence_length += moment.duration(moment($(this).attr("s_end")) -  moment($(this).attr("s_begin"))).days()
+    })
+
+    $('#absence_length ').html("<h4>Absence length: " +  absence_length +  "</h4>")
+
     function comp(a, b) {
         return ($(b).attr("s_begin") < $(a).attr("s_begin")) ? 1 : -1
     }
@@ -226,6 +233,7 @@ function display_or_hide_planning_controls() {
     var manage_buttons = $('#manage_buttons');
     var manage_invitation_log_in = $('#manage_invitation_log_in');
     var invitation_select_days = $('#invitation_select_days');
+    var absence_length = $('#absence_length');
     var absence_other_fields = $('#absence_other_fields');
     var plan_absence_button = $('#plan_absence_button');
     var invitation_log_in = $('#invitation_log_in');
@@ -235,6 +243,7 @@ function display_or_hide_planning_controls() {
     manage_buttons.hide();
     manage_invitation_log_in.hide();
     invitation_select_days.hide();
+    absence_length.hide();
     absence_other_fields.hide();
     plan_absence_button.hide();
     invitation_log_in.hide();
@@ -269,6 +278,7 @@ function display_or_hide_planning_controls() {
             }
         } else {
             if (user_is_logged_in()) {
+                absence_length.show();
                 absence_other_fields.show();
                 plan_absence_button.show();
             } else {
