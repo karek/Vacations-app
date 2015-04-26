@@ -17,16 +17,18 @@
             <input type='submit' name='reject-submit' value='Reject' class='btn btn-danger'/>
         </div>
         <div class="btn-group">
-            <a href="{% url 'planner:manage-absence' %}" class="btn btn-default">Back</a>
-        </div>
-        <div class="btn-group">
             <input type='submit' name='accept-submit' value='Accept' class='btn btn-success'/>
         </div>
     </div>
     <div id="plan_absence_button" hidden="hidden">
         <input type='submit' name='book-value-submit' value='Plan Absence' class='btn btn-primary'/>
     </div>
-    <div id="exit_manager_mode" style="margin-top: 15px" class="btn-group btn-group-justified">
-        <a href="{% url 'planner:index' %}" class="btn btn-default">Exit manager mode</a>
+    <div id="exit_manager_mode" style="margin-top: 15px" class="btn-group btn-group-justified" hidden="hidden">
+        <div class="btn-group" id="manage_back_button"">
+            <a href="{% url 'planner:manage-absence' %}" class="btn btn-default">Back</a>
+        </div>
+        <div class="btn-group">
+        <a href="{% url 'planner:index' %}" class="btn btn-default">Exit Manager</a>
+        </div>
     </div>
 </div>
