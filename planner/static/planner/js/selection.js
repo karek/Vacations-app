@@ -46,6 +46,47 @@ function selectf(begin, end, jsEvent, view) {
     }
 }
 
+function is_holiday(date) {
+    var result = false;
+    $.each(global_holidays, (function(index) {
+        if (moment(global_holidays[index].day).isSame(date)) {
+            result = true;
+        }
+    }));
+    return result;
+};
+
+function count_range_length(begin, end) {
+    var absence_length = 0;
+    var days = 0;
+
+    duration = moment.duration(end - begin).days()
+
+    date = begin.add(-1,'days');
+    while (duration > 0) {
+        date = date.add(1, 'days');
+        if (!is_holiday(date)) {
+          days += 1;
+        }
+        duration -= 1;
+    }
+
+    return days
+
+}
+
+function count_absence_length() {
+    // get absence_length
+    var days = 0;
+    $(".s_range").each(function(index) {
+        days += count_range_length(moment($(this).attr("s_begin")), moment($(this).attr("s_end")))
+    });
+
+    
+
+    $('#absence_length ').html("<h4>Absence length: " +  days +  "</h4>")
+}
+
 // Check the range selected by the user for intersections with [1] already selected ranges,
 // [2] previously booked user's absences; then append the remaining range[s] to absence list.
 function check_and_add_range(range) {
@@ -123,7 +164,7 @@ function add_checked_range(range) {
     log_date("display_date.begin:", display_date.begin);
     log_date("display_date.end:", display_date.end);
 
-    var days_between = range.end.diff(range.begin, 'days');
+    var days_between = count_range_length(range.begin, range.end)
 
     var display_range_str;
 
@@ -152,12 +193,15 @@ function add_checked_range(range) {
         + '<input type="hidden" name="end[]" value="' + end_str + '" />'
         + '</li>');
 
+
     function comp(a, b) {
         return ($(b).attr("s_begin") < $(a).attr("s_begin")) ? 1 : -1
     }
 
     $('#absence_select li').sort(comp).appendTo('#absence_select');
     display_or_hide_planning_controls();
+
+    count_absence_length()
 }
 
 function unselectf(view, jsEvent) {
@@ -231,6 +275,7 @@ function display_or_hide_planning_controls() {
     var manage_exit_button = $('#exit_manager_mode');
 
     var invitation_select_days = $('#invitation_select_days');
+    var absence_length = $('#absence_length');
     var absence_other_fields = $('#absence_other_fields');
     var plan_absence_button = $('#plan_absence_button');
     var invitation_log_in = $('#invitation_log_in');
@@ -245,6 +290,7 @@ function display_or_hide_planning_controls() {
     manage_exit_button.hide();
 
     invitation_select_days.hide();
+    absence_length.hide();
     absence_other_fields.hide();
     plan_absence_button.hide();
     invitation_log_in.hide();
@@ -284,6 +330,7 @@ function display_or_hide_planning_controls() {
         } else {
             absence_select.show();
             if (user_is_logged_in()) {
+                absence_length.show();
                 absence_other_fields.show();
                 plan_absence_button.show();
             } else {
