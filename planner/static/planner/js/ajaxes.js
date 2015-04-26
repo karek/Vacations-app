@@ -281,7 +281,7 @@ function show_mng_absence_as_li(absence) {
         + '<span class="badge" style="margin-top: 10px;">' + absence.total_workdays + '</span>'
         + '<h4>' + absence.user_name + '</h4>'
         + '<table class="table pending-details-table" style="margin-bottom: 0px;">'
-        + '<tbody ><tr>'
+        + '<tbody><tr>'
         + '<th scope="row">Kind</th><td>' + absence.kind_name + '</td></tr>'
         + '<tr><th scope="row">Created</th><td>' + absence.date_created + '</td></tr>'
         + '</tbody></table>'
