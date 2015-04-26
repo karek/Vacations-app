@@ -60,18 +60,18 @@
          .on('typeahead:autocompleted', onSelected);
 
         function onOpened($e) {
-            console.log('opened');
+            console.debug('opened');
         }
 
         function onAutocompleted($e, datum) {
-            console.log('autocompleted');
-            console.log(datum);
+            console.debug('autocompleted');
+            console.debug(datum);
             $('#loginForm').submit();
         }
 
         function onSelected($e, datum) {
-            console.log('selected');
-            console.log(datum);
+            console.debug('selected');
+            console.debug(datum);
             $('#loginForm').submit();
         }
     });
