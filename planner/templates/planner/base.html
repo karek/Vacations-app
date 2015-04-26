@@ -13,6 +13,9 @@
     <link rel='stylesheet' type="text/css" href="{% static 'planner/css/fullcalendar.css' %}"/>
     <link rel='stylesheet' type="text/css" media='print' href="{% static 'planner/css/fullcalendar.print.css' %}"/>
     {% include 'planner/favicon.html' %}
+    {% if absence_kinds %}
+        {% include 'planner/absence-kind-styles.html' %}
+    {% endif %}
 </head>
 
 <body>

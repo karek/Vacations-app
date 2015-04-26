@@ -12,7 +12,7 @@ def set_absencekind_colors(apps, schema_editor):
         'Sickness': '#d44384',
         'Homeworking': '#417ddb',
         'Delegation': '#7738e8',
-        'Parental': '#db3027',
+        'Parental': '#369e89',
     }
     for kindname, color in colors.items():
         kind = AbsenceKind.objects.get(name=kindname)

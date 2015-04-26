@@ -22,36 +22,6 @@ body {
     );
 }
 
-.fc-event-container .absence-kind-vacations {
-    background-color: #339933;
-    border-color: #339933;
-}
-
-.fc-event-container .absence-kind-on-request {
-    background-color: #dba429;
-    border-color: #dba429;
-}
-
-.fc-event-container .absence-kind-sickness {
-    background-color: #d44384;
-    border-color: #d44384;
-}
-
-.fc-event-container .absence-kind-homeworking {
-    background-color: #417ddb;
-    border-color: #417ddb;
-}
-
-.fc-event-container .absence-kind-delegation {
-    background-color: #7738e8;
-    border-color: #7738e8;
-}
-
-.fc-event-container .absence-kind-parental {
-    background-color: #206642;
-    border-color: #206642;
-}
-
 .fc-event-container .absence-type-holiday {
     background-color: #db3027;
     border-color: #db3027;
