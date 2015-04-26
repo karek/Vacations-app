@@ -344,7 +344,7 @@ function user_is_logged_in() {
     return global_logged_user_id != -1;
 }
 
-global_show_others_absences = true;
+global_show_others_absences = false;
 function toggle_others_absences(jsevent, state) {
     global_show_others_absences = state;
 	$('#calendar').fullCalendar('refetchEvents');

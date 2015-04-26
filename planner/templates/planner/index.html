@@ -6,7 +6,7 @@
 <div class="row">
     <div class="col-lg-9">
         <div id='calendar' style="padding-bottom: 20px"></div>
-        <input id="toggle-others-absences" type="checkbox" name="toggle-others-absences" checked="checked"/>
+        <input id="toggle-others-absences" type="checkbox" name="toggle-others-absences"/>
     </div>
     <div class="col-lg-3">
         {% block selected_absence_panel %}
@@ -99,7 +99,7 @@
             firstDay: 1,
         });
         $('#toggle-others-absences').bootstrapSwitch({
-            state: true,
+            state: false,
             size: 'small',
             labelText: 'show others\' absences',
             onSwitchChange: toggle_others_absences
