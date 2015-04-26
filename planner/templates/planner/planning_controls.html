@@ -46,24 +46,24 @@
 
     <div id="manage_buttons" class='btn-group btn-group-justified' role='group' style="display: none;">
         <div class="btn-group">
-            <input type='submit' name='reject-submit' value='Reject' class='btn btn-danger'/>
+            <button type='submit' name='reject-submit' class='btn btn-danger'><span class="glyphicon glyphicon-ban-circle"></span> Reject</button>
         </div>
         <div class="btn-group">
-            <input type='submit' name='accept-submit' value='Accept' class='btn btn-success'/>
+            <button type='submit' name='accept-submit' class='btn btn-success'><span class="glyphicon glyphicon-ok"></span> Accept</button>
         </div>
     </div>
     <div id="plan_absence_button" hidden="hidden">
-        <input type='submit' name='book-value-submit' value='Plan Absence' class='btn btn-primary'/>
+        <button type='submit' name='book-value-submit' class='btn btn-primary'><span class="glyphicon glyphicon-send"></span> Request Absence</button>
     </div>
     <div id="exit_manager_mode" style="margin-top: 15px" class="btn-group btn-group-justified" hidden="hidden">
-        <a href="{% url 'planner:index' %}" class="btn btn-default">Exit Manager</a>
+        <a href="{% url 'planner:index' %}" class="btn btn-default"><span class="glyphicon glyphicon-off"></span> Exit Manager</a>
     </div>
     <div id="manage_back_button" style="margin-top: 15px" class="btn-group btn-group-justified" hidden="hidden">
         <div class="btn-group">
-            <a href="{% url 'planner:manage-absence' %}" class="btn btn-default">Back</a>
+            <a href="{% url 'planner:manage-absence' %}" class="btn btn-default"><span class="glyphicon glyphicon-chevron-left"></span> Back</a>
         </div>
         <div class="btn-group">
-            <a href="{% url 'planner:index' %}" class="btn btn-default">Exit Manager</a>
+            <a href="{% url 'planner:index' %}" class="btn btn-default"><span class="glyphicon glyphicon-off"></span> Exit Manager</a>
         </div>
     </div>
 </div>
