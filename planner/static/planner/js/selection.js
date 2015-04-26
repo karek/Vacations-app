@@ -46,34 +46,40 @@ function selectf(begin, end, jsEvent, view) {
     }
 }
 
-function count_absence_length() {
+function is_holiday(date) {
+    var result = false;
+    $.each(global_holidays, (function(index) {
+        if (moment(global_holidays[index].day).isSame(date)) {
+            result = true;
+        }
+    }));
+    return result;
+};
 
-    function is_holiday(date) {
-        var result = false;
-        $.each(global_holidays, (function(index) {
-            if (moment(global_holidays[index].day).isSame(date)) {
-                result = true;
-            }
-        }));
-        return result;
-    };
-
-
-    // get absence_length
+function count_range_length(begin, end) {
     var absence_length = 0;
     var days = 0;
-    $(".s_range").each(function(index) {
-        duration = moment.duration(moment($(this).attr("s_end")) -  moment($(this).attr("s_begin"))).days()
 
-        date = moment($(this).attr("s_begin")).add(-1,'days');
-        while (duration > 0) {
-            date = date.add(1, 'days');
-            // days += 1;
-            if (is_holiday(date)) {
-              days += 1;
-            }
-            duration -= 1;
+    duration = moment.duration(end - begin).days()
+
+    date = begin.add(-1,'days');
+    while (duration > 0) {
+        date = date.add(1, 'days');
+        if (!is_holiday(date)) {
+          days += 1;
         }
+        duration -= 1;
+    }
+
+    return days
+
+}
+
+function count_absence_length() {
+    // get absence_length
+    var days = 0;
+    $(".s_range").each(function(index) {
+        days += count_range_length(moment($(this).attr("s_begin")), moment($(this).attr("s_end")))
     });
 
     
@@ -158,7 +164,7 @@ function add_checked_range(range) {
     log_date("display_date.begin:", display_date.begin);
     log_date("display_date.end:", display_date.end);
 
-    var days_between = range.end.diff(range.begin, 'days');
+    var days_between = count_range_length(range.begin, range.end)
 
     var display_range_str;
 
