@@ -4669,8 +4669,13 @@ DayGrid.mixin({
 			timeHtml = '<span class="fc-time">' + htmlEscape(this.getEventTimeText(event)) + '</span>';
 		}
 
+        var icon = '';
+        if (seg.event.icon) {
+            var icon = '<span class="glyphicon glyphicon-' + seg.event.icon + '"></span>&nbsp;';
+        }
+
 		titleHtml =
-			'<span class="fc-title">' +
+			'<span class="fc-title">' + icon +
 				(htmlEscape(event.title || '') || '&nbsp;') + // we always want one line of height
 			'</span>';
 
@@ -6070,6 +6075,11 @@ var CustomResourceGrid = TimeGrid.extend({
 
 		classes.unshift('fc-time-grid-event');
 
+        var icon = '';
+        if (seg.event.icon) {
+            var icon = '<span class="glyphicon glyphicon-' + seg.event.icon + '"></span>&nbsp;';
+        }
+
 		return '<a class="' + classes.join(' ') + '"' +
 			(event.url ?
 				' href="' + htmlEscape(event.url) + '"' :
@@ -6082,7 +6092,7 @@ var CustomResourceGrid = TimeGrid.extend({
 			'>' +
 				'<div class="fc-content">' +
 					(event.title ?
-						'<div class="fc-title">' +
+						'<div class="fc-title">' + icon +
 							htmlEscape(event.title) +
 						'</div>' :
 						''
