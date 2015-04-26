@@ -14,13 +14,15 @@
         <form id='plan-absence' method='POST' action="{% url 'planner:plan-absence' %}">
             {% csrf_token %}
             <ul id='absence_select' class="list-group" style="padding-top: 9px">
-            </ul>
+            </ul>        
             <div id="absence_other_fields" hidden="hidden">
                 <select name='absence_kind' class="form-control" style="margin-bottom: 15px;">
                     {% for kind in absence_kinds %}
                         <option value="{{ kind.id }}">{{ kind }}</option>
                     {% endfor %}
                 </select>
+            </div>
+            <div id="absence_length" hidden="hidden">
             </div>
             {% include 'planner/planning_controls.html' %}
         </form>
