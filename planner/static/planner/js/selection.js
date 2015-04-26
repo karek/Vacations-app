@@ -47,6 +47,22 @@ function selectf(begin, end, jsEvent, view) {
 }
 
 function count_absence_length() {
+
+    function is_weekend(date) {
+        return date.isoWeekday() == 6 || date.isoWeekday() == 7; 
+    };
+
+    function is_holiday(date) {
+        var result = false;
+        $.each(global_holidays, (function(index) {
+            if (moment(global_holidays[index].day).isSame(date)) {
+                result = true;
+            }
+        }));
+        return result;
+    };
+
+
     // get absence_length
     var absence_length = 0;
     var days = 0;
@@ -58,7 +74,7 @@ function count_absence_length() {
         while (duration > 0) {
             date = date.add(1, 'days');
             // days += 1;
-            if (date.isoWeekday() != 6 && date.isoWeekday() != 7) {
+            if (!(is_weekend(date) || is_holiday(date))) {
               days += 1;
             }
             duration -= 1;
