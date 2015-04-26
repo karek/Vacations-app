@@ -15,7 +15,26 @@
         No absences to manage.
     </p>
 
-    <div id="manage_absence_list" hidden="hidden" class="list-group" style="text-align: left;"></div>
+    <div id="manage_absence_list" hidden="hidden" class="list-group" style="text-align: left;">
+        {% if accept_absence %}
+        <div class="list-group-item">
+            <span class="badge" style="margin-top: 10px;">{{ accept_absence.total_workdays }}</span>
+            <h4>{{ accept_absence.user_name }}</h4>
+            <table class="table pending-details-table" style="margin-bottom: 0px;">
+                <tbody>
+                <tr>
+                    <th scope="row">Kind</th>
+                    <td>{{ accept_absence.kind_name }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">Created</th>
+                    <td>{{ accept_absence.date_created }}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
     <ul id='absence_select' class="list-group" style="text-align: left;"></ul>
     <div id="absence_other_fields" hidden="hidden">
         <select name='absence_kind' class="form-control" style="margin-bottom: 15px;">

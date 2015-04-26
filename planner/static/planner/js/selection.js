@@ -222,6 +222,8 @@ function display_or_hide_planning_controls() {
     console.debug("user_is_logged_in = " + user_is_logged_in());
     console.debug("ranges_not_selected = " + ranges_not_selected);
 
+
+    var manage_list = $('#manage_absence_list');
     var manage_no_absences = $('#manage_no_absences');
     var manage_buttons = $('#manage_buttons');
     var manage_invitation_log_in = $('#manage_invitation_log_in');
@@ -235,6 +237,7 @@ function display_or_hide_planning_controls() {
 
     var absence_select = $('#absence_select');
 
+    manage_list.hide();
     manage_no_absences.hide();
     manage_buttons.hide();
     manage_invitation_log_in.hide();
@@ -262,6 +265,7 @@ function display_or_hide_planning_controls() {
                 manage_invitation_log_in.show();
             }
         } else {
+            manage_list.show();
             absence_select.show();
             manage_back_exit_button.show();
             if (user_is_logged_in()) {
