@@ -225,22 +225,28 @@ function display_or_hide_planning_controls() {
     var manage_no_absences = $('#manage_no_absences');
     var manage_buttons = $('#manage_buttons');
     var manage_invitation_log_in = $('#manage_invitation_log_in');
+    var manage_back_exit_button = $('#manage_back_button');
+    var manage_exit_button = $('#exit_manager_mode');
+
     var invitation_select_days = $('#invitation_select_days');
     var absence_other_fields = $('#absence_other_fields');
     var plan_absence_button = $('#plan_absence_button');
     var invitation_log_in = $('#invitation_log_in');
-    var manage_back_exit_button = $('#manage_back_button');
-    var manage_exit_button = $('#exit_manager_mode');
+
+    var absence_select = $('#absence_select');
 
     manage_no_absences.hide();
     manage_buttons.hide();
     manage_invitation_log_in.hide();
     manage_back_exit_button.hide();
     manage_exit_button.hide();
+
     invitation_select_days.hide();
     absence_other_fields.hide();
     plan_absence_button.hide();
     invitation_log_in.hide();
+
+    absence_select.hide();
 
     if (manage_mode_enabled()) {
         // TODO zmienilem tutaj zarzadzanie widocznymi elementami,
@@ -256,6 +262,7 @@ function display_or_hide_planning_controls() {
                 manage_invitation_log_in.show();
             }
         } else {
+            absence_select.show();
             manage_back_exit_button.show();
             if (user_is_logged_in()) {
                 manage_buttons.show();
@@ -271,6 +278,7 @@ function display_or_hide_planning_controls() {
                 invitation_log_in.show();
             }
         } else {
+            absence_select.show();
             if (user_is_logged_in()) {
                 absence_other_fields.show();
                 plan_absence_button.show();

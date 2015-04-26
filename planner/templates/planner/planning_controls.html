@@ -2,16 +2,29 @@
     <p id="invitation_select_days" hidden="hidden">
         Select days for your absence by clicking on the calendar.
     </p>
+
     <p id="invitation_log_in" hidden="hidden">
         You have to be logged in to plan absences.
     </p>
+
     <p id="manage_invitation_log_in" hidden="hidden">
         You have to be logged in to manage absences.
     </p>
+
     <p id="manage_no_absences" hidden="hidden">
         No absences to manage.
     </p>
-    <p id="manage_absence_list" hidden="hidden" style="text-align: left;"></p>
+
+    <div id="manage_absence_list" hidden="hidden" class="list-group" style="text-align: left;"></div>
+    <ul id='absence_select' class="list-group" style="text-align: left;"></ul>
+    <div id="absence_other_fields" hidden="hidden">
+        <select name='absence_kind' class="form-control" style="margin-bottom: 15px;">
+            {% for kind in absence_kinds %}
+            <option value="{{ kind.id }}">{{ kind }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
     <div id="manage_buttons" class='btn-group btn-group-justified' role='group' style="display: none;">
         <div class="btn-group">
             <input type='submit' name='reject-submit' value='Reject' class='btn btn-danger'/>
