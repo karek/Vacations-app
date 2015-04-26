@@ -147,10 +147,11 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
                 if (!global_show_others_absences && ranges[i].user_id != global_logged_user_id) {
                     continue;
                 }
-                var r_color = 'grey';
-                // TODO: think of a way to set color according to absence kind, but 
-                // without hardcoding the colors here
-                if (ranges[i].status == status_ACCEPTED) r_color = '#339933';
+                var classes = new Array();
+                if (ranges[i].status == status_ACCEPTED) classes.push('absence-status-accepted');
+                else classes.push('absence-status-pending');
+                var kindclass = 'absence-kind-' + ranges[i].kind_name.toLowerCase().replace(' ', '-');
+                classes.push(kindclass);
 
                 event_objects.push({
                     id: ranges[i].id,
@@ -158,7 +159,7 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
                     start: ranges[i].begin,
                     end: ranges[i].end,
                     user_id: ranges[i].user_id,
-                    color: r_color,
+                    className: classes,
                     type: ranges[i].kind_name
                 });
 
@@ -183,13 +184,15 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
                             title: holidays[i].name,
                             start: holidays[i].day,
                             end: holidays[i].day,
-                            color: 'red',
+                            className: ['absence-type-holiday'],
                             user_id: global_event_is_holiday
                         };
                         event_objects.push(event);
                         // clone the holiday as a background event
                         var event2 = JSON.parse(JSON.stringify(event));
                         event2.rendering = 'background';
+                        event2.color = 'red';
+                        event2.className = new Array();
                         event_objects.push(event2);
                     }
                     saveHolidays(holidays);
