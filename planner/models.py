@@ -11,6 +11,7 @@ from django.contrib.auth.models import (
 )
 from planner.utils import dateToString
 from django.core.mail import send_mail
+from colorful.fields import RGBColorField
 
 
 class Team(models.Model):
@@ -135,6 +136,10 @@ class EmailUser(AbstractBaseUser):
 class AbsenceKind(models.Model):
     name = models.CharField(max_length=30, blank=False, unique=True)
     require_acceptance = models.BooleanField(default=True)
+    text_color = RGBColorField(default='#ffffff', null=False, blank=False,
+            verbose_name='Event text color')
+    bg_color = RGBColorField(default='#888888', null=False, blank=False,
+            verbose_name='Event background color')
 
     def __unicode__(self):  # __unicode__ on Python 2
         return self.name

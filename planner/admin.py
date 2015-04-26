@@ -112,9 +112,10 @@ class AbsenceAdmin(admin.ModelAdmin):
 class AbsenceKindAdmin(admin.ModelAdmin):
     fieldsets = (
         ('Basic information', {'fields': ('name',)}),
-        ('Acceptance', {'fields': ('require_acceptance',)})
+        ('Acceptance', {'fields': ('require_acceptance',)}),
+        ('Display', {'fields': ('text_color', 'bg_color',)}),
     )
-    list_display = ('name', 'require_acceptance')
+    list_display = ('name', 'require_acceptance', 'text_color', 'bg_color')
 
 
 admin.site.register(EmailUser, EmailUserAdmin)
