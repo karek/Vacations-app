@@ -186,7 +186,8 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
                             start: holidays[i].day,
                             end: holidays[i].day,
                             className: ['absence-type-holiday'],
-                            user_id: global_event_is_holiday
+                            user_id: global_event_is_holiday,
+                            icon: 'gift'
                         };
                         event_objects.push(event);
                         // clone the holiday as a background event
