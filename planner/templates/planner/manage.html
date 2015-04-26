@@ -3,11 +3,24 @@
 {% block selected_absence_panel %}
         <h2 style="margin-top: 0px;" align="center">Absence requests</h2>
         {% if accept_absence %}
-        <p>
-        request date: <b>{{ accept_absence.date_created }}</b><br/>
-        author: <b>{{ accept_absence.user_name }}</b><br/>
-        kind: <b>{{ accept_absence.kind_name }}</b><br/>
-        </p>
+        <div class="panel panel-default">
+            <table class="table" id="absence-details">
+              <tbody>
+              <tr>
+                <th scope="row">User</th>
+                <td>{{ accept_absence.user_name }}</td>
+              </tr>
+              <tr>
+                <th scope="row">Kind</th>
+                <td>{{ accept_absence.kind_name }}</td>
+              </tr>
+              <tr>
+                <th scope="row">Created</th>
+                <td>{{ accept_absence.date_created }}</td>
+              </tr>
+              </tbody>
+            </table>
+        </div>
         {% endif %}
         <form id='plan-absence' method='GET' action="{% url 'planner:manage-absence' %}">
             {% csrf_token %}

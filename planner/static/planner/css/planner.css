@@ -11,3 +11,7 @@ body {
     width: 158px;
     height: 40px;
 }
+
+#absence-details th {
+    padding-left: 15px;
+}
