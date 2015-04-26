@@ -46,6 +46,30 @@ function selectf(begin, end, jsEvent, view) {
     }
 }
 
+function count_absence_length() {
+    // get absence_length
+    var absence_length = 0;
+    var days = 0;
+    $(".s_range").each(function(index) {
+        duration = moment.duration(moment($(this).attr("s_end")) -  moment($(this).attr("s_begin"))).days()
+
+        // delete weekends from total count
+        date = moment($(this).attr("s_begin")).add(-1,'days');
+        while (duration > 0) {
+            date = date.add(1, 'days');
+            // days += 1;
+            if (date.isoWeekday() != 6 && date.isoWeekday() != 7) {
+              days += 1;
+            }
+            duration -= 1;
+        }
+    });
+
+    
+
+    $('#absence_length ').html("<h4>Absence length: " +  days +  "</h4>")
+}
+
 // Check the range selected by the user for intersections with [1] already selected ranges,
 // [2] previously booked user's absences; then append the remaining range[s] to absence list.
 function check_and_add_range(range) {
@@ -152,25 +176,6 @@ function add_checked_range(range) {
         + '<input type="hidden" name="end[]" value="' + end_str + '" />'
         + '</li>');
 
-    // get absence_length
-    var absence_length = 0;
-    var days = 0;
-    $(".s_range").each(function(index) {
-        absence_length += moment.duration(moment($(this).attr("s_end")) -  moment($(this).attr("s_begin"))).days()
-    });
-
-    // delete weekends from total count
-    date = moment(range.begin);
-    while (absence_length > 0) {
-        date = date.add(1, 'days');
-        days += 1;
-        if (date.isoWeekday() == 6 || date.isoWeekday() == 7) {
-          days -= 1;
-        }
-        absence_length -= 1;
-    }
-
-    $('#absence_length ').html("<h4>Absence length: " +  days +  "</h4>")
 
     function comp(a, b) {
         return ($(b).attr("s_begin") < $(a).attr("s_begin")) ? 1 : -1
@@ -178,6 +183,8 @@ function add_checked_range(range) {
 
     $('#absence_select li').sort(comp).appendTo('#absence_select');
     display_or_hide_planning_controls();
+
+    count_absence_length()
 }
 
 function unselectf(view, jsEvent) {
