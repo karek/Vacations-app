@@ -24,11 +24,14 @@
         <input type='submit' name='book-value-submit' value='Plan Absence' class='btn btn-primary'/>
     </div>
     <div id="exit_manager_mode" style="margin-top: 15px" class="btn-group btn-group-justified" hidden="hidden">
-        <div class="btn-group" id="manage_back_button"">
+        <a href="{% url 'planner:index' %}" class="btn btn-default">Exit Manager</a>
+    </div>
+    <div id="manage_back_button" style="margin-top: 15px" class="btn-group btn-group-justified" hidden="hidden">
+        <div class="btn-group">
             <a href="{% url 'planner:manage-absence' %}" class="btn btn-default">Back</a>
         </div>
         <div class="btn-group">
-        <a href="{% url 'planner:index' %}" class="btn btn-default">Exit Manager</a>
+            <a href="{% url 'planner:index' %}" class="btn btn-default">Exit Manager</a>
         </div>
     </div>
 </div>

@@ -229,26 +229,26 @@ function display_or_hide_planning_controls() {
     var absence_other_fields = $('#absence_other_fields');
     var plan_absence_button = $('#plan_absence_button');
     var invitation_log_in = $('#invitation_log_in');
-    var manage_back_button = $('#manage_back_button');
-    var exit_manager_mode = $('#exit_manager_mode');
+    var manage_back_exit_button = $('#manage_back_button');
+    var manage_exit_button = $('#exit_manager_mode');
 
     manage_no_absences.hide();
     manage_buttons.hide();
     manage_invitation_log_in.hide();
+    manage_back_exit_button.hide();
+    manage_exit_button.hide();
     invitation_select_days.hide();
     absence_other_fields.hide();
     plan_absence_button.hide();
     invitation_log_in.hide();
-    manage_back_button.hide();
-    exit_manager_mode.hide();
 
     if (manage_mode_enabled()) {
         // TODO zmienilem tutaj zarzadzanie widocznymi elementami,
         // mozna ukryc cos jak uzytkownik nie jest zalogowany w trybie akceptowania
         // wywoluje ta funkcje przy renderowaniu index.html i manage.html
 
-        exit_manager_mode.show();
         if (ranges_not_selected) {
+            manage_exit_button.show();
             if(user_is_logged_in()) {
                 manage_no_absences.show();
                 get_management_absences();
@@ -256,9 +256,9 @@ function display_or_hide_planning_controls() {
                 manage_invitation_log_in.show();
             }
         } else {
+            manage_back_exit_button.show();
             if (user_is_logged_in()) {
                 manage_buttons.show();
-                manage_back_button.show();
             } else {
                 manage_invitation_log_in.show();
             }
