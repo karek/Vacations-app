@@ -23,7 +23,6 @@
         </div>
         {% endif %}
         <form id='plan-absence' method='GET' action="{% url 'planner:manage-absence' %}">
-            {% csrf_token %}
             {% if accept_absence %}
             <input type="hidden" name="absence-id" value="{{ accept_absence.id }}"/>
             {% endif %}
