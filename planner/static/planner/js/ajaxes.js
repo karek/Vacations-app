@@ -267,22 +267,30 @@ function get_management_absences() {
 function show_management_absences() {
     var manage_hdr = $('#manage_no_absences');
     var manage_list = $('#manage_absence_list');
-    manage_hdr.show();
+    manage_hdr.hide();
     if (global_mng_absences.length == 0) {
+        manage_hdr.show();
         manage_hdr.html('No pending absence requests.');
         manage_list.hide();
         return;
     }
-    manage_hdr.html('<b>Pending requests:</b>');
+//    manage_hdr.html('<b>Pending requests:</b>');
     var absences = global_mng_absences.map(show_mng_absence_as_li).join('\n');
-    manage_list.html('<ul>\n' + absences + '</ul>\n');
+    manage_list.html(absences);
     manage_list.show()
 }
 
 // Show absence (as returned from DB) as list element, with link to its management
 function show_mng_absence_as_li(absence) {
-    var link = global_manage_url + '?absence-id=' + absence.id
-    return '<li><a href="' + link + '">' + absence.total_workdays + ' workdays of ' +
-        absence.kind_name + '</a> requested on ' +
-        absence.date_created + ' by <b>' + absence.user_name + '</b></li>';
+    var link = global_manage_url + '?absence-id=' + absence.id;
+    return ''
+        + '<a class="list-group-item" href="' + link + '">'
+        + '<span class="badge" style="margin-top: 10px;">' + absence.total_workdays + '</span>'
+        + '<h4>' + absence.user_name + '</h4>'
+        + '<table class="table pending-details-table" style="margin-bottom: 0px;">'
+        + '<tbody><tr>'
+        + '<th scope="row">Kind</th><td>' + absence.kind_name + '</td></tr>'
+        + '<tr><th scope="row">Created</th><td>' + absence.date_created + '</td></tr>'
+        + '</tbody></table>'
+        + '</a>';
 }

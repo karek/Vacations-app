@@ -1,21 +1,11 @@
 {% extends "planner/index.html" %}
 
 {% block selected_absence_panel %}
-        <h2 style="margin-top: 0px;" align="center">Absence requests</h2>
-        {% if accept_absence %}
-        <p>
-        request date: <b>{{ accept_absence.date_created }}</b><br/>
-        author: <b>{{ accept_absence.user_name }}</b><br/>
-        kind: <b>{{ accept_absence.kind_name }}</b><br/>
-        </p>
-        {% endif %}
+        <h2 id="right-panel-header">Absence Manager</h2>
         <form id='plan-absence' method='GET' action="{% url 'planner:manage-absence' %}">
-            {% csrf_token %}
             {% if accept_absence %}
             <input type="hidden" name="absence-id" value="{{ accept_absence.id }}"/>
             {% endif %}
-            <ul id='absence_select' class="list-group" style="padding-top: 9px">
-            </ul>
             {% include 'planner/planning_controls.html' %}
         </form>
 {% endblock %}

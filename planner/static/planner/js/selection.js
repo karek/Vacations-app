@@ -268,33 +268,44 @@ function display_or_hide_planning_controls() {
     console.debug("user_is_logged_in = " + user_is_logged_in());
     console.debug("ranges_not_selected = " + ranges_not_selected);
 
+
+    var manage_list = $('#manage_absence_list');
     var manage_no_absences = $('#manage_no_absences');
     var manage_buttons = $('#manage_buttons');
     var manage_invitation_log_in = $('#manage_invitation_log_in');
+    var manage_back_exit_button = $('#manage_back_button');
+    var manage_exit_button = $('#exit_manager_mode');
+
     var invitation_select_days = $('#invitation_select_days');
     var absence_length = $('#absence_length');
     var absence_other_fields = $('#absence_other_fields');
     var plan_absence_button = $('#plan_absence_button');
     var invitation_log_in = $('#invitation_log_in');
-    var exit_manager_mode = $('#exit_manager_mode');
 
+    var absence_select = $('#absence_select');
+
+    manage_list.hide();
     manage_no_absences.hide();
     manage_buttons.hide();
     manage_invitation_log_in.hide();
+    manage_back_exit_button.hide();
+    manage_exit_button.hide();
+
     invitation_select_days.hide();
     absence_length.hide();
     absence_other_fields.hide();
     plan_absence_button.hide();
     invitation_log_in.hide();
-    exit_manager_mode.hide();
+
+    absence_select.hide();
 
     if (manage_mode_enabled()) {
         // TODO zmienilem tutaj zarzadzanie widocznymi elementami,
         // mozna ukryc cos jak uzytkownik nie jest zalogowany w trybie akceptowania
         // wywoluje ta funkcje przy renderowaniu index.html i manage.html
 
-        exit_manager_mode.show();
         if (ranges_not_selected) {
+            manage_exit_button.show();
             if(user_is_logged_in()) {
                 manage_no_absences.show();
                 get_management_absences();
@@ -302,6 +313,9 @@ function display_or_hide_planning_controls() {
                 manage_invitation_log_in.show();
             }
         } else {
+            manage_list.show();
+            absence_select.show();
+            manage_back_exit_button.show();
             if (user_is_logged_in()) {
                 manage_buttons.show();
             } else {
@@ -316,6 +330,7 @@ function display_or_hide_planning_controls() {
                 invitation_log_in.show();
             }
         } else {
+            absence_select.show();
             if (user_is_logged_in()) {
                 absence_length.show();
                 absence_other_fields.show();

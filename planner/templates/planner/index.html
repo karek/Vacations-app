@@ -10,33 +10,14 @@
     </div>
     <div class="col-lg-3">
         {% block selected_absence_panel %}
-        <h2 style="margin-top: 0px;" align="center">Selected absence</h2>
+        <h2 id="right-panel-header">Selected absence</h2>
         <form id='plan-absence' method='POST' action="{% url 'planner:plan-absence' %}">
             {% csrf_token %}
-            <ul id='absence_select' class="list-group" style="padding-top: 9px">
-            </ul>        
-            <div id="absence_other_fields" hidden="hidden">
-                <select name='absence_kind' class="form-control" style="margin-bottom: 15px;">
-                    {% for kind in absence_kinds %}
-                        <option value="{{ kind.id }}">{{ kind }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div id="absence_length" hidden="hidden">
-            </div>
             {% include 'planner/planning_controls.html' %}
         </form>
         {% endblock %}
     </div>
 </div>
-
-{# TODO: remove this when we no longer need such debug output. #}
-<div>
-    <h3> Currently booked: </h3>
-    <ul id='all_ranges'>
-    </ul>
-</div>
-
 {% endblock %}
 
 {% block scripts %}
