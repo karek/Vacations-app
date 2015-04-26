@@ -152,12 +152,25 @@ function add_checked_range(range) {
         + '<input type="hidden" name="end[]" value="' + end_str + '" />'
         + '</li>');
 
+    // get absence_length
     var absence_length = 0;
+    var days = 0;
     $(".s_range").each(function(index) {
         absence_length += moment.duration(moment($(this).attr("s_end")) -  moment($(this).attr("s_begin"))).days()
-    })
+    });
 
-    $('#absence_length ').html("<h4>Absence length: " +  absence_length +  "</h4>")
+    // delete weekends from total count
+    date = moment(range.begin);
+    while (absence_length > 0) {
+        date = date.add(1, 'days');
+        days += 1;
+        if (date.isoWeekday() == 6 || date.isoWeekday() == 7) {
+          days -= 1;
+        }
+        absence_length -= 1;
+    }
+
+    $('#absence_length ').html("<h4>Absence length: " +  days +  "</h4>")
 
     function comp(a, b) {
         return ($(b).attr("s_begin") < $(a).attr("s_begin")) ? 1 : -1
