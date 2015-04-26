@@ -27,3 +27,6 @@ body {
     border-color: #db3027;
 }
 
+.fc-title {
+    white-space: nowrap;
+}

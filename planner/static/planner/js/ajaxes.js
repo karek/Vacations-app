@@ -160,7 +160,8 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
                     end: ranges[i].end,
                     user_id: ranges[i].user_id,
                     className: classes,
-                    type: ranges[i].kind_name
+                    type: ranges[i].kind_name,
+                    icon: ranges[i].kind_icon
                 });
 
                 // pull out current user's absences
