@@ -168,38 +168,40 @@ function add_checked_range(range) {
 
     var display_range_str;
 
-    if (days_between == 1) {
-        display_range_str = display_date.begin.format('DD MMM');
-    } else {
-        if (display_date.begin.month() == display_date.end.month()) {
-            display_range_str = display_date.begin.format('DD') + ' - ' + display_date.end.format('DD MMM');
+    if (days_between != 0) {
+        if (days_between == 1) {
+            display_range_str = display_date.begin.format('DD MMM');
         } else {
-            display_range_str = display_date.begin.format('DD MMM') + ' - ' + display_date.end.format('DD MMM');
+            if (display_date.begin.month() == display_date.end.month()) {
+                display_range_str = display_date.begin.format('DD') + ' - ' + display_date.end.format('DD MMM');
+            } else {
+                display_range_str = display_date.begin.format('DD MMM') + ' - ' + display_date.end.format('DD MMM');
+            }
         }
+
+        var accept_mode = accept_mode_enabled();
+
+        $('#absence_select').append(''
+            + '<li class="s_range list-group-item" '
+            + 's_begin=\'' + begin_str + '\' s_end=\'' + end_str + '\'>'
+            + display_range_str
+            + '<span class="badge">'
+            + (accept_mode ? "" : '<a href="#" class="rm-absence-selection" style="text-decoration: none; color: #ffffff">')
+            + days_between
+            + (accept_mode ? "" : ' <span class="glyphicon glyphicon-remove"></span></a>')
+            + '</span>'
+            + '<input type="hidden" name="begin[]" value="' + begin_str + '" />'
+            + '<input type="hidden" name="end[]" value="' + end_str + '" />'
+            + '</li>');
+
+
+        function comp(a, b) {
+            return ($(b).attr("s_begin") < $(a).attr("s_begin")) ? 1 : -1
+        }
+
+        $('#absence_select li').sort(comp).appendTo('#absence_select');
+        display_or_hide_planning_controls();
     }
-
-    var accept_mode = accept_mode_enabled();
-
-    $('#absence_select').append(''
-        + '<li class="s_range list-group-item" '
-        + 's_begin=\'' + begin_str + '\' s_end=\'' + end_str + '\'>'
-        + display_range_str
-        + '<span class="badge">'
-        + (accept_mode ? "" : '<a href="#" class="rm-absence-selection" style="text-decoration: none; color: #ffffff">')
-        + days_between
-        + (accept_mode ? "" : ' <span class="glyphicon glyphicon-remove"></span></a>')
-        + '</span>'
-        + '<input type="hidden" name="begin[]" value="' + begin_str + '" />'
-        + '<input type="hidden" name="end[]" value="' + end_str + '" />'
-        + '</li>');
-
-
-    function comp(a, b) {
-        return ($(b).attr("s_begin") < $(a).attr("s_begin")) ? 1 : -1
-    }
-
-    $('#absence_select li').sort(comp).appendTo('#absence_select');
-    display_or_hide_planning_controls();
 
     count_absence_length()
 }
