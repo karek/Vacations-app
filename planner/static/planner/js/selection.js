@@ -48,10 +48,6 @@ function selectf(begin, end, jsEvent, view) {
 
 function count_absence_length() {
 
-    function is_weekend(date) {
-        return date.isoWeekday() == 6 || date.isoWeekday() == 7; 
-    };
-
     function is_holiday(date) {
         var result = false;
         $.each(global_holidays, (function(index) {
@@ -69,12 +65,11 @@ function count_absence_length() {
     $(".s_range").each(function(index) {
         duration = moment.duration(moment($(this).attr("s_end")) -  moment($(this).attr("s_begin"))).days()
 
-        // delete weekends from total count
         date = moment($(this).attr("s_begin")).add(-1,'days');
         while (duration > 0) {
             date = date.add(1, 'days');
             // days += 1;
-            if (!(is_weekend(date) || is_holiday(date))) {
+            if (is_holiday(date)) {
               days += 1;
             }
             duration -= 1;
