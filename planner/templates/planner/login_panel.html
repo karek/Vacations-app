@@ -55,7 +55,25 @@
                         suggestion: Handlebars.compile('{% verbatim %}<p>{{first_name}} {{last_name}} <span class="badge">{{email}}</span></p>{% endverbatim %}')
                     }
                 }
-        );
+        ).on('typeahead:opened', onOpened)
+         .on('typeahead:selected', onAutocompleted)
+         .on('typeahead:autocompleted', onSelected);
+
+        function onOpened($e) {
+            console.log('opened');
+        }
+
+        function onAutocompleted($e, datum) {
+            console.log('autocompleted');
+            console.log(datum);
+            $('#loginForm').submit();
+        }
+
+        function onSelected($e, datum) {
+            console.log('selected');
+            console.log(datum);
+            $('#loginForm').submit();
+        }
     });
 </script>
 {% endif %}
