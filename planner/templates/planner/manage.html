@@ -27,11 +27,13 @@
 
 {% block calendarDeclaration %}
 {{ block.super }}
+{% if accept_absence %}
 <script type="text/javascript">
-    {% if accept_absence %}
+    $(document).ready(function() {
         {% autoescape off %}
         select_ranges_from_json({{ accept_ranges }});
         {% endautoescape %}
-    {% endif %}
+    });
 </script>
+{% endif %}
 {% endblock %}
