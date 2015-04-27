@@ -306,7 +306,7 @@ function display_or_hide_planning_controls() {
         // mozna ukryc cos jak uzytkownik nie jest zalogowany w trybie akceptowania
         // wywoluje ta funkcje przy renderowaniu index.html i manage.html
 
-        if (ranges_not_selected) {
+        if (!accept_mode_enabled()) {
             manage_exit_button.show();
             if(user_is_logged_in()) {
                 manage_no_absences.show();
@@ -393,6 +393,8 @@ function select_ranges_from_json(ranges) {
         // we trust data from DB enough to skip checks :)
         add_checked_range(range);
     }
+    // ensure at least the first of selected ranges is visible
+	$('#calendar').fullCalendar('gotoDate', moment(ranges[0].begin));
     highlight_selected_ranges();
 }
 
