@@ -37,7 +37,7 @@
     </div>
     <ul id='absence_select' class="list-group" style="text-align: left;"></ul>
     <div id="absence_other_fields" hidden="hidden">
-        <select name='absence_kind' class="form-control selectpicker">
+        <select name='absence_kind' class="form-control selectpicker show-tick">
             {% for kind in absence_kinds %}
             <option value="{{ kind.id }}" data-icon="glyphicon-{{ kind.icon_name }}"> <span style="background-color: #003366">{{ kind.name }}</span></option>
             {% endfor %}
