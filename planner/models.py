@@ -199,7 +199,7 @@ class Absence(models.Model):
             # TODO send a proper mail to the right address
             send_mail(new_abs.mail_request_title(), new_abs.mail_request_text(),
                       'tytusdjango@gmail.com', ['tytusdjango@gmail.com'],
-                      html_message=new_abs.mail_request_html('New absence request!', True))
+                      html_message=new_abs.mail_common_html('New absence request!', True))
         return new_abs
 
     def toDict(self):
@@ -223,7 +223,7 @@ class Absence(models.Model):
         # TODO in the current form the email could be send BOTH to user and HR
         send_mail(self.mail_accepted_title(), self.mail_accepted_body(),
                   'tytusdjango@gmail.com', ['tytusdjango@gmail.com'],
-                  html_message=self.mail_request_html('Your request was accepted!', False))
+                  html_message=self.mail_common_html('Your request was accepted!', False))
         self.save()
 
     def reject(self):
@@ -231,7 +231,7 @@ class Absence(models.Model):
         # TODO send a proper mail to the right address
         send_mail(self.mail_rejected_title(), self.mail_rejected_body(),
                   'tytusdjango@gmail.com', ['tytusdjango@gmail.com'],
-                  html_message=self.mail_request_html('Your request was REJECTED!', False))
+                  html_message=self.mail_common_html('Your request was REJECTED!', False))
         self.save()
 
     def cancel(self):
@@ -269,10 +269,10 @@ class Absence(models.Model):
             ranges.append(r_tuple)
         return ranges
 
-    def mail_request_html(self, header, show_actions):
+    def mail_common_html(self, header, show_actions):
         context = self.toDict()
         context['base_url'] = settings.BASE_URL
-        context['mng_url'] = settings.BASE_URL + '/manage-absence?absence-id=' + str(self.id)
+        context['mng_url'] = self.manage_url()
         context['ranges'] = self.mail_prepare_ranges()
         context['header'] = header
         context['show_actions'] = show_actions
@@ -280,14 +280,13 @@ class Absence(models.Model):
 
     def mail_request_text(self):
         desc = self.description()
-        mng_url = settings.BASE_URL + '/manage-absences?absence-id=' + str(self.id)
         return desc + (
                 '\n'
                 'to accept: %(mng_url)s&accept-submit\n'
                 'to reject: %(mng_url)s&reject-submit\n'
                 'to view details: %(mng_url)s\n'
             ) % {
-                'mng_url': mng_url
+                'mng_url': self.manage_url()
             }
 
     def mail_accepted_title(self):
@@ -386,6 +385,9 @@ class AbsenceRange(models.Model):
             'kind_name': self.absence.absence_kind.name if self.absence.absence_kind else 'none',
             'kind_icon': self.absence.absence_kind.icon_name if self.absence.absence_kind else None
         }
+
+    def manage_url(self):
+        return settings.BASE_URL + '/manage-absences?absence-id=' + str(self.id)
 
     @property
     def workday_count(self):
