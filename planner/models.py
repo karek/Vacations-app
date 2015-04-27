@@ -13,6 +13,7 @@ from django.template.loader import render_to_string
 from planner.utils import dateToString
 from django.core.mail import send_mail
 from colorful.fields import RGBColorField
+from vacations.settings import EMAIL_HOST_USER, EMAIL_NOREPLY_ADDRESS, EMAIL_HR_ADDRESS
 
 
 class Team(models.Model):
@@ -133,6 +134,15 @@ class EmailUser(AbstractBaseUser):
         # TODO: is a team leader his own manager?
         return self.team == other.team and self.is_teamleader
 
+    @property
+    def manager(self):
+        """ Get team manager of the current user """
+        my_manager = self.__class__.objects.filter(team=self.team, is_teamleader=True)
+        if my_manager.exists():
+            return my_manager[0]
+        else:
+            return self
+
 
 class AbsenceKind(models.Model):
     name = models.CharField(max_length=30, blank=False, unique=True)
@@ -198,7 +208,7 @@ class Absence(models.Model):
             # send mail to our test email to check if its ok
             # TODO send a proper mail to the right address
             send_mail(new_abs.mail_request_title(), new_abs.mail_request_text(),
-                      'tytusdjango@gmail.com', ['tytusdjango@gmail.com'],
+                      EMAIL_NOREPLY_ADDRESS, [new_abs.mail_fake_manager_address()],
                       html_message=new_abs.mail_common_html('New absence request!', True))
         return new_abs
 
@@ -222,7 +232,7 @@ class Absence(models.Model):
         # TODO send a proper mail to the right address
         # TODO in the current form the email could be send BOTH to user and HR
         send_mail(self.mail_accepted_title(), self.mail_accepted_body(),
-                  'tytusdjango@gmail.com', ['tytusdjango@gmail.com'],
+                  EMAIL_NOREPLY_ADDRESS, [self.mail_fake_user_address(), EMAIL_HR_ADDRESS],
                   html_message=self.mail_common_html('Your request was accepted!', False))
         self.save()
 
@@ -230,7 +240,7 @@ class Absence(models.Model):
         self.status = self.REJECTED
         # TODO send a proper mail to the right address
         send_mail(self.mail_rejected_title(), self.mail_rejected_body(),
-                  'tytusdjango@gmail.com', ['tytusdjango@gmail.com'],
+                  EMAIL_NOREPLY_ADDRESS, [self.mail_fake_user_address()],
                   html_message=self.mail_common_html('Your request was REJECTED!', False))
         self.save()
 
@@ -239,12 +249,12 @@ class Absence(models.Model):
         self.status = self.CANCELLED
         # TODO send a proper mail to the right addresses
         # always notify the user and the manager
-        recipients = ['tytusdjango@gmail.com']
+        recipients = [self.mail_fake_user_address()]
         # if the absence was already accepted, we must also inform HR
-        if self.status == self.ACCEPTED:
-            pass #TODO recipients += [mail-to-hr]
+        if old_status == self.ACCEPTED:
+            recipients.append(EMAIL_HR_ADDRESS)
         send_mail(self.mail_cancel_title(old_status), self.mail_cancel_body(old_status),
-                  'tytusdjango@gmail.com', recipients)
+                  EMAIL_NOREPLY_ADDRESS, recipients)
         self.save()
 
     def description(self):
@@ -258,6 +268,14 @@ class Absence(models.Model):
         for r in AbsenceRange.objects.filter(absence=self).order_by('begin', 'end'):
             body += ' * ' + unicode(r) + '\n'
         return body
+
+    def mail_fake_user_address(self):
+        fake_email = self.user.email.replace("@", ".at.")
+        return EMAIL_HOST_USER.replace("@", "+" + fake_email + "@")
+
+    def mail_fake_manager_address(self):
+        fake_email = self.user.manager.email.replace("@", ".at.")
+        return EMAIL_HOST_USER.replace("@", "+" + fake_email + "@")
 
     def mail_request_title(self):
         return 'Absence request from ' + self.user.get_full_name()
@@ -312,6 +330,9 @@ class Absence(models.Model):
         else:
             text = 'Am accepted abence (listed below) was CANCELLED.'
         return text + '\n\n' + self.description()
+
+    def manage_url(self):
+        return settings.BASE_URL + '/manage-absences?absence-id=' + str(self.id)
 
 
 class AbsenceRange(models.Model):
@@ -385,9 +406,6 @@ class AbsenceRange(models.Model):
             'kind_name': self.absence.absence_kind.name if self.absence.absence_kind else 'none',
             'kind_icon': self.absence.absence_kind.icon_name if self.absence.absence_kind else None
         }
-
-    def manage_url(self):
-        return settings.BASE_URL + '/manage-absences?absence-id=' + str(self.id)
 
     @property
     def workday_count(self):

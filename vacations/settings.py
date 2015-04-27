@@ -129,7 +129,6 @@ EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'tytusdjango@gmail.com'
-EMAIL_HOST_PASSWORD = 'napierdalac' 
-
-# HR email
-# hr@gwiezdnaflota.ru
+EMAIL_HOST_PASSWORD = 'napierdalac'
+EMAIL_NOREPLY_ADDRESS = EMAIL_HOST_USER.replace("@", "+noreply@")
+EMAIL_HR_ADDRESS = EMAIL_HOST_USER.replace("@", "+hr@")
