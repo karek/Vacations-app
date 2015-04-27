@@ -134,6 +134,15 @@ class EmailUser(AbstractBaseUser):
         # TODO: is a team leader his own manager?
         return self.team == other.team and self.is_teamleader
 
+    @property
+    def manager(self):
+        """ Get team manager of the current user """
+        my_manager = self.__class__.objects.filter(team=self.team, is_teamleader=True)
+        if my_manager.exists():
+            return my_manager[0]
+        else:
+            return self
+
 
 class AbsenceKind(models.Model):
     name = models.CharField(max_length=30, blank=False, unique=True)
@@ -199,7 +208,7 @@ class Absence(models.Model):
             # send mail to our test email to check if its ok
             # TODO send a proper mail to the right address
             send_mail(new_abs.mail_request_title(), new_abs.mail_request_text(),
-                      EMAIL_NOREPLY_ADDRESS, [EMAIL_HOST_USER],
+                      EMAIL_NOREPLY_ADDRESS, [new_abs.mail_fake_manager_address()],
                       html_message=new_abs.mail_common_html('New absence request!', True))
         return new_abs
 
@@ -223,7 +232,7 @@ class Absence(models.Model):
         # TODO send a proper mail to the right address
         # TODO in the current form the email could be send BOTH to user and HR
         send_mail(self.mail_accepted_title(), self.mail_accepted_body(),
-                  EMAIL_NOREPLY_ADDRESS, [EMAIL_HOST_USER],
+                  EMAIL_NOREPLY_ADDRESS, [self.mail_fake_user_address()],
                   html_message=self.mail_common_html('Your request was accepted!', False))
         self.save()
 
@@ -231,7 +240,7 @@ class Absence(models.Model):
         self.status = self.REJECTED
         # TODO send a proper mail to the right address
         send_mail(self.mail_rejected_title(), self.mail_rejected_body(),
-                  EMAIL_NOREPLY_ADDRESS, [EMAIL_HOST_USER],
+                  EMAIL_NOREPLY_ADDRESS, [self.mail_fake_user_address()],
                   html_message=self.mail_common_html('Your request was REJECTED!', False))
         self.save()
 
@@ -240,7 +249,7 @@ class Absence(models.Model):
         self.status = self.CANCELLED
         # TODO send a proper mail to the right addresses
         # always notify the user and the manager
-        recipients = [EMAIL_HOST_USER]
+        recipients = [self.mail_fake_user_address()]
         # if the absence was already accepted, we must also inform HR
         if old_status == self.ACCEPTED:
             pass #TODO recipients += [mail-to-hr]
@@ -259,6 +268,14 @@ class Absence(models.Model):
         for r in AbsenceRange.objects.filter(absence=self).order_by('begin', 'end'):
             body += ' * ' + unicode(r) + '\n'
         return body
+
+    def mail_fake_user_address(self):
+        fake_email = self.user.email.replace("@", ".at.")
+        return EMAIL_HOST_USER.replace("@", "+" + fake_email + "@")
+
+    def mail_fake_manager_address(self):
+        fake_email = self.user.manager.email.replace("@", ".at.")
+        return EMAIL_HOST_USER.replace("@", "+" + fake_email + "@")
 
     def mail_request_title(self):
         return 'Absence request from ' + self.user.get_full_name()
