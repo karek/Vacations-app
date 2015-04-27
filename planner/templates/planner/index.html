@@ -33,7 +33,7 @@
         </div>
          <br>
         <input id="toggle-others-absences" type="checkbox" name="toggle-others-absences"/>
-    
+
     </div>
 </div>
 {% endblock %}
@@ -64,7 +64,6 @@
         global_logged_user_team_id = -1;
     {% endif %}
 
-    $('#teams-form')
     {% autoescape off %}
     saveUserData({{ users }});
     {% endautoescape %}
