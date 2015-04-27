@@ -165,14 +165,16 @@ function add_checked_range(range) {
     log_date("display_date.end:", display_date.end);
 
     var days_between = count_range_length(range.begin, range.end)
-
     var display_range_str;
 
     if (days_between != 0) {
         if (days_between == 1) {
             display_range_str = display_date.begin.format('DD MMM');
         } else {
-            if (display_date.begin.month() == display_date.end.month()) {
+            if (display_date.begin.year() != display_date.end.year()) {
+                display_range_str = display_date.begin.format('DD MMM YYYY') + ' - ' + display_date.end.format('DD MMM YYYY');
+            }
+            else if (display_date.begin.month() == display_date.end.month()) {
                 display_range_str = display_date.begin.format('DD') + ' - ' + display_date.end.format('DD MMM');
             } else {
                 display_range_str = display_date.begin.format('DD MMM') + ' - ' + display_date.end.format('DD MMM');
