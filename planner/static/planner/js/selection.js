@@ -417,6 +417,7 @@ function toggle_others_absences(jsevent, state) {
 function getUsersFromSelectedTeams(jsevent) {
 
     var curTeam = jsevent.target.value;
+    
     if (global_teams_selected[curTeam] != curTeam)
         global_teams_selected[curTeam] = curTeam;
     else

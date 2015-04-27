@@ -57,7 +57,7 @@
     {% if request.user.is_authenticated %}
         global_logged_user_id = {{ request.user.id }};
         global_logged_user_name = "{{ request.user.first_name }}" + " " + "{{ request.user.last_name }}";
-        global_logged_user_team_id = {{ request.user.team.id }} - 1;
+        global_logged_user_team_id = {{ request.user.team.id }};
     {% else %}
         global_logged_user_id = -1;
         global_logged_user_name = "";
@@ -120,9 +120,10 @@
             var curTeam = "#id_teams_" + ({{ t.id  }} -1);
             var a = $(curTeam);
             a.prop('checked', false);
+            global_teams_selected[{{ t.id }}] = 0;
         {% endfor %}
 
-        var curTeam = "#id_teams_" + global_logged_user_team_id;
+        var curTeam = "#id_teams_" + (global_logged_user_team_id - 1);
         var a = $(curTeam);
         a.click();
     });
