@@ -11,7 +11,7 @@ def add_comment(apps, schema_editor):
     u = User.objects.get(email='tytus.bomba@gwiezdaflota.pl')
 
     # STATUS 1 = ACCEPTED
-    a = Absence.objects.get(user=u, status=1)
+    a = Absence.objects.get(id=1)
     a.comment = "Wyjazd z Andżelą do Władysławowa"
     a.save()
 
