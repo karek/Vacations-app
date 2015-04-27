@@ -37,9 +37,9 @@
     </div>
     <ul id='absence_select' class="list-group" style="text-align: left;"></ul>
     <div id="absence_other_fields" hidden="hidden">
-        <select name='absence_kind' class="form-control" style="margin-bottom: 15px;">
+        <select name='absence_kind' class="form-control selectpicker">
             {% for kind in absence_kinds %}
-            <option value="{{ kind.id }}">{{ kind }}</option>
+            <option value="{{ kind.id }}" data-icon="glyphicon-{{ kind.icon_name }}"> <span style="background-color: #003366">{{ kind.name }}</span></option>
             {% endfor %}
         </select>
     </div>
@@ -52,8 +52,10 @@
             <button type='submit' name='accept-submit' class='btn btn-success'><span class="glyphicon glyphicon-ok"></span> Accept</button>
         </div>
     </div>
-    <div id="plan_absence_button" hidden="hidden">
-        <button type='submit' name='book-value-submit' class='btn btn-primary'><span class="glyphicon glyphicon-send"></span> Request Absence</button>
+    <div id="plan_absence_button" class='btn-group-justified' hidden="hidden">
+        <div class="btn-group">
+            <button type='submit' name='book-value-submit' class='btn btn-primary'><span class="glyphicon glyphicon-send"></span> Request Absence</button>
+        </div>
     </div>
     <div id="exit_manager_mode" style="margin-top: 15px" class="btn-group btn-group-justified" hidden="hidden">
         <a href="{% url 'planner:index' %}" class="btn btn-default"><span class="glyphicon glyphicon-off"></span> Exit Manager</a>
@@ -67,3 +69,8 @@
         </div>
     </div>
 </div>
+
+<script type="text/javascript">
+    $('.selectpicker').selectpicker();
+//    $('.selectpicker').selectpicker('setStyle', 'btn-danger');
+</script>
