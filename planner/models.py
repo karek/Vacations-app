@@ -197,7 +197,7 @@ class Absence(models.Model):
             # TODO send a proper mail to the right address
             send_mail(new_abs.mail_request_title(), new_abs.mail_request_text(),
                       'tytusdjango@gmail.com', ['tytusdjango@gmail.com'],
-                      html_message=new_abs.mail_request_html('New absence request!'))
+                      html_message=new_abs.mail_request_html('New absence request!', True))
         return new_abs
 
     def toDict(self):
@@ -220,7 +220,7 @@ class Absence(models.Model):
         # TODO in the current form the email could be send BOTH to user and HR
         send_mail(self.mail_accepted_title(), self.mail_accepted_body(),
                   'tytusdjango@gmail.com', ['tytusdjango@gmail.com'],
-                  html_message=self.mail_request_html('Your request was accepted!'))
+                  html_message=self.mail_request_html('Your request was accepted!', False))
         self.save()
 
     def reject(self):
@@ -229,7 +229,7 @@ class Absence(models.Model):
         # TODO send a proper mail to the right address
         send_mail(self.mail_rejected_title(), self.mail_rejected_body(),
                   'tytusdjango@gmail.com', ['tytusdjango@gmail.com'],
-                  html_message=self.mail_request_html('Your request was REJECTED!'))
+                  html_message=self.mail_request_html('Your request was REJECTED!', False))
         self.save()
 
     def description(self):
@@ -254,12 +254,13 @@ class Absence(models.Model):
             ranges.append(r_tuple)
         return ranges
 
-    def mail_request_html(self, header):
+    def mail_request_html(self, header, show_actions):
         context = self.toDict()
         context['base_url'] = settings.BASE_URL
         context['mng_url'] = settings.BASE_URL + '/manage-absence?absence-id=' + str(self.id)
         context['ranges'] = self.mail_prepare_ranges()
         context['header'] = header
+        context['show_actions'] = show_actions
         return render_to_string('email/absence_request.html', context)
 
     def mail_request_text(self):

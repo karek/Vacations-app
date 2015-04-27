@@ -55,7 +55,6 @@
                     </td>
                 </tr>
                 <tr>
-
                     <td bgcolor="#ffffff" style="padding: 15px 30px 40px 30px;">
                         <table border="1" cellpadding="0" cellspacing="0" width="100%" style="border-radius: 5px;">
                             {% for interval, workdays in ranges %}
@@ -74,6 +73,7 @@
                         </table>
                     </td>
                 </tr>
+                {% if show_actions %}
                 <tr>
                     <td bgcolor="#ffffff" style="">
                         <table border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout: fixed;">
@@ -100,6 +100,7 @@
                         </table>
                     </td>
                 </tr>
+                {% endif %}
             </table>
         </td>
     </tr>
