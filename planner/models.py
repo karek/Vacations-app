@@ -169,7 +169,7 @@ class Absence(models.Model):
     absence_kind = models.ForeignKey(AbsenceKind)
     status = models.IntegerField(default=PENDING, choices=STATUS_CHOICES)
     total_workdays = models.IntegerField(default=0, null=False, blank=False)
-    comment = models.TextField(default='')
+    comment = models.CharField(default='', max_length=81)
 
     def __unicode__(self):
         return "Absence by %s %s, Kind: %s, Total workdays: %s" % (self.user.first_name, self.user.last_name, self.absence_kind.name, self.total_workdays,)
