@@ -15,17 +15,21 @@ from planner.utils import InternalError, stringToDate, dateToString, objToJson, 
 from datetime import datetime
 
 
+def generate_main_context():
+    d = date.today()
+    month_begin = date(d.year, d.month, 1)
+    month_end = date(d.year, d.month, monthrange(d.year, d.month)[1])
+    return {
+        'month_begin': dateToString(month_begin),
+        'month_end': dateToString(month_end),
+        'users': objListToJson(get_user_model().objects.all()),
+        'absence_kinds': AbsenceKind.objects.all()
+    }
+
+
 class IndexView(View):
     def get(self, request, *args, **kwargs):
-        d = date.today()
-        month_begin = date(d.year, d.month, 1)
-        month_end = date(d.year, d.month, monthrange(d.year, d.month)[1])
-        context = {
-            'month_begin': dateToString(month_begin),
-            'month_end': dateToString(month_end),
-            'users': objListToJson(get_user_model().objects.all()),
-            'absence_kinds': AbsenceKind.objects.all()
-        }
+        context = generate_main_context()
         return render(request, 'planner/index.html', context)
 
 
@@ -115,14 +119,7 @@ class ManageAbsenceView(View):
         # unless management succeeds, we go to the same page
         self.destination = request.path
         # prepare data for management panel
-        d = date.today()
-        month_begin = date(d.year, d.month, 1)
-        month_end = date(d.year, d.month, monthrange(d.year, d.month)[1])
-        self.context = {
-            'month_begin': dateToString(month_begin),
-            'month_end': dateToString(month_end),
-            'users': objListToJson(get_user_model().objects.all()),
-        }
+        self.context = generate_main_context()
         if 'absence-id' in request.GET:
             try:
                 absence = Absence.objects.get(id=request.GET['absence-id'], status=Absence.PENDING)
