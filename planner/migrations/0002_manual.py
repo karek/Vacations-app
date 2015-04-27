@@ -101,8 +101,8 @@ def create_absences(apps, schema_editor):
             end=date(2015, 5, 3)),
         AbsenceRange(
             absence=a1,
-            begin=date(2015, 4, 21),
-            end=date(2015, 4, 22)),
+            begin=date(2015, 4, 20),
+            end=date(2015, 4, 21)),
         AbsenceRange(
             absence=a2,
             begin=date(2015, 4, 23),
