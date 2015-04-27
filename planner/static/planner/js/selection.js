@@ -84,7 +84,7 @@ function count_absence_length() {
 
     
 
-    $('#absence_length ').html("<h4>Absence length: " +  days +  "</h4>")
+    $('#absence_length ').html('Total: <span class="badge">'+  days + '</span>')
 }
 
 // Check the range selected by the user for intersections with [1] already selected ranges,
@@ -165,14 +165,16 @@ function add_checked_range(range) {
     log_date("display_date.end:", display_date.end);
 
     var days_between = count_range_length(range.begin, range.end)
-
     var display_range_str;
 
     if (days_between != 0) {
         if (days_between == 1) {
             display_range_str = display_date.begin.format('DD MMM');
         } else {
-            if (display_date.begin.month() == display_date.end.month()) {
+            if (display_date.begin.year() != display_date.end.year()) {
+                display_range_str = display_date.begin.format('DD MMM YYYY') + ' - ' + display_date.end.format('DD MMM YYYY');
+            }
+            else if (display_date.begin.month() == display_date.end.month()) {
                 display_range_str = display_date.begin.format('DD') + ' - ' + display_date.end.format('DD MMM');
             } else {
                 display_range_str = display_date.begin.format('DD MMM') + ' - ' + display_date.end.format('DD MMM');
@@ -278,6 +280,7 @@ function display_or_hide_planning_controls() {
 
     var invitation_select_days = $('#invitation_select_days');
     var absence_length = $('#absence_length');
+    var absence_comment = $('#absence_comment');
     var absence_other_fields = $('#absence_other_fields');
     var plan_absence_button = $('#plan_absence_button');
     var invitation_log_in = $('#invitation_log_in');
@@ -293,6 +296,7 @@ function display_or_hide_planning_controls() {
 
     invitation_select_days.hide();
     absence_length.hide();
+    // absence_comment.hide();
     absence_other_fields.hide();
     plan_absence_button.hide();
     invitation_log_in.hide();
@@ -333,6 +337,7 @@ function display_or_hide_planning_controls() {
             absence_select.show();
             if (user_is_logged_in()) {
                 absence_length.show();
+                // absence_comment.show();
                 absence_other_fields.show();
                 plan_absence_button.show();
             } else {

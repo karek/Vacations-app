@@ -78,7 +78,8 @@ class PlanAbsenceView(View):
             ranges = self.validateRanges(request.POST.getlist('begin[]'),
                                          request.POST.getlist('end[]'))
             absence_kind = request.POST.get('absence_kind')
-            self.addVacation(request.user, ranges, absence_kind)
+            comment = request.POST.get('comment')
+            self.addVacation(request.user, ranges, absence_kind, comment)
             # TODO better message with send email if needs acceptance
             # or just hr email if not
             messages.success(request, 'Absence booked successfully, email was sent to proper authorities.')
@@ -102,12 +103,12 @@ class PlanAbsenceView(View):
         # Return the ranges, AbsenceRange's clean() will validate the rest
         return sorted(zip(map(stringToDate, begins), map(stringToDate, ends)))
 
-    def addVacation(self, user, ranges, absence_kind):
+    def addVacation(self, user, ranges, absence_kind, comment):
         """ Takes a list of ranges (date pairs) and saves them as a vacation.
         
         AbsenceRange's clean() checks if the ranges are valid and not intersecting (with themselves
         nor with previous user's absences). """
-        Absence.createFromRanges(user, ranges, absence_kind)
+        Absence.createFromRanges(user, ranges, absence_kind, comment)
         # nothing really to do here
 
 
