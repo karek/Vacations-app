@@ -294,7 +294,7 @@ function display_or_hide_planning_controls() {
 
     invitation_select_days.hide();
     absence_length.hide();
-    absence_comment.hide();
+    // absence_comment.hide();
     absence_other_fields.hide();
     plan_absence_button.hide();
     invitation_log_in.hide();
@@ -335,7 +335,7 @@ function display_or_hide_planning_controls() {
             absence_select.show();
             if (user_is_logged_in()) {
                 absence_length.show();
-                absence_comment.show();
+                // absence_comment.show();
                 absence_other_fields.show();
                 plan_absence_button.show();
             } else {
