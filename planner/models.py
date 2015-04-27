@@ -172,7 +172,7 @@ class Absence(models.Model):
     comment = models.TextField(default='')
 
     def __unicode__(self):
-        return "Absence by %s" % self.user
+        return "Absence by %s %s, Kind: %s, Total workdays: %s" % (self.user.first_name, self.user.last_name, self.absence_kind.name, self.total_workdays,)
 
     @classmethod
     @transaction.atomic

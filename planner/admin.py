@@ -76,7 +76,7 @@ class AbsenceRangeAdmin(admin.ModelAdmin):
         ('Day range', {'fields': ('begin', 'end',)}),
     )
     # TODO display how many working days in the absence range
-    list_display = ('begin', 'end', 'absence')
+    list_display = ('absence', 'begin', 'end')
     ordering = ('-begin', '-end')
 
 
