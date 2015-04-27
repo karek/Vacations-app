@@ -30,6 +30,8 @@
                 {% endfor %}
             </form>
 
+        <input id="select-all" type="button" name="select-all" value="Select all"/>
+        <input id="unselect-all" type="button" name="unselect-all" value="Unselect all"/>
         </div>
          <br>
         <input id="toggle-others-absences" type="checkbox" name="toggle-others-absences"/>
@@ -116,10 +118,22 @@
             getUsersFromSelectedTeams(event);
         });
 
+         $('#select-all').on('click', function (event) {
+             {% for t in teams %}
+                changeButtonState({{ t.id }}, true);
+            {% endfor %}
+            selectAllTeams();
+        });
+
+        $('#unselect-all').on('click', function (event) {
+            {% for t in teams %}
+                changeButtonState({{ t.id }}, false);
+            {% endfor %}
+            unselectAllTeams();
+        });
+
         {% for t in teams %}
-            var curTeam = "#id_teams_" + ({{ t.id  }} -1);
-            var a = $(curTeam);
-            a.prop('checked', false);
+            changeButtonState({{ t.id }}, false);
             global_teams_selected[{{ t.id }}] = 0;
         {% endfor %}
 

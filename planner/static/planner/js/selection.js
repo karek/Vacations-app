@@ -417,11 +417,32 @@ function toggle_others_absences(jsevent, state) {
 function getUsersFromSelectedTeams(jsevent) {
 
     var curTeam = jsevent.target.value;
-    
+
     if (global_teams_selected[curTeam] != curTeam)
         global_teams_selected[curTeam] = curTeam;
     else
         global_teams_selected[curTeam] = 0;
 
 	$('#calendar').fullCalendar('refetchEvents');
+}
+
+
+function selectAllTeams() {
+    for (var i = 0; i < global_teams_selected.length; i++)
+        global_teams_selected[i] = i;
+
+	$('#calendar').fullCalendar('refetchEvents');
+}
+
+function unselectAllTeams() {
+    for (var i = 0; i < global_teams_selected.length; i++)
+        global_teams_selected[i] = 0;
+
+	$('#calendar').fullCalendar('refetchEvents');
+}
+
+function changeButtonState(id, state) {
+    var curTeam = "#id_teams_" + (id - 1);
+    var a = $(curTeam);
+    a.prop('checked', state);
 }
