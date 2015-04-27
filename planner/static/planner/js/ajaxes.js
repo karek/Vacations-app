@@ -289,7 +289,10 @@ function show_management_absences() {
     manage_hdr.hide();
     if (global_mng_absences.length == 0) {
         manage_hdr.show();
-        manage_hdr.html('No pending absence requests.');
+        var text = (global_manage_mode == 'selfcare'
+                ? 'No upcoming absences.'
+                : 'No pending absence requests.')
+        manage_hdr.html(text);
         manage_list.hide();
         return;
     }

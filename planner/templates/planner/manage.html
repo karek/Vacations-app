@@ -3,7 +3,9 @@
 {# we assume this template is run from the correct manage url (/manage-absences or /my-absences) #}
 
 {% block selected_absence_panel %}
-        <h2 id="right-panel-header">Absence Manager</h2>
+        <h2 id="right-panel-header">
+            {% if manage_mode == "selfcare" %}Planned absences{% else %}Absence Manager{% endif %}
+        </h2>
         <form id='plan-absence' method='GET' action="{{ request.path }}">
             {% if accept_absence %}
             <input type="hidden" name="absence-id" value="{{ accept_absence.id }}"/>
