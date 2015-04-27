@@ -155,11 +155,13 @@ class Absence(models.Model):
     PENDING = 0
     ACCEPTED = 1
     REJECTED = 2
+    CANCELLED = 3
 
     STATUS_CHOICES = (
         (PENDING, 'Pending'),
         (ACCEPTED, 'Accepted'),
         (REJECTED, 'Rejected'),
+        (CANCELLED, 'Cancelled'),
     )
 
     user = models.ForeignKey(EmailUser)
@@ -208,7 +210,8 @@ class Absence(models.Model):
             'kind': self.absence_kind.id if self.absence_kind else -1,
             'kind_name': self.absence_kind.name if self.absence_kind else 'none',
             'total_workdays': self.total_workdays,
-            'kind_icon': self.absence_kind.icon_name if self.absence_kind else None
+            'kind_icon': self.absence_kind.icon_name if self.absence_kind else None,
+            'status': self.status,
         }
 
     def accept(self):
@@ -220,11 +223,23 @@ class Absence(models.Model):
         self.save()
 
     def reject(self):
-        # TODO co dalej sie dzieje z takim urlopem? przeciez nie ma po co wisiec w bazie na zawsze
         self.status = self.REJECTED
         # TODO send a proper mail to the right address
         send_mail(self.mail_rejected_title(), self.mail_rejected_body(),
                   'tytusdjango@gmail.com', ['tytusdjango@gmail.com'])
+        self.save()
+
+    def cancel(self):
+        old_status = self.status
+        self.status = self.CANCELLED
+        # TODO send a proper mail to the right addresses
+        # always notify the user and the manager
+        recipients = ['tytusdjango@gmail.com']
+        # if the absence was already accepted, we must also inform HR
+        if self.status == self.ACCEPTED:
+            pass #TODO recipients += [mail-to-hr]
+        send_mail(self.mail_cancel_title(old_status), self.mail_cancel_body(old_status),
+                  'tytusdjango@gmail.com', recipients)
         self.save()
 
     def description(self):
@@ -244,7 +259,7 @@ class Absence(models.Model):
 
     def mail_request_body(self):
         desc = self.description()
-        mng_url = settings.BASE_URL + '/manage-absence?absence-id=' + str(self.id)
+        mng_url = settings.BASE_URL + '/manage-absences?absence-id=' + str(self.id)
         return desc + (
                 '\n'
                 'to accept: %(mng_url)s&accept-submit\n'
@@ -268,6 +283,16 @@ class Absence(models.Model):
         return ('Absence request (listed below) was REJECTED. Try harder next time!\n\n' +
                 self.description())
 
+    def mail_cancel_title(self, old_status):
+        return 'Absence was CANCELLED'
+
+    def mail_cancel_body(self, old_status):
+        if old_status == self.PENDING:
+            text = 'Absence request (listed below) was CANCELLED.'
+        else:
+            text = 'Am accepted abence (listed below) was CANCELLED.'
+        return text + '\n\n' + self.description()
+
 
 class AbsenceRange(models.Model):
     """ A single, continous period of absence as part of an Absence. """
@@ -283,8 +308,8 @@ class AbsenceRange(models.Model):
         """ Returns all users' vacations intersecting with given period.
         
         users should be a list of users or '*' for everyone. """
-        # first of all: don't show rejected absences
-        user_ranges = cls.objects.exclude(absence__status=Absence.REJECTED)
+        # first of all: don't show rejected or cancelled absences
+        user_ranges = cls.objects.exclude(absence__status__in=[Absence.REJECTED, Absence.CANCELLED])
         # second, filter needed users
         if users != '*':
             user_ranges = user_ranges.filter(absence__user__in=users)

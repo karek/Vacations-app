@@ -1,8 +1,10 @@
 {% extends "planner/index.html" %}
 
+{# we assume this template is run from the correct manage url (/manage-absences or /my-absences) #}
+
 {% block selected_absence_panel %}
         <h2 id="right-panel-header">Absence Manager</h2>
-        <form id='plan-absence' method='GET' action="{% url 'planner:manage-absence' %}">
+        <form id='plan-absence' method='GET' action="{{ request.path }}">
             {% if accept_absence %}
             <input type="hidden" name="absence-id" value="{{ accept_absence.id }}"/>
             {% endif %}
@@ -13,7 +15,8 @@
 {% block scripts %}
 {{ block.super }}
 <script type="text/javascript">
-    global_manage_mode = true;
+    global_manage_mode = "{{ manage_mode }}";
+    global_manage_url = "{{ request.path }}";
     {% if accept_absence %}
         {% autoescape off %}
         global_accept_absence_id = {{ accept_absence.id }};
@@ -24,11 +27,13 @@
 
 {% block calendarDeclaration %}
 {{ block.super }}
+{% if accept_absence %}
 <script type="text/javascript">
-    {% if accept_absence %}
+    global_after_load_callbacks.add(function() {
         {% autoescape off %}
         select_ranges_from_json({{ accept_ranges }});
         {% endautoescape %}
-    {% endif %}
+    });
 </script>
+{% endif %}
 {% endblock %}
