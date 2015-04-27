@@ -9,6 +9,7 @@ from django.db import transaction
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
+from django.template.loader import render_to_string
 from planner.utils import dateToString
 from django.core.mail import send_mail
 from colorful.fields import RGBColorField
@@ -243,16 +244,23 @@ class Absence(models.Model):
         return 'Absence request from ' + self.user.get_full_name()
 
     def mail_request_body(self):
-        desc = self.description()
-        mng_url = settings.BASE_URL + '/manage-absence?absence-id=' + str(self.id)
-        return desc + (
-                '\n'
-                'to accept: %(mng_url)s&accept-submit\n'
-                'to reject: %(mng_url)s&reject-submit\n'
-                'to view details: %(mng_url)s\n'
-            ) % {
-                'mng_url': mng_url
-            }
+        context = {
+            'desc': self.description(),
+            'mng_url': settings.BASE_URL + '/manage-absence?absence-id=' + str(self.id),
+        }
+        return render_to_string('planner/email_absence_request.html', context)
+
+
+        # desc = self.description()
+        # mng_url = settings.BASE_URL + '/manage-absence?absence-id=' + str(self.id)
+        # return desc + (
+        #         '\n'
+        #         'to accept: %(mng_url)s&accept-submit\n'
+        #         'to reject: %(mng_url)s&reject-submit\n'
+        #         'to view details: %(mng_url)s\n'
+        #     ) % {
+        #         'mng_url': mng_url
+        #     }
 
     def mail_accepted_title(self):
         return 'Absence was accepted'
