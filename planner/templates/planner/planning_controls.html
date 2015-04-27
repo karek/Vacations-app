@@ -46,16 +46,17 @@
     <ul id='absence_select' class="list-group" style="text-align: left;"></ul>
 
     <div id="absence_other_fields" hidden="hidden">
-        <select name='absence_kind' class="form-control selectpicker">
-            {% for kind in absence_kinds %}
-            <option value="{{ kind.id }}" data-icon="glyphicon-{{ kind.icon_name }}"> <span style="background-color: #003366">{{ kind.name }}</span></option>
-            {% endfor %}
-        </select>
+        <div>
+            <select name='absence_kind' class="form-control selectpicker">
+                {% for kind in absence_kinds %}
+                <option value="{{ kind.id }}" data-icon="glyphicon-{{ kind.icon_name }}"> <span style="background-color: #003366">{{ kind.name }}</span></option>
+                {% endfor %}
+            </select>
+        </div>
+        <div style = "padding: 20px 0px 10px 0px;">
+            <input type="text" class="form-control" name="comment" style="width: 100%" placeholder="Leave comment..." maxlength="80"></input>
+        </div>
     </div>
-
-    <!-- <div id="absence_comment" hidden="hidden" style="text-align: left;  "> -->
-       
-    <!-- </div> -->
 
     <div id="manage_buttons" class='btn-group btn-group-justified' role='group' style="display: none;">
         {% if manage_mode == "selfcare" %}
