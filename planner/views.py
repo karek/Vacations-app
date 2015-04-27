@@ -115,14 +115,19 @@ class ManageAbsenceView(View):
     
     template = 'planner/manage.html'
 
-    def get(self, request, *args, **kwargs):
-        # unless management succeeds, we go to the same page
-        self.destination = request.path
+    def get(self, request, mode='manager', *args, **kwargs):
+        self.mode = mode
         # prepare data for management panel
         self.context = generate_main_context()
         if 'absence-id' in request.GET:
             try:
-                absence = Absence.objects.get(id=request.GET['absence-id'], status=Absence.PENDING)
+                # user can review his pending and accepted absences,
+                # manager only his team's pending ones
+                if self.mode == 'selfcare':
+                    statuses = [Absence.PENDING, Absence.ACCEPTED, ]
+                else:
+                    statuses = [Absence.PENDING, ]
+                absence = Absence.objects.get(id=request.GET['absence-id'], status__in=statuses)
                 self.handle_absence_management(request, absence)
             except ObjectDoesNotExist:
                 messages.error(request, 'Invalid or already processed absence selected.')
@@ -130,14 +135,17 @@ class ManageAbsenceView(View):
 
     def handle_absence_management(self, request, absence):
         # process Accept/Reject request if any
-        if 'accept-submit' in request.GET or 'reject-submit' in request.GET:
-            try:
+        try:
+            if 'accept-submit' in request.GET or 'reject-submit' in request.GET:
                 self.accept_reject_absence(request, absence) # throws on error
                 return
-            except InternalError as e:
-                messages.error(request, e.message)
-        elif not request.user.is_authenticated():
-            messages.warning(request, 'View-only mode, log in to make any changes.')
+            elif 'cancel-submit' in request.GET:
+                self.cancel_absence(request, absence) # throws on error
+                return
+            elif not request.user.is_authenticated():
+                messages.warning(request, 'View-only mode, log in to make any changes.')
+        except InternalError as e:
+            messages.error(request, e.message)
         # otherwise, or on processing error, prepare the management panel
         self.context['accept_absence'] = absence.toDict()
         self.context['accept_ranges'] = objListToJson(
@@ -170,6 +178,15 @@ class ManageAbsenceView(View):
             return
         else:
             messages.error(request, 'Invalid request: no decision made.')
+
+    def cancel_absence(self, request, absence):
+        """ Method for handling Cancel/Delete requests. """
+        if not request.user.is_authenticated():
+            raise InternalError('Log in now to confirm absence cancellation.')
+        if request.user != absence.user:
+            raise InternalError('Only absence\'s owner can cancel it.')
+        absence.cancel()
+        messages.success('Absence cancelled.')
 
 
 def _make_json_response(data):
@@ -208,18 +225,29 @@ class RangeRestView(View):
 class AbsenceRestView(View):
     def get(self, request):
         """ Returns all absences (without ranges) matching requested parameters:
-         * user id
-         * team id
-         * status
-        Filter by dates is not yet needed.
+         * id
+         * user-id
+         * team-id
+         * status (can be a comma-separated list)
+         * date-from
+         * date-to
+        Dates should be 'YYYY-MM-DD' and are filtered as 'any absence having ranges intersecting
+         with given dates'.
         """
         absences = Absence.objects.filter()
+        if 'id' in request.GET:
+            absences = absences.filter(id=request.GET['id'])
         if 'user-id' in request.GET:
             absences = absences.filter(user__id=request.GET['user-id'])
         if 'team-id' in request.GET:
             absences = absences.filter(user__team__id=request.GET['team-id'])
         if 'status' in request.GET:
-            absences = absences.filter(status=request.GET['status'])
+            statuses = map(int, request.GET['status'].split(','))
+            absences = absences.filter(status__in=statuses)
+        if 'date-from' in request.GET:
+            absences = absence.filter(absencerange__end__gt=stringToDate(GET['date-from']))
+        if 'date-to' in request.GET:
+            absences = absence.filter(absencerange__begin__lte=stringToDate(GET['date-to']))
         return _make_json_response(objListToJson(absences.order_by('dateCreated', 'user')))
 
 

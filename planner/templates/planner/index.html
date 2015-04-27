@@ -33,7 +33,7 @@
     global_range_url = new String({% url 'planner:range' %});
     global_holiday_url = new String({% url 'planner:holiday' %});
     global_absence_url = new String({% url 'planner:absence' %});
-    global_manage_url = new String({% url 'planner:manage-absence' %});
+    global_manage_url = new String({% url 'planner:manage-absences' %});
     {% if request.user.is_authenticated %}
         global_logged_user_id = {{ request.user.id }};
         global_logged_user_name = "{{ request.user.first_name }}" + " " + "{{ request.user.last_name }}";
