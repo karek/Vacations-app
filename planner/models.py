@@ -207,6 +207,7 @@ class Absence(models.Model):
             'kind': self.absence_kind.id,
             'kind_name': self.absence_kind.name,
             'total_workdays': self.total_workdays,
+            'comment' : self.comment,
             'kind_icon': self.absence_kind.icon_name,
             'status': self.status,
         }

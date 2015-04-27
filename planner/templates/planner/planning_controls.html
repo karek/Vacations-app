@@ -38,6 +38,8 @@
                 </tr>
                 </tbody>
             </table>
+            <textarea style="width: 100%">{{ accept_absence.comment }}</textarea>
+    </div>
         </div>
         {% endif %}
     </div>
@@ -57,7 +59,7 @@
     </div>
 
     <div id="absence_comment" hidden="hidden" style="text-align: left; padding: 10px 0px 10px 0px; ">
-        <textarea class="form-control" name="comment" rows="3" placeholder="Leave comment..."></textarea>
+        <textarea class="form-control" name="comment" style="width: 100%" rows="3" placeholder="Leave comment..."></textarea>
     </div>
 
     <div id="manage_buttons" class='btn-group btn-group-justified' role='group' style="display: none;">
