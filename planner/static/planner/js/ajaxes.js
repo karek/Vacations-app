@@ -9,6 +9,7 @@ global_mng_absences = new Array()
 // number to put in user_id field for holiday events
 global_event_is_holiday = -1;
 
+global_teams_selected = new Array();
 global_users_loaded = false;
 global_users_sorted = new Array();
 global_users_order = new Array();
@@ -144,6 +145,13 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
                 if (accept_mode_enabled() && ranges[i].absence_id == global_accept_absence_id) {
                     continue;
                 }
+
+                //not in currently selected teams
+                if (global_teams_selected.indexOf(
+                    global_users_by_id[ranges[i].user_id].team.id) == -1) {
+                    continue;
+                }
+
                 if (!global_show_others_absences && ranges[i].user_id != global_logged_user_id) {
                     continue;
                 }

@@ -113,17 +113,19 @@
         });
 
         $('#teams-form').on('click', function (event) {
-            console.log("form submitted!")  // sanity check
             alert(event.target.id)
-            console.log(event.target)
+            console.log(event)
 {#            create_post();#}
+            getUsersFromSelectedTeams();
 
         });
+
 
         var curTeam = "#id_teams_" + global_logged_user_team_id;
         console.log(curTeam)
         var a = $(curTeam);
-        a.prop('checked', true);
+        a.prop('checked', false);
+        a.click();
     });
 </script>
 {% endblock %}

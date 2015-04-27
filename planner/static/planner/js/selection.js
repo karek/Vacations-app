@@ -413,3 +413,7 @@ function toggle_others_absences(jsevent, state) {
     global_show_others_absences = state;
 	$('#calendar').fullCalendar('refetchEvents');
 }
+
+function getUsersFromSelectedTeams(jsevent) {
+	$('#calendar').fullCalendar('refetchEvents');
+}
