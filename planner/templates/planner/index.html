@@ -45,6 +45,7 @@
     {% autoescape off %}
     saveUserData({{ users }});
     {% endautoescape %}
+    global_after_load_callbacks = $.Callbacks();
 </script>
 {% endblock %}
 

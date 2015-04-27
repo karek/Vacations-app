@@ -200,6 +200,10 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
                     }
                     saveHolidays(holidays);
                     callback(event_objects);
+                    if (global_after_load_callbacks.has()) {
+                        global_after_load_callbacks.fire();
+                        global_after_load_callbacks.empty();
+                    }
                 }
             );
         }

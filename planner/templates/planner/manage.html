@@ -29,7 +29,7 @@
 {{ block.super }}
 {% if accept_absence %}
 <script type="text/javascript">
-    $(document).ready(function() {
+    global_after_load_callbacks.add(function() {
         {% autoescape off %}
         select_ranges_from_json({{ accept_ranges }});
         {% endautoescape %}
