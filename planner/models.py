@@ -242,7 +242,7 @@ class Absence(models.Model):
         # always notify the user and the manager
         recipients = [EMAIL_HOST_USER]
         # if the absence was already accepted, we must also inform HR
-        if self.status == self.ACCEPTED:
+        if old_status == self.ACCEPTED:
             pass #TODO recipients += [mail-to-hr]
         send_mail(self.mail_cancel_title(old_status), self.mail_cancel_body(old_status),
                   EMAIL_NOREPLY_ADDRESS, recipients)
