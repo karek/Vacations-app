@@ -82,7 +82,7 @@
                 center: 'title',
                 right: 'month,weekWorkers'
             },
-            eventLimit: true,    
+            eventLimit: true,
             views: {
                 month: {
                     eventLimit: 2,
@@ -113,18 +113,17 @@
         });
 
         $('#teams-form').on('click', function (event) {
-            alert(event.target.id)
-            console.log(event)
-{#            create_post();#}
-            getUsersFromSelectedTeams();
-
+            getUsersFromSelectedTeams(event);
         });
 
+        {% for t in teams %}
+            var curTeam = "#id_teams_" + ({{ t.id  }} -1);
+            var a = $(curTeam);
+            a.prop('checked', false);
+        {% endfor %}
 
         var curTeam = "#id_teams_" + global_logged_user_team_id;
-        console.log(curTeam)
         var a = $(curTeam);
-        a.prop('checked', false);
         a.click();
     });
 </script>
