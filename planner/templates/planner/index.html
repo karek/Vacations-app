@@ -7,6 +7,7 @@
     <div class="col-lg-9">
         <div id='calendar' style="padding-bottom: 20px"></div>
         <input id="toggle-others-absences" type="checkbox" name="toggle-others-absences"/>
+
     </div>
     <div class="col-lg-3">
         {% block selected_absence_panel %}
@@ -16,6 +17,16 @@
             {% include 'planner/planning_controls.html' %}
         </form>
         {% endblock %}
+    <br>
+        <div id='team-select'>
+            <h4> Select teams you want to see on calendar: </h4>
+            {{teamsForm.as_p}}
+{#           {{ teamsForm.as_table }}#}
+{#            <form action="." method="POST">#}
+{#        {{teamsForm.as_table }}#}
+{#        <button type="SUBMIT">Submit</button>#}
+{#    </form>#}
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -28,8 +39,10 @@
 <script src="{% static 'planner/js/selection.js' %}"></script>
 <script src="{% static 'planner/js/ajaxes.js' %}"></script>
 <script type="text/javascript">
+
     {# construct strings explicitly, because '/users/' becomes a RegExp in js....... #}
     global_user_url = new String({% url 'planner:user' %});
+    global_teams_url = new String({% url 'planner:teams' %});
     global_range_url = new String({% url 'planner:range' %});
     global_holiday_url = new String({% url 'planner:holiday' %});
     global_absence_url = new String({% url 'planner:absence' %});

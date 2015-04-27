@@ -9,7 +9,7 @@ from django.http.response import HttpResponse, HttpResponseBadRequest, HttpRespo
 from django.shortcuts import render, redirect
 from django.views.generic.base import View
 from django.views.generic.edit import FormView
-from planner.forms import RegisterForm, YearForm
+from planner.forms import RegisterForm, YearForm, TeamsForm
 from planner.models import Absence, AbsenceRange, Holiday, AbsenceKind, Team
 from planner.utils import InternalError, stringToDate, dateToString, objToJson, objListToJson
 from datetime import datetime
@@ -19,11 +19,15 @@ def generate_main_context():
     d = date.today()
     month_begin = date(d.year, d.month, 1)
     month_end = date(d.year, d.month, monthrange(d.year, d.month)[1])
+    teamsForm = TeamsForm()
+    teamsForm.fields['teams'].choices = [(x.id, x) for x in Team.objects.all()]
+
     return {
         'month_begin': dateToString(month_begin),
         'month_end': dateToString(month_end),
         'users': objListToJson(get_user_model().objects.all()),
-        'absence_kinds': AbsenceKind.objects.all()
+        'absence_kinds': AbsenceKind.objects.all(),
+        'teamsForm': teamsForm
     }
 
 
