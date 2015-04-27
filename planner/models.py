@@ -313,6 +313,9 @@ class Absence(models.Model):
             text = 'Am accepted abence (listed below) was CANCELLED.'
         return text + '\n\n' + self.description()
 
+    def manage_url(self):
+        return settings.BASE_URL + '/manage-absences?absence-id=' + str(self.id)
+
 
 class AbsenceRange(models.Model):
     """ A single, continous period of absence as part of an Absence. """
@@ -385,9 +388,6 @@ class AbsenceRange(models.Model):
             'kind_name': self.absence.absence_kind.name if self.absence.absence_kind else 'none',
             'kind_icon': self.absence.absence_kind.icon_name if self.absence.absence_kind else None
         }
-
-    def manage_url(self):
-        return settings.BASE_URL + '/manage-absences?absence-id=' + str(self.id)
 
     @property
     def workday_count(self):
