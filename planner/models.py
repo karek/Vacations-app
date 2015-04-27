@@ -196,7 +196,8 @@ class Absence(models.Model):
             # send mail to our test email to check if its ok
             # TODO send a proper mail to the right address
             send_mail(new_abs.mail_request_title(), new_abs.mail_request_text(),
-                      'tytusdjango@gmail.com', ['tytusdjango@gmail.com'], html_message=new_abs.mail_request_html())
+                      'tytusdjango@gmail.com', ['tytusdjango@gmail.com'],
+                      html_message=new_abs.mail_request_html('New absence request!'))
         return new_abs
 
     def toDict(self):
@@ -218,7 +219,8 @@ class Absence(models.Model):
         # TODO send a proper mail to the right address
         # TODO in the current form the email could be send BOTH to user and HR
         send_mail(self.mail_accepted_title(), self.mail_accepted_body(),
-                  'tytusdjango@gmail.com', ['tytusdjango@gmail.com'])
+                  'tytusdjango@gmail.com', ['tytusdjango@gmail.com'],
+                  html_message=self.mail_request_html('Your request was accepted!'))
         self.save()
 
     def reject(self):
@@ -226,7 +228,8 @@ class Absence(models.Model):
         self.status = self.REJECTED
         # TODO send a proper mail to the right address
         send_mail(self.mail_rejected_title(), self.mail_rejected_body(),
-                  'tytusdjango@gmail.com', ['tytusdjango@gmail.com'])
+                  'tytusdjango@gmail.com', ['tytusdjango@gmail.com'],
+                  html_message=self.mail_request_html('Your request was REJECTED!'))
         self.save()
 
     def description(self):
@@ -251,11 +254,12 @@ class Absence(models.Model):
             ranges.append(r_tuple)
         return ranges
 
-    def mail_request_html(self):
+    def mail_request_html(self, header):
         context = self.toDict()
         context['base_url'] = settings.BASE_URL
         context['mng_url'] = settings.BASE_URL + '/manage-absence?absence-id=' + str(self.id)
         context['ranges'] = self.mail_prepare_ranges()
+        context['header'] = header
         return render_to_string('email/absence_request.html', context)
 
     def mail_request_text(self):
