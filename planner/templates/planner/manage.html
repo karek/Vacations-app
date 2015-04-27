@@ -29,13 +29,14 @@
 
 {% block calendarDeclaration %}
 {{ block.super }}
-{% if accept_absence %}
 <script type="text/javascript">
-    global_after_load_callbacks.add(function() {
-        {% autoescape off %}
-        select_ranges_from_json({{ accept_ranges }});
-        {% endautoescape %}
-    });
-</script>
+{% if accept_absence %}
+    {% autoescape off %}
+    global_accept_ranges = {{ accept_ranges }};
+    {% endautoescape %}
+    global_after_load_callbacks.add(select_managed_absence);
+{% else %}
+    global_disable_selecting = true;
 {% endif %}
+</script>
 {% endblock %}

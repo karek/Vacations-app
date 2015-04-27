@@ -322,3 +322,8 @@ function show_mng_absence_as_li(absence) {
         + '</tbody></table>'
         + '</a>';
 }
+
+function select_managed_absence() {
+    select_ranges_from_json(global_accept_ranges);
+    global_disable_selecting = true;
+}
