@@ -43,6 +43,16 @@
                                     {{ kind_name }}
                                 </td>
                             </tr>
+                            {% if not comment == '' %}
+                            <tr>
+                                <td style="padding: 10px 15px 10px 15px; border: 0">
+                                    <strong>Comment</strong>
+                                </td>
+                                <td style="padding: 10px 15px 10px 15px; border: 0">
+                                    {{ comment }}
+                                </td>
+                            </tr>
+                            {% endif %}
                             <tr>
                                 <td style="padding: 10px 15px 10px 15px; border: 0">
                                     <strong>Created</strong>
