@@ -30,7 +30,22 @@ def generate_main_context():
 class IndexView(View):
     def get(self, request, *args, **kwargs):
         context = generate_main_context()
+        if 'edit-absence-id' in request.GET:
+            try:
+                absence = Absence.objects.get(id=request.GET['absence-id'], status=Absence.PENDING)
+                context['edit_absence'] = absence
+                handle_absence_edit(request, absence) # throws on error
+            except ObjectDoesNotExist:
+                messages.error(request, 'Invalid or already accepted absence selected.')
+            except InternalError as e:
+                messages.error(request, e.message)
         return render(request, 'planner/index.html', context)
+
+    def handle_absence_edit(self, request, absence):
+        if not request.user.is_authenticated():
+            raise InternalError('Log in now to edit your absence.')
+        if request.user.id != absence.user_id:
+            raise InternalError('Only absence\'s owner can edit it.')
 
 
 class RegisterView(SuccessMessageMixin, FormView):

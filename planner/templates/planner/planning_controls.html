@@ -53,8 +53,13 @@
     <div id="manage_buttons" class='btn-group btn-group-justified' role='group' style="display: none;">
         {% if manage_mode == "selfcare" %}
         <div class="btn-group">
-            <button type='submit' name='cancel-submit' class='btn btn-danger'><span class="glyphicon glyphicon-remove"></span> Cancel absence</button>
+            <button type='submit' name='cancel-submit' class='btn btn-danger'><span class="glyphicon glyphicon-remove"></span> Cancel</button>
         </div>
+        {% if accept_absence and accept_absence.status == 0 %}
+        <div class="btn-group" id="manage_buttons_edit">
+            <a href="{% url 'planner:index' %}?edit-absence-id={{ accept_absence.id }}" name='edit-submit' class='btn btn-info'><span class="glyphicon glyphicon-pencil"></span> Edit</a>
+        </div>
+        {% endif %}
         {% else %}
         <div class="btn-group">
             <button type='submit' name='reject-submit' class='btn btn-danger'><span class="glyphicon glyphicon-ban-circle"></span> Reject</button>
