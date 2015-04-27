@@ -84,7 +84,7 @@ function count_absence_length() {
 
     
 
-    $('#absence_length ').html("<h4>Absence length: " +  days +  "</h4>")
+    $('#absence_length ').html('Total: <span class="badge">'+  days + '</span>')
 }
 
 // Check the range selected by the user for intersections with [1] already selected ranges,
@@ -280,6 +280,7 @@ function display_or_hide_planning_controls() {
 
     var invitation_select_days = $('#invitation_select_days');
     var absence_length = $('#absence_length');
+    var absence_comment = $('#absence_comment');
     var absence_other_fields = $('#absence_other_fields');
     var plan_absence_button = $('#plan_absence_button');
     var invitation_log_in = $('#invitation_log_in');
@@ -295,6 +296,7 @@ function display_or_hide_planning_controls() {
 
     invitation_select_days.hide();
     absence_length.hide();
+    // absence_comment.hide();
     absence_other_fields.hide();
     plan_absence_button.hide();
     invitation_log_in.hide();
@@ -335,6 +337,7 @@ function display_or_hide_planning_controls() {
             absence_select.show();
             if (user_is_logged_in()) {
                 absence_length.show();
+                // absence_comment.show();
                 absence_other_fields.show();
                 plan_absence_button.show();
             } else {

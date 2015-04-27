@@ -76,7 +76,7 @@ class AbsenceRangeAdmin(admin.ModelAdmin):
         ('Day range', {'fields': ('begin', 'end',)}),
     )
     # TODO display how many working days in the absence range
-    list_display = ('begin', 'end', 'absence')
+    list_display = ('absence', 'begin', 'end')
     ordering = ('-begin', '-end')
 
 
@@ -89,10 +89,10 @@ class AbsenceRangeInline(admin.TabularInline):
 
 class AbsenceAdmin(admin.ModelAdmin):
     # TODO display how many working days in the absence
-    list_display = ('user', 'first_day', 'last_day', 'ranges', 'absence_kind', 'status')
+    list_display = ('user', 'first_day', 'last_day', 'ranges', 'absence_kind', 'status', 'comment')
     fieldsets = (
-        ('Basic information', {'fields': ('user', 'absence_kind')}),
-        ('Status', {'fields': ('status',)})
+        ('Basic information', {'fields': ('user', 'absence_kind', 'comment')}),
+        ('Status',  {'fields': ('status',)}),
     )
     inlines = [AbsenceRangeInline]
 
@@ -103,7 +103,6 @@ class AbsenceAdmin(admin.ModelAdmin):
     def last_day(self, obj):
         last_range = obj.absencerange_set.latest('end')
         return last_range.end
-
 
     def ranges(self, obj):
         return obj.absencerange_set.count()
