@@ -210,7 +210,8 @@ class Absence(models.Model):
             'kind': self.absence_kind.id if self.absence_kind else -1,
             'kind_name': self.absence_kind.name if self.absence_kind else 'none',
             'total_workdays': self.total_workdays,
-            'kind_icon': self.absence_kind.icon_name if self.absence_kind else None
+            'kind_icon': self.absence_kind.icon_name if self.absence_kind else None,
+            'status': self.status,
         }
 
     def accept(self):
@@ -239,6 +240,7 @@ class Absence(models.Model):
             pass #TODO recipients += [mail-to-hr]
         send_mail(self.mail_cancel_title(old_status), self.mail_cancel_body(old_status),
                   'tytusdjango@gmail.com', recipients)
+        self.save()
 
     def description(self):
         body = (
@@ -306,8 +308,8 @@ class AbsenceRange(models.Model):
         """ Returns all users' vacations intersecting with given period.
         
         users should be a list of users or '*' for everyone. """
-        # first of all: don't show rejected absences
-        user_ranges = cls.objects.exclude(absence__status=Absence.REJECTED)
+        # first of all: don't show rejected or cancelled absences
+        user_ranges = cls.objects.exclude(absence__status__in=[Absence.REJECTED, Absence.CANCELLED])
         # second, filter needed users
         if users != '*':
             user_ranges = user_ranges.filter(absence__user__in=users)

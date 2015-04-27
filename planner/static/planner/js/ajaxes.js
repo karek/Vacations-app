@@ -20,6 +20,7 @@ absence_text_rejected = "Rejected";
 status_PENDING = 0;
 status_ACCEPTED = 1;
 status_REJECTED = 2;
+status_PENDING_OR_ACCEPTED = '0,1';
 
 // Get and save absence ranges, and execute the function on them.
 // Pass empty users array to get everyone's absences.
@@ -231,11 +232,12 @@ function make_get_param(url, param, value) {
 }
 
 // Get absences (without AbsenceRanges), e.g. for management panel
-function getMatchingAbsences(user_id, team_id, status, on_success) {
+// params should be a dict of filtering parameters accepted by backend
+function getMatchingAbsences(params, on_success) {
     var req_url = global_absence_url;
-    if (user_id != null) req_url += make_get_param(req_url, 'user-id', user_id);
-    if (team_id != null) req_url += make_get_param(req_url, 'team-id', team_id);
-    if (status != null) req_url += make_get_param(req_url, 'status', status);
+    for (var param in params) {
+        req_url += make_get_param(req_url, param, params[param]);
+    }
     console.debug('ajax url: ' + req_url);
     $.ajax({
         type: "GET",
@@ -251,12 +253,25 @@ function getMatchingAbsences(user_id, team_id, status, on_success) {
     });
 }
 
-// Get absences for management panel ( = PENDING absences of manager's team)
+// Get absences for management panel according to mode:
+// 'selfcare' => PENDING or ACCEPTED absences of logged user
+// 'manager' => PENDING absences of manager's team
 function get_management_absences() {
+    var params = {};
+    if (global_manage_mode == 'selfcare') {
+        params = {
+            'user-id': global_logged_user_id,
+            'date-from': moment().format('YYYY-MM-DD'),
+            'status': status_PENDING_OR_ACCEPTED
+        };
+    } else {
+        params = {
+            'team-id': global_logged_user_team_id,
+            'status': status_PENDING,
+        }
+    }
     getMatchingAbsences(
-        null, // filter by team, not by user
-        global_logged_user_team_id,
-        status_PENDING,
+        params,
         function(absences) {
             global_mng_absences = absences;
             show_management_absences();
@@ -283,9 +298,15 @@ function show_management_absences() {
 // Show absence (as returned from DB) as list element, with link to its management
 function show_mng_absence_as_li(absence) {
     var link = global_manage_url + '?absence-id=' + absence.id;
+    var label_text = absence.total_workdays;
+    var label_class = 'badge';
+    if (global_manage_mode = 'selfcare' && absence.status == status_ACCEPTED) {
+        label_class += ' progress-bar-success';
+        label_text += '&nbsp;<span class="glyphicon glyphicon-ok"></span>';
+    }
     return ''
         + '<a class="list-group-item" href="' + link + '">'
-        + '<span class="badge" style="margin-top: 10px;">' + absence.total_workdays + '</span>'
+        + '<span class="'+ label_class + '" style="margin-top: 10px;">' + label_text + '</span>'
         + '<h4>' + absence.user_name + '</h4>'
         + '<table class="table pending-details-table" style="margin-bottom: 0px;">'
         + '<tbody><tr>'

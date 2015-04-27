@@ -14,9 +14,14 @@
         </div>
         <div class="collapse navbar-collapse" id="collapse">
             <ul class="nav navbar-nav">
-                <li><a href="{% url 'admin:index' %}">Admin</a></li>
-                {% if request.user.is_authenticated and request.user.is_teamleader %}
-                <li><a href="{% url 'planner:manage-absences' %}">Manage</a></li>
+                {% if request.user.is_authenticated %}
+                    <li><a href="{% url 'planner:my-absences' %}"><span class="glyphicon glyphicon-tag"></span>&nbsp;My absences</a></li>
+                    {% if request.user.is_teamleader %}
+                    <li><a href="{% url 'planner:manage-absences' %}"><span class="glyphicon glyphicon-tags"></span>&nbsp;Team requests</a></li>
+                    {% endif %}
+                    {% if request.user.is_admin %}
+                    <li><a href="{% url 'admin:index' %}"><span class="glyphicon glyphicon-cog"></span>&nbsp;Admin</a></li>
+                    {% endif %}
                 {% endif %}
             </ul>
             {% include 'planner/login_panel.html' %}

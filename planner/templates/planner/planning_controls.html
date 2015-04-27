@@ -18,7 +18,13 @@
     <div id="manage_absence_list" hidden="hidden" class="list-group" style="text-align: left;">
         {% if accept_absence %}
         <div class="list-group-item">
+            {% if manage_mode == "selfcare" and accept_absence.status == 1 %}
+            <span class="badge progress-bar-success" style="margin-top: 10px;">
+                {{ accept_absence.total_workdays }}&nbsp;<span class="glyphicon glyphicon-ok"></span>
+            </span>
+            {% else %}
             <span class="badge" style="margin-top: 10px;">{{ accept_absence.total_workdays }}</span>
+            {% endif %}
             <h4>{{ accept_absence.user_name }}</h4>
             <table class="table pending-details-table" style="margin-bottom: 0px;">
                 <tbody>
@@ -45,12 +51,18 @@
     </div>
 
     <div id="manage_buttons" class='btn-group btn-group-justified' role='group' style="display: none;">
+        {% if manage_mode == "selfcare" %}
+        <div class="btn-group">
+            <button type='submit' name='cancel-submit' class='btn btn-danger'><span class="glyphicon glyphicon-remove"></span> Cancel absence</button>
+        </div>
+        {% else %}
         <div class="btn-group">
             <button type='submit' name='reject-submit' class='btn btn-danger'><span class="glyphicon glyphicon-ban-circle"></span> Reject</button>
         </div>
         <div class="btn-group">
             <button type='submit' name='accept-submit' class='btn btn-success'><span class="glyphicon glyphicon-ok"></span> Accept</button>
         </div>
+        {% endif %}
     </div>
     <div id="plan_absence_button" class='btn-group-justified' hidden="hidden">
         <div class="btn-group">
@@ -62,7 +74,7 @@
     </div>
     <div id="manage_back_button" style="margin-top: 15px" class="btn-group btn-group-justified" hidden="hidden">
         <div class="btn-group">
-            <a href="{% url 'planner:manage-absences' %}" class="btn btn-default"><span class="glyphicon glyphicon-chevron-left"></span> Back</a>
+            <a href="{{ request.path }}" class="btn btn-default"><span class="glyphicon glyphicon-chevron-left"></span> Back</a>
         </div>
         <div class="btn-group">
             <a href="{% url 'planner:index' %}" class="btn btn-default"><span class="glyphicon glyphicon-off"></span> Exit Manager</a>

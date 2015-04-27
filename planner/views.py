@@ -116,14 +116,14 @@ class ManageAbsenceView(View):
     template = 'planner/manage.html'
 
     def get(self, request, mode='manager', *args, **kwargs):
-        self.mode = mode
         # prepare data for management panel
         self.context = generate_main_context()
+        self.context['manage_mode'] = mode
         if 'absence-id' in request.GET:
             try:
                 # user can review his pending and accepted absences,
                 # manager only his team's pending ones
-                if self.mode == 'selfcare':
+                if mode == 'selfcare':
                     statuses = [Absence.PENDING, Absence.ACCEPTED, ]
                 else:
                     statuses = [Absence.PENDING, ]
@@ -186,7 +186,7 @@ class ManageAbsenceView(View):
         if request.user != absence.user:
             raise InternalError('Only absence\'s owner can cancel it.')
         absence.cancel()
-        messages.success('Absence cancelled.')
+        messages.success(request, 'Absence cancelled.')
 
 
 def _make_json_response(data):
@@ -245,9 +245,9 @@ class AbsenceRestView(View):
             statuses = map(int, request.GET['status'].split(','))
             absences = absences.filter(status__in=statuses)
         if 'date-from' in request.GET:
-            absences = absence.filter(absencerange__end__gt=stringToDate(GET['date-from']))
+            absences = absences.filter(absencerange__end__gt=stringToDate(request.GET['date-from']))
         if 'date-to' in request.GET:
-            absences = absence.filter(absencerange__begin__lte=stringToDate(GET['date-to']))
+            absences = absences.filter(absencerange__begin__lte=stringToDate(request.GET['date-to']))
         return _make_json_response(objListToJson(absences.order_by('dateCreated', 'user')))
 
 
