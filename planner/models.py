@@ -13,7 +13,7 @@ from django.template.loader import render_to_string
 from planner.utils import dateToString
 from django.core.mail import send_mail
 from colorful.fields import RGBColorField
-from vacations.settings import EMAIL_HOST_USER, EMAIL_NOREPLY_ADDRESS
+from vacations.settings import EMAIL_HOST_USER, EMAIL_NOREPLY_ADDRESS, EMAIL_HR_ADDRESS
 
 
 class Team(models.Model):
@@ -232,7 +232,7 @@ class Absence(models.Model):
         # TODO send a proper mail to the right address
         # TODO in the current form the email could be send BOTH to user and HR
         send_mail(self.mail_accepted_title(), self.mail_accepted_body(),
-                  EMAIL_NOREPLY_ADDRESS, [self.mail_fake_user_address()],
+                  EMAIL_NOREPLY_ADDRESS, [self.mail_fake_user_address(), EMAIL_HR_ADDRESS],
                   html_message=self.mail_common_html('Your request was accepted!', False))
         self.save()
 
@@ -252,7 +252,7 @@ class Absence(models.Model):
         recipients = [self.mail_fake_user_address()]
         # if the absence was already accepted, we must also inform HR
         if old_status == self.ACCEPTED:
-            pass #TODO recipients += [mail-to-hr]
+            recipients.append(EMAIL_HR_ADDRESS)
         send_mail(self.mail_cancel_title(old_status), self.mail_cancel_body(old_status),
                   EMAIL_NOREPLY_ADDRESS, recipients)
         self.save()
