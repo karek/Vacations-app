@@ -124,6 +124,7 @@ class EmailUser(AbstractBaseUser):
             'last_name': self.last_name,
             'email': self.email,
             'team': team_name,
+            'team_id': self.team.id,
             'is_teamleader': self.is_teamleader,
         }
 

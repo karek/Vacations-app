@@ -148,7 +148,7 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
 
                 //not in currently selected teams
                 if (global_teams_selected.indexOf(
-                    global_users_by_id[ranges[i].user_id].team.id) == -1) {
+                    global_users_by_id[ranges[i].user_id].team_id) == -1) {
                     continue;
                 }
 
