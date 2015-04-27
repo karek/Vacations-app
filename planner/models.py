@@ -190,9 +190,8 @@ class Absence(models.Model):
 
     @classmethod
     @transaction.atomic
-    def createFromRanges(cls, user, ranges, kind):
+    def createFromRanges(cls, user, ranges, absence_kind):
         """ Create an absence together with all its absence ranges (in one atomic transaction)."""
-        absence_kind = AbsenceKind.objects.get(id=kind)
         new_abs = cls(user=user, absence_kind=absence_kind, total_workdays=0)
         new_abs.save()
         for (rbegin, rend) in ranges:
@@ -211,6 +210,23 @@ class Absence(models.Model):
                       EMAIL_NOREPLY_ADDRESS, [new_abs.mail_fake_manager_address()],
                       html_message=new_abs.mail_common_html('New absence request!', True))
         return new_abs
+
+    @transaction.atomic
+    def editFromRanges(self, ranges, absence_kind):
+        """ Edit an absence:
+         * erase the current ranges to avoid intersections;
+         * create a whole new absence using existing methods;
+         * relink the new ranges to current absence;
+         * resend any needed emails.
+        """
+        AbsenceRange.objects.filter(absence=self).delete()
+        tmp_abs = self.__class__.createFromRanges(self.user, ranges, absence_kind)
+        for new_range in AbsenceRange.objects.filter(absence=tmp_abs):
+            new_range.absence = self
+            new_range.save()
+        self.absence_kind = tmp_abs.absence_kind
+        tmp_abs.delete()
+        self.save()
 
     def toDict(self):
         """ Returns needed Absence's attributes as dict, e.g. for converting to json. """
