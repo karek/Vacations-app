@@ -100,7 +100,7 @@ class PlanAbsenceView(View):
                 new_abs = self.handle_edit_absence(request, ranges, kind, comment) # throws on error
                 message = 'Absence edited successfully, '
             else:
-                new_abs = self.handle_add_absence(request, ranges, kind) # throws on error
+                new_abs = self.handle_add_absence(request, ranges, kind, comment) # throws on error
                 message = 'Absence planned successfully, '
             if new_abs.kind.require_acceptance:
                 message += 'acceptance request was send to the team leader.'
@@ -136,13 +136,13 @@ class PlanAbsenceView(View):
         nor with previous user's absences). """
         return Absence.createFromRanges(request.user, ranges, absence_kind, comment)
 
-    def handle_edit_absence(self, request, ranges, absence_kind):
+    def handle_edit_absence(self, request, ranges, absence_kind, comment):
         try:
             old_absence = Absence.objects.get(
                     id=request.POST['edit-absence-id'], status=Absence.PENDING)
             if not request.user.is_authenticated() or request.user.id != absence.user_id:
                 raise InternalError('Only absence\'s owner can edit it.')
-            return old_absence.editFromRanges(ranges, absence_kind)
+            return old_absence.editFromRanges(ranges, absence_kind, comment)
         except ObjectDoesNotExist:
             raise InternalError('Invalid or already accepted absence selected.')
 

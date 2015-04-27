@@ -212,7 +212,7 @@ class Absence(models.Model):
         return new_abs
 
     @transaction.atomic
-    def editFromRanges(self, ranges, absence_kind):
+    def editFromRanges(self, ranges, absence_kind, comment):
         """ Edit an absence:
          * erase the current ranges to avoid intersections;
          * create a whole new absence using existing methods;
@@ -220,11 +220,12 @@ class Absence(models.Model):
          * resend any needed emails.
         """
         AbsenceRange.objects.filter(absence=self).delete()
-        tmp_abs = self.__class__.createFromRanges(self.user, ranges, absence_kind)
+        tmp_abs = self.__class__.createFromRanges(self.user, ranges, absence_kind, comment)
         for new_range in AbsenceRange.objects.filter(absence=tmp_abs):
             new_range.absence = self
             new_range.save()
         self.absence_kind = tmp_abs.absence_kind
+        self.comment = tmp_abs.comment
         tmp_abs.delete()
         self.save()
 
