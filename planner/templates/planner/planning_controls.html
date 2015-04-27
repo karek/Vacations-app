@@ -46,6 +46,8 @@
     <div id="absence_length" hidden="hidden" style="text-align: right; padding: 0px 17px 10px 0px;">
     </div>
 
+    
+
     <div id="absence_other_fields" hidden="hidden">
         <select name='absence_kind' class="form-control selectpicker">
             {% for kind in absence_kinds %}
@@ -54,7 +56,9 @@
         </select>
     </div>
 
-
+    <div id="absence_comment" hidden="hidden" style="text-align: left; padding: 10px 0px 10px 0px; ">
+        <textarea class="form-control" name="comment" rows="3" placeholder="Leave comment..."></textarea>
+    </div>
 
     <div id="manage_buttons" class='btn-group btn-group-justified' role='group' style="display: none;">
         {% if manage_mode == "selfcare" %}

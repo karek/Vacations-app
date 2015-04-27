@@ -176,10 +176,10 @@ class Absence(models.Model):
 
     @classmethod
     @transaction.atomic
-    def createFromRanges(cls, user, ranges, kind):
+    def createFromRanges(cls, user, ranges, kind, comment):
         """ Create an absence together with all its absence ranges (in one atomic transaction)."""
         absence_kind = AbsenceKind.objects.get(id=kind)
-        new_abs = cls(user=user, absence_kind=absence_kind, total_workdays=0)
+        new_abs = cls(user=user, absence_kind=absence_kind, total_workdays=0, comment=comment)
         new_abs.save()
         for (rbegin, rend) in ranges:
             new_range = AbsenceRange(absence=new_abs, begin=rbegin, end=rend)
@@ -204,11 +204,10 @@ class Absence(models.Model):
             'user_id': self.user.id,
             'user_name': self.user.get_full_name(),
             'date_created': dateToString(self.dateCreated),
-            # TODO delete the ifs below when we have obligatory kind selection
-            'kind': self.absence_kind.id if self.absence_kind else -1,
-            'kind_name': self.absence_kind.name if self.absence_kind else 'none',
+            'kind': self.absence_kind.id,
+            'kind_name': self.absence_kind.name,
             'total_workdays': self.total_workdays,
-            'kind_icon': self.absence_kind.icon_name if self.absence_kind else None,
+            'kind_icon': self.absence_kind.icon_name,
             'status': self.status,
         }
 
@@ -348,9 +347,9 @@ class AbsenceRange(models.Model):
             'user_id': self.absence.user.id,
             'status': self.absence.status,
             # TODO delete the ifs below when we have obligatory kind selection
-            'kind_id': self.absence.absence_kind.id if self.absence.absence_kind else -1,
-            'kind_name': self.absence.absence_kind.name if self.absence.absence_kind else 'none',
-            'kind_icon': self.absence.absence_kind.icon_name if self.absence.absence_kind else None
+            'kind_id': self.absence.absence_kind.id,
+            'kind_name': self.absence.absence_kind.name,
+            'kind_icon': self.absence.absence_kind.icon_name,
         }
 
     @property
