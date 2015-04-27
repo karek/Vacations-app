@@ -84,7 +84,7 @@ function count_absence_length() {
 
     
 
-    $('#absence_length ').html("<h4>Absence length: " +  days +  "</h4>")
+    $('#absence_length ').html('Total: <span class="badge">'+  days + '</span>')
 }
 
 // Check the range selected by the user for intersections with [1] already selected ranges,
