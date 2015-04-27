@@ -10,7 +10,7 @@ from django.shortcuts import render, redirect
 from django.views.generic.base import View
 from django.views.generic.edit import FormView
 from planner.forms import RegisterForm, YearForm
-from planner.models import Absence, AbsenceRange, Holiday, AbsenceKind
+from planner.models import Absence, AbsenceRange, Holiday, AbsenceKind, Team
 from planner.utils import InternalError, stringToDate, dateToString, objToJson, objListToJson
 from datetime import datetime
 
@@ -184,6 +184,12 @@ class UserRestView(View):
     def get(self, request):
         """ Returns all users as array of json objects. """
         return _make_json_response(objListToJson(get_user_model().objects.all()))
+
+
+class TeamRestView(View):
+    def get(self, request):
+        """ Returns all users as array of json objects. """
+        return _make_json_response(objListToJson(Team.objects.all()))
 
 
 class RangeRestView(View):
