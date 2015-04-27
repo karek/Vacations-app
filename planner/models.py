@@ -166,9 +166,7 @@ class Absence(models.Model):
 
     user = models.ForeignKey(EmailUser)
     dateCreated = models.DateTimeField(auto_now_add=True)
-    # Only for debug purpouse
-    # Change it when front allows
-    absence_kind = models.ForeignKey(AbsenceKind, null=True, blank=True)
+    absence_kind = models.ForeignKey(AbsenceKind)
     status = models.IntegerField(default=PENDING, choices=STATUS_CHOICES)
     total_workdays = models.IntegerField(default=0, null=False, blank=False)
     # TODO: komentarz
