@@ -9,6 +9,7 @@ from django.db import transaction
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
+from django.template.loader import render_to_string
 from planner.utils import dateToString
 from django.core.mail import send_mail
 from colorful.fields import RGBColorField
@@ -148,6 +149,7 @@ class AbsenceKind(models.Model):
         return self.name
 
 
+
 class Absence(models.Model):
     """ User's whole Absence. Describes parameters and has many AbsenceRanges attached. """
 
@@ -195,8 +197,9 @@ class Absence(models.Model):
         else:
             # send mail to our test email to check if its ok
             # TODO send a proper mail to the right address
-            send_mail(new_abs.mail_request_title(), new_abs.mail_request_body(),
-                      'tytusdjango@gmail.com', ['tytusdjango@gmail.com'])
+            send_mail(new_abs.mail_request_title(), new_abs.mail_request_text(),
+                      'tytusdjango@gmail.com', ['tytusdjango@gmail.com'],
+                      html_message=new_abs.mail_common_html('New absence request!', True))
         return new_abs
 
     def toDict(self):
@@ -219,14 +222,16 @@ class Absence(models.Model):
         # TODO send a proper mail to the right address
         # TODO in the current form the email could be send BOTH to user and HR
         send_mail(self.mail_accepted_title(), self.mail_accepted_body(),
-                  'tytusdjango@gmail.com', ['tytusdjango@gmail.com'])
+                  'tytusdjango@gmail.com', ['tytusdjango@gmail.com'],
+                  html_message=self.mail_common_html('Your request was accepted!', False))
         self.save()
 
     def reject(self):
         self.status = self.REJECTED
         # TODO send a proper mail to the right address
         send_mail(self.mail_rejected_title(), self.mail_rejected_body(),
-                  'tytusdjango@gmail.com', ['tytusdjango@gmail.com'])
+                  'tytusdjango@gmail.com', ['tytusdjango@gmail.com'],
+                  html_message=self.mail_common_html('Your request was REJECTED!', False))
         self.save()
 
     def cancel(self):
@@ -257,16 +262,31 @@ class Absence(models.Model):
     def mail_request_title(self):
         return 'Absence request from ' + self.user.get_full_name()
 
-    def mail_request_body(self):
+    def mail_prepare_ranges(self):
+        ranges = []
+        for r in AbsenceRange.objects.filter(absence=self).order_by('begin', 'end'):
+            r_tuple = (unicode(r), r.workday_count)
+            ranges.append(r_tuple)
+        return ranges
+
+    def mail_common_html(self, header, show_actions):
+        context = self.toDict()
+        context['base_url'] = settings.BASE_URL
+        context['mng_url'] = self.manage_url()
+        context['ranges'] = self.mail_prepare_ranges()
+        context['header'] = header
+        context['show_actions'] = show_actions
+        return render_to_string('email/absence_request.html', context)
+
+    def mail_request_text(self):
         desc = self.description()
-        mng_url = settings.BASE_URL + '/manage-absences?absence-id=' + str(self.id)
         return desc + (
                 '\n'
                 'to accept: %(mng_url)s&accept-submit\n'
                 'to reject: %(mng_url)s&reject-submit\n'
                 'to view details: %(mng_url)s\n'
             ) % {
-                'mng_url': mng_url
+                'mng_url': self.manage_url()
             }
 
     def mail_accepted_title(self):
@@ -301,7 +321,18 @@ class AbsenceRange(models.Model):
     end = models.DateField()
 
     def __unicode__(self):
-        return "%s - %s" % (dateToString(self.begin), dateToString(self.end))
+        b = self.begin
+        e = self.end - timedelta(days=1)
+        delta = e - b
+        if delta.days < 1:
+            return b.strftime('%d %b')
+        else:
+            if b.year != e.year:
+                return b.strftime('%d %b %Y') + " - " + e.strftime('%d %b %Y')
+            elif b.month == e.month:
+                return b.strftime('%d') + " - " + e.strftime('%d %b')
+            else:
+                return b.strftime('%d %b') + " - " + e.strftime('%d %b')
 
     @classmethod
     def getBetween(cls, users, rbegin, rend):
@@ -354,6 +385,9 @@ class AbsenceRange(models.Model):
             'kind_name': self.absence.absence_kind.name if self.absence.absence_kind else 'none',
             'kind_icon': self.absence.absence_kind.icon_name if self.absence.absence_kind else None
         }
+
+    def manage_url(self):
+        return settings.BASE_URL + '/manage-absences?absence-id=' + str(self.id)
 
     @property
     def workday_count(self):
