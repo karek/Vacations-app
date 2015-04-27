@@ -13,6 +13,7 @@ from django.template.loader import render_to_string
 from planner.utils import dateToString
 from django.core.mail import send_mail
 from colorful.fields import RGBColorField
+from vacations.settings import EMAIL_HOST_USER, EMAIL_NOREPLY_ADDRESS
 
 
 class Team(models.Model):
@@ -198,7 +199,7 @@ class Absence(models.Model):
             # send mail to our test email to check if its ok
             # TODO send a proper mail to the right address
             send_mail(new_abs.mail_request_title(), new_abs.mail_request_text(),
-                      'tytusdjango@gmail.com', ['tytusdjango@gmail.com'],
+                      EMAIL_NOREPLY_ADDRESS, [EMAIL_HOST_USER],
                       html_message=new_abs.mail_common_html('New absence request!', True))
         return new_abs
 
@@ -222,7 +223,7 @@ class Absence(models.Model):
         # TODO send a proper mail to the right address
         # TODO in the current form the email could be send BOTH to user and HR
         send_mail(self.mail_accepted_title(), self.mail_accepted_body(),
-                  'tytusdjango@gmail.com', ['tytusdjango@gmail.com'],
+                  EMAIL_NOREPLY_ADDRESS, [EMAIL_HOST_USER],
                   html_message=self.mail_common_html('Your request was accepted!', False))
         self.save()
 
@@ -230,7 +231,7 @@ class Absence(models.Model):
         self.status = self.REJECTED
         # TODO send a proper mail to the right address
         send_mail(self.mail_rejected_title(), self.mail_rejected_body(),
-                  'tytusdjango@gmail.com', ['tytusdjango@gmail.com'],
+                  EMAIL_NOREPLY_ADDRESS, [EMAIL_HOST_USER],
                   html_message=self.mail_common_html('Your request was REJECTED!', False))
         self.save()
 
@@ -239,12 +240,12 @@ class Absence(models.Model):
         self.status = self.CANCELLED
         # TODO send a proper mail to the right addresses
         # always notify the user and the manager
-        recipients = ['tytusdjango@gmail.com']
+        recipients = [EMAIL_HOST_USER]
         # if the absence was already accepted, we must also inform HR
         if self.status == self.ACCEPTED:
             pass #TODO recipients += [mail-to-hr]
         send_mail(self.mail_cancel_title(old_status), self.mail_cancel_body(old_status),
-                  'tytusdjango@gmail.com', recipients)
+                  EMAIL_NOREPLY_ADDRESS, recipients)
         self.save()
 
     def description(self):
