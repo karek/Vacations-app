@@ -229,10 +229,11 @@ class AbsenceRestView(View):
          * user-id
          * team-id
          * status (can be a comma-separated list)
-         * date-from
-         * date-to
-        Dates should be 'YYYY-MM-DD' and are filtered as 'any absence having ranges intersecting
-         with given dates'.
+         * date-at-least
+         * date-at-most
+         * date-not-before
+         * date-not-after
+        All dates should be 'YYYY-MM-DD'.
         """
         absences = Absence.objects.filter()
         if 'id' in request.GET:
@@ -244,10 +245,18 @@ class AbsenceRestView(View):
         if 'status' in request.GET:
             statuses = map(int, request.GET['status'].split(','))
             absences = absences.filter(status__in=statuses)
-        if 'date-from' in request.GET:
-            absences = absences.filter(absencerange__end__gt=stringToDate(request.GET['date-from']))
-        if 'date-to' in request.GET:
-            absences = absences.filter(absencerange__begin__lte=stringToDate(request.GET['date-to']))
+        if 'date-at-least' in request.GET:
+            absences = absences.filter(
+                    absencerange__end__gt=stringToDate(request.GET['date-at-least']))
+        if 'date-at-most' in request.GET:
+            absences = absences.filter(
+                    absencerange__begin__lte=stringToDate(request.GET['date-at-most']))
+        if 'date-not-before' in request.GET:
+            absences = absences.exclude(
+                    absencerange__begin__lt=stringToDate(request.GET['date-not-before']))
+        if 'date-not-after' in request.GET:
+            absences = absences.exclude(
+                    absencerange__end__gt=stringToDate(request.GET['date-not-after']))
         return _make_json_response(objListToJson(absences.order_by('dateCreated', 'user')))
 
 

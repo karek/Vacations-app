@@ -265,7 +265,7 @@ function get_management_absences() {
     if (global_manage_mode == 'selfcare') {
         params = {
             'user-id': global_logged_user_id,
-            'date-from': moment().format('YYYY-MM-DD'),
+            'date-not-before': moment().format('YYYY-MM-DD'),
             'status': status_PENDING_OR_ACCEPTED
         };
     } else {
