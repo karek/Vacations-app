@@ -178,21 +178,21 @@ class Absence(models.Model):
 
     user = models.ForeignKey(EmailUser)
     dateCreated = models.DateTimeField(auto_now_add=True)
-    # Only for debug purpouse
-    # Change it when front allows
-    absence_kind = models.ForeignKey(AbsenceKind, null=True, blank=True)
+    absence_kind = models.ForeignKey(AbsenceKind)
     status = models.IntegerField(default=PENDING, choices=STATUS_CHOICES)
     total_workdays = models.IntegerField(default=0, null=False, blank=False)
-    # TODO: komentarz
+    comment = models.TextField(default='', max_length=81)
 
     def __unicode__(self):
-        return "Absence by %s" % self.user
+        return "%s days of %s requested by %s %s on %s" % \
+               (self.total_workdays, self.absence_kind.name, self.user.first_name,
+                self.user.last_name, self.dateCreated.strftime('%Y-%m-%d'),)
 
     @classmethod
     @transaction.atomic
-    def createFromRanges(cls, user, ranges, absence_kind):
+    def createFromRanges(cls, user, ranges, absence_kind, comment):
         """ Create an absence together with all its absence ranges (in one atomic transaction)."""
-        new_abs = cls(user=user, absence_kind=absence_kind, total_workdays=0)
+        new_abs = cls(user=user, absence_kind=absence_kind, total_workdays=0, comment=comment)
         new_abs.save()
         for (rbegin, rend) in ranges:
             new_range = AbsenceRange(absence=new_abs, begin=rbegin, end=rend)
@@ -235,11 +235,11 @@ class Absence(models.Model):
             'user_id': self.user.id,
             'user_name': self.user.get_full_name(),
             'date_created': dateToString(self.dateCreated),
-            # TODO delete the ifs below when we have obligatory kind selection
-            'kind': self.absence_kind.id if self.absence_kind else -1,
-            'kind_name': self.absence_kind.name if self.absence_kind else 'none',
+            'kind': self.absence_kind.id,
+            'kind_name': self.absence_kind.name,
             'total_workdays': self.total_workdays,
-            'kind_icon': self.absence_kind.icon_name if self.absence_kind else None,
+            'comment': self.comment,
+            'kind_icon': self.absence_kind.icon_name,
             'status': self.status,
         }
 
@@ -417,10 +417,9 @@ class AbsenceRange(models.Model):
             'absence_id': self.absence.id,
             'user_id': self.absence.user.id,
             'status': self.absence.status,
-            # TODO delete the ifs below when we have obligatory kind selection
-            'kind_id': self.absence.absence_kind.id if self.absence.absence_kind else -1,
-            'kind_name': self.absence.absence_kind.name if self.absence.absence_kind else 'none',
-            'kind_icon': self.absence.absence_kind.icon_name if self.absence.absence_kind else None
+            'kind_id': self.absence.absence_kind.id,
+            'kind_name': self.absence.absence_kind.name,
+            'kind_icon': self.absence.absence_kind.icon_name,
         }
 
     @property

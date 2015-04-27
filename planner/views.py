@@ -95,8 +95,9 @@ class PlanAbsenceView(View):
             ranges = self.validateRanges(request.POST.getlist('begin[]'),
                                          request.POST.getlist('end[]'))
             kind = AbsenceKind.objects.get(id=request.POST['absence_kind'])
+            comment = request.POST.get('comment')
             if 'edit-submit' in request.POST:
-                new_abs = self.handle_edit_absence(request, ranges, kind) # throws on error
+                new_abs = self.handle_edit_absence(request, ranges, kind, comment) # throws on error
                 message = 'Absence edited successfully, '
             else:
                 new_abs = self.handle_add_absence(request, ranges, kind) # throws on error
@@ -128,12 +129,12 @@ class PlanAbsenceView(View):
         # Return the ranges, AbsenceRange's clean() will validate the rest
         return sorted(zip(map(stringToDate, begins), map(stringToDate, ends)))
 
-    def handle_add_absence(self, request, ranges, absence_kind):
+    def handle_add_absence(self, request, ranges, absence_kind, comment):
         """ Takes a list of ranges (date pairs) and saves them as a vacation.
         
         AbsenceRange's clean() checks if the ranges are valid and not intersecting (with themselves
         nor with previous user's absences). """
-        return Absence.createFromRanges(request.user, ranges, absence_kind)
+        return Absence.createFromRanges(request.user, ranges, absence_kind, comment)
 
     def handle_edit_absence(self, request, ranges, absence_kind):
         try:
