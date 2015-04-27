@@ -17,15 +17,21 @@
             {% include 'planner/planning_controls.html' %}
         </form>
         {% endblock %}
-    <br>
+
+        <br>
         <div id='team-select'>
             <h4> Select teams you want to see on calendar: </h4>
-            {{teamsForm.as_p}}
-{#           {{ teamsForm.as_table }}#}
-{#            <form action="." method="POST">#}
-{#        {{teamsForm.as_table }}#}
-{#        <button type="SUBMIT">Submit</button>#}
-{#    </form>#}
+
+            <form id="teams-form" action="." method="POST">
+                {% csrf_token %}
+                {% for field in teamsForm.visible_fields %}
+                    <div class="fieldWrapper">
+                        {{ field.errors }}
+                        {{ field.label_tag }} {{ field }}
+                    </div>
+                {% endfor %}
+            </form>
+
         </div>
     </div>
 </div>
@@ -50,15 +56,19 @@
     {% if request.user.is_authenticated %}
         global_logged_user_id = {{ request.user.id }};
         global_logged_user_name = "{{ request.user.first_name }}" + " " + "{{ request.user.last_name }}";
-        global_logged_user_team_id = {{ request.user.team.id }};
+        global_logged_user_team_id = {{ request.user.team.id }} - 1;
     {% else %}
         global_logged_user_id = -1;
         global_logged_user_name = "";
         global_logged_user_team_id = -1;
     {% endif %}
+
+    $('#teams-form')
     {% autoescape off %}
     saveUserData({{ users }});
     {% endautoescape %}
+
+
 </script>
 {% endblock %}
 
@@ -101,6 +111,19 @@
             labelText: 'show others\' absences',
             onSwitchChange: toggle_others_absences
         });
+
+        $('#teams-form').on('click', function (event) {
+            console.log("form submitted!")  // sanity check
+            alert(event.target.id)
+            console.log(event.target)
+{#            create_post();#}
+
+        });
+
+        var curTeam = "#id_teams_" + global_logged_user_team_id;
+        console.log(curTeam)
+        var a = $(curTeam);
+        a.prop('checked', true);
     });
 </script>
 {% endblock %}

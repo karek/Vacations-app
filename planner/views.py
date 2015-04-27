@@ -20,14 +20,15 @@ def generate_main_context():
     month_begin = date(d.year, d.month, 1)
     month_end = date(d.year, d.month, monthrange(d.year, d.month)[1])
     teamsForm = TeamsForm()
+    teams = Team.objects.all()
     teamsForm.fields['teams'].choices = [(x.id, x) for x in Team.objects.all()]
-
     return {
         'month_begin': dateToString(month_begin),
         'month_end': dateToString(month_end),
         'users': objListToJson(get_user_model().objects.all()),
         'absence_kinds': AbsenceKind.objects.all(),
-        'teamsForm': teamsForm
+        'teamsForm': teamsForm,
+        'teams': teams
     }
 
 
