@@ -9,6 +9,8 @@ global_mng_absences = new Array()
 // number to put in user_id field for holiday events
 global_event_is_holiday = -1;
 
+global_users_filtered = new Array();
+global_teams_selected = new Array();
 global_users_loaded = false;
 global_users_sorted = new Array();
 global_users_order = new Array();
@@ -89,10 +91,11 @@ function getAllUsers(on_success) {
     });
 }
 
+function calcSorted(data) {
+    gloabal_users_by_id = [];
+    global_users_sorted = [];
+    global_users_order = [];
 
-// Save received users' data.
-function saveUserData(data) {
-    global_users = data;
     for (u in data) {
         data[u]['full_name'] = data[u].first_name + ' ' + data[u].last_name;
         console.debug('saving user ' + data[u].email);
@@ -109,6 +112,13 @@ function saveUserData(data) {
     sortAndSaveUsersOrder(function (a, b) {
         return a.last_name > b.last_name;
     });
+
+}
+
+// Save received users' data.
+function saveUserData(data) {
+    global_users = data;
+    filterGlobalUsers();
 }
 
 //Function used for sorting user and later Map users ids in the order to their position
@@ -145,9 +155,17 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
                 if (accept_mode_enabled() && ranges[i].absence_id == global_accept_absence_id) {
                     continue;
                 }
+
                 if (edit_mode_enabled() && ranges[i].absence_id == global_edit_absence.id) {
                     continue;
                 }
+
+                //not in currently selected teams
+
+                if (global_teams_selected[global_users_by_id[ranges[i].user_id].team_id] == 0) {
+                    continue;
+                }
+
                 if (!global_show_others_absences && ranges[i].user_id != global_logged_user_id) {
                     continue;
                 }

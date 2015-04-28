@@ -1,5 +1,5 @@
 from django import forms
-from planner.models import EmailUser
+from planner.models import EmailUser, Team
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 
 class UserCreationForm(forms.ModelForm):
@@ -28,6 +28,7 @@ class UserCreationForm(forms.ModelForm):
             user.save()
         return user
 
+
 class UserChangeForm(forms.ModelForm):
     """A form for updating users. Includes all the fields on
     the user, but replaces the password field with admin's
@@ -46,6 +47,7 @@ class UserChangeForm(forms.ModelForm):
         # field does not have access to the initial value
         return self.initial["password"]
 
+
 class RegisterForm(UserCreationForm):
     first_name = forms.CharField(required=True)
     last_name = forms.CharField(required=True)
@@ -63,5 +65,10 @@ class RegisterForm(UserCreationForm):
             user.save()
         return user
 
+
 class YearForm(forms.Form):
     year = forms.DateField(label='Year', input_formats=['%Y'])
+
+
+class TeamsForm(forms.Form):
+    teams = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple)
