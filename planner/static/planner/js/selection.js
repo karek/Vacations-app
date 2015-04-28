@@ -427,3 +427,86 @@ function toggle_others_absences(jsevent, state) {
     global_show_others_absences = state;
 	$('#calendar').fullCalendar('refetchEvents');
 }
+
+function getUsersFromSelectedTeams(jsevent) {
+
+    var curTeam = jsevent.target.value;
+    getUsersFromSelectedTeamsById(curTeam);
+    console.log('TUTEJ: ', curTeam);
+}
+
+function getUsersFromSelectedTeamsById(team_id) {
+    if (global_teams_selected[team_id] != team_id)
+        global_teams_selected[team_id] = team_id;
+    else
+        global_teams_selected[team_id] = 0;
+
+    filterGlobalUsers();
+	$('#calendar').fullCalendar('refetchEvents');
+}
+
+
+function selectAllTeams() {
+
+    for (var i = 0; i < global_teams_selected.length; i++)
+        global_teams_selected[i] = i;
+
+    filterGlobalUsers();
+	$('#calendar').fullCalendar('refetchEvents');
+}
+
+function unselectAllTeams() {
+
+    for (var i = 0; i < global_teams_selected.length; i++)
+        global_teams_selected[i] = 0;
+
+    filterGlobalUsers();
+	$('#calendar').fullCalendar('refetchEvents');
+}
+
+function changeButtonState(id, state) {
+    var curTeam = "#id_teams_" + (id - 1);
+    var a = $(curTeam);
+    a.bootstrapSwitch('state', state, state);
+}
+
+function filterGlobalUsers() {
+    global_users_filtered = [];
+    for (var i in global_users) {
+        if(global_teams_selected[global_users[i].team_id] != 0) {
+            global_users_filtered.push(global_users[i]);
+        }
+    }
+    console.log(global_users_filtered);
+    calcSorted(global_users_filtered);
+
+    //Somebody fix dat shit down there please VVV :(
+    var date = $('#calendar').fullCalendar('getDate');
+    $('#calendar').fullCalendar('next');
+    $('#calendar').fullCalendar( 'gotoDate', date );
+}
+
+function prettify_team_select() {
+    $('ul#id_teams').siblings('label').remove();
+    var labels= $('ul#id_teams label');
+    labels.each(function(index){
+        var text = $(this).html().replace(/.*>/, '');
+        var rest = $(this).html().replace(text, '');
+        $(this).html(rest);
+        $(this).children('input').bootstrapSwitch({
+            state: false,
+            size: 'mini',
+            offColor: 'warning',
+            onColor: 'primary',
+            inverse: true,
+            labelText: text,
+            handleWidth: 50,
+            labelWidth: 189,
+            onSwitchChange: team_select_clicked,
+        });
+    });
+}
+
+function team_select_clicked(jsevent, state) {
+    getUsersFromSelectedTeams(jsevent);
+}

@@ -6,7 +6,6 @@
 <div class="row">
     <div class="col-lg-9">
         <div id='calendar' style="padding-bottom: 20px"></div>
-        <input id="toggle-others-absences" type="checkbox" name="toggle-others-absences"/>
     </div>
     <div class="col-lg-3">
         {% block selected_absence_panel %}
@@ -19,6 +18,40 @@
             {% endif %}
         </form>
         {% endblock %}
+
+        <div class='btn-group btn-group-justified' role='group' style="padding-top: 25px;">
+            <div class="btn-group">
+                <button id="toggle-filter-panel" class="btn btn-default">
+                    <span class="glyphicon glyphicon-filter"></span> View filtering</button>
+            </div>
+        </div>
+        <div id='team-select' style="padding-top: 10px" hidden="hidden">
+            <form id="teams-form" action="." method="POST">
+                {% csrf_token %}
+                {% for field in teamsForm.visible_fields %}
+                    <div class="fieldWrapper">
+                        {{ field.errors }}
+                        {{ field.label_tag }} {{ field }}
+                    </div>
+                {% endfor %}
+            </form>
+
+            <div class='btn-group btn-group-justified' role='group'>
+                <div class="btn-group">
+                    <button id="unselect-all" class="btn btn-warning btn-sm" name="unselect-all">
+                        <span class="glyphicon glyphicon-ban-circle"></span> Unselect all</button>
+                </div>
+                <div class="btn-group">
+                    <button id="select-all" class="btn btn-primary btn-sm" name="select-all">
+                        <span class="glyphicon glyphicon-th-list"></span> Select all</button>
+                </div>
+            </div>
+
+            <div style="text-align: center; padding-top: 15px; ">
+                <input id="toggle-others-absences" type="checkbox" name="toggle-others-absences"/>
+            </div>
+        </div>
+
     </div>
 </div>
 {% endblock %}
@@ -31,11 +64,14 @@
 <script src="{% static 'planner/js/selection.js' %}"></script>
 <script src="{% static 'planner/js/ajaxes.js' %}"></script>
 <script type="text/javascript">
+
     {# remember the quotes, because '/users/' becomes a RegExp in js. #}
     global_user_url = "{% url 'planner:user' %}";
     global_range_url = "{% url 'planner:range' %}";
     global_holiday_url = "{% url 'planner:holiday' %}";
     global_absence_url = "{% url 'planner:absence' %}";
+    global_teams_url = "{% url 'planner:teams' %}";
+
     {% if request.user.is_authenticated %}
         global_logged_user_id = {{ request.user.id }};
         global_logged_user_name = "{{ request.user.first_name }}" + " " + "{{ request.user.last_name }}";
@@ -45,7 +81,7 @@
         global_logged_user_name = "";
         global_logged_user_team_id = -1;
     {% endif %}
-    global_after_load_callbacks = $.Callbacks();
+
     {% autoescape off %}
     saveUserData({{ users }});
     {% if edit_absence %}
@@ -55,11 +91,13 @@
     {% endif %}
     {% endautoescape %}
 
+    global_after_load_callbacks = $.Callbacks();
 </script>
 {% endblock %}
 
 {% block calendarDeclaration %}
     <script type="text/javascript">
+    prettify_team_select();
     $(document).ready(function() {
         display_or_hide_planning_controls();
         $('#calendar').fullCalendar({
@@ -68,7 +106,7 @@
                 center: 'title',
                 right: 'month,weekWorkers'
             },
-            eventLimit: true,    
+            eventLimit: true,
             views: {
                 month: {
                     eventLimit: 2,
@@ -95,7 +133,38 @@
             state: false,
             size: 'small',
             labelText: 'show others\' absences',
-            onSwitchChange: toggle_others_absences
+            onSwitchChange: toggle_others_absences,
+            handleWidth: 50,
+            labelWidth: 171,
+            offColor: 'warning',
+            onColor: 'primary',
+            inverse: true,
+        });
+
+         $('#select-all').on('click', function(event) {
+             {% for t in teams %}
+                changeButtonState({{ t.id }}, true);
+            {% endfor %}
+            selectAllTeams();
+        });
+
+        $('#unselect-all').on('click', function(event) {
+            {% for t in teams %}
+                changeButtonState({{ t.id }}, false);
+            {% endfor %}
+            unselectAllTeams();
+        });
+
+        {% for t in teams %}
+            changeButtonState({{ t.id }}, false);
+            global_teams_selected[{{ t.id }}] = 0;
+        {% endfor %}
+
+        getUsersFromSelectedTeamsById(global_logged_user_team_id);
+        changeButtonState(global_logged_user_team_id, true);
+
+        $('#toggle-filter-panel').on('click', function(event) {
+            $('#team-select').toggle('fast');
         });
     });
 </script>

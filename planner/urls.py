@@ -18,6 +18,7 @@ urlpatterns = patterns(
     url(r'^save_weekends/$', views.SaveWeekendsView, name='save_weekends'),
     # urls for ajax calls (returning jsons):
     url(r'^user/$', views.UserRestView.as_view(), name='user'),
+    url(r'^teams/$', views.TeamRestView.as_view(), name='teams'),
     url(r'^range/$', views.RangeRestView.as_view(), name='range'),
     url(r'^holiday/$', views.HolidayRestView.as_view(), name='holiday'),
     url(r'^absence/$', views.AbsenceRestView.as_view(), name='absence'),
