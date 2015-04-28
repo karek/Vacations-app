@@ -425,21 +425,26 @@ function getUsersFromSelectedTeams(jsevent) {
     else
         global_teams_selected[curTeam] = 0;
 
+    filterGlobalUsers();
 	$('#calendar').fullCalendar('refetchEvents');
 }
 
 
 function selectAllTeams() {
+
     for (var i = 0; i < global_teams_selected.length; i++)
         global_teams_selected[i] = i;
 
+    filterGlobalUsers();
 	$('#calendar').fullCalendar('refetchEvents');
 }
 
 function unselectAllTeams() {
+
     for (var i = 0; i < global_teams_selected.length; i++)
         global_teams_selected[i] = 0;
 
+    filterGlobalUsers();
 	$('#calendar').fullCalendar('refetchEvents');
 }
 
@@ -447,4 +452,20 @@ function changeButtonState(id, state) {
     var curTeam = "#id_teams_" + (id - 1);
     var a = $(curTeam);
     a.prop('checked', state);
+}
+
+function filterGlobalUsers() {
+    global_users_filtered = [];
+    for (var i in global_users) {
+        if(global_teams_selected[global_users[i].team_id] != 0) {
+            global_users_filtered.push(global_users[i]);
+        }
+    }
+    console.log(global_users_filtered);
+    calcSorted(global_users_filtered);
+
+    //Somebody fix dat shit down there please VVV :(
+    var date = $('#calendar').fullCalendar('getDate');
+    $('#calendar').fullCalendar('next');
+    $('#calendar').fullCalendar( 'gotoDate', date );
 }
