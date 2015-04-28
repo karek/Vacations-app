@@ -58,3 +58,12 @@ table.pending-details-table > tbody > tr > th,
 table.pending-details-table > tbody > tr > td {
     line-height: 0.8;
 }
+
+ul#id_teams {
+    list-style-type: none;
+    padding: 0;
+}
+
+ul#id_teams li {
+    margin: 0;
+}
