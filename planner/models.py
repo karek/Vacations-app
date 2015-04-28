@@ -86,6 +86,11 @@ class EmailUser(AbstractBaseUser):
                     raise ValidationError({
                         'email': 'That email address is already associated with an account.'
                     })
+        managers = EmailUser.objects.exclude(id=self.id).filter(team=self.team, is_teamleader=True)
+        if self.is_teamleader and managers.exists():
+            raise ValidationError({
+                'is_teamleader': 'User can\'t be a team leader, team %s already has a leader.' % self.team.name
+            })
 
     def get_full_name(self):
         # The user is identified by their email address
