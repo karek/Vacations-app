@@ -36,9 +36,14 @@
                     <th scope="row">Created</th>
                     <td>{{ accept_absence.date_created }}</td>
                 </tr>
+                {% if accept_absence.comment %}
+                <tr>
+                    <th scope="row">Comment</th>
+                    <td>{{ accept_absence.comment }}</td>
+                </tr>
+                {% endif %}
                 </tbody>
             </table>
-            <textarea style="width: 100%">{{ accept_absence.comment }}</textarea>
     </div>
         </div>
         {% endif %}

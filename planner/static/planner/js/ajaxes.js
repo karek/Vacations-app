@@ -314,6 +314,10 @@ function show_mng_absence_as_li(absence) {
         label_class += ' progress-bar-success';
         label_text += '&nbsp;<span class="glyphicon glyphicon-ok"></span>';
     }
+    var comment_row = '';
+    if (absence.comment) {
+        comment_row = '<tr><th scope="row">Comment</th><td>' + absence.comment + '</td></tr>';
+    }
     return ''
         + '<a class="list-group-item" href="' + link + '">'
         + '<span class="'+ label_class + '" style="margin-top: 10px;">' + label_text + '</span>'
@@ -322,6 +326,7 @@ function show_mng_absence_as_li(absence) {
         + '<tbody><tr>'
         + '<th scope="row">Kind</th><td>' + absence.kind_name + '</td></tr>'
         + '<tr><th scope="row">Created</th><td>' + absence.date_created + '</td></tr>'
+        + comment_row
         + '</tbody></table>'
         + '</a>';
 }
