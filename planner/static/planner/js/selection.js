@@ -344,9 +344,9 @@ function display_or_hide_planning_controls() {
 
 $(document).on('click', '.rm-absence-selection', function(){
 	console.debug('removing selected range');
-	// if someone has more stupid idea to refresh all selected days, please show me
 	$(this).closest('li').remove();
     highlight_selected_ranges();
+    count_absence_length();
 	display_or_hide_planning_controls();
 });
 
