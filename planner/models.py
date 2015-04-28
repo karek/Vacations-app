@@ -163,11 +163,14 @@ class AbsenceKind(models.Model):
 class Absence(models.Model):
     """ User's whole Absence. Describes parameters and has many AbsenceRanges attached. """
 
-    # Status choices
+    # Status choices. Adding new status append it to one of the lists below.
     PENDING = 0
     ACCEPTED = 1
     REJECTED = 2
     CANCELLED = 3
+
+    ALIVE_STATUSES=[PENDING, ACCEPTED]
+    STALE_STATUSES=[REJECTED, CANCELLED]
 
     STATUS_CHOICES = (
         (PENDING, 'Pending'),
@@ -190,7 +193,7 @@ class Absence(models.Model):
 
     @classmethod
     @transaction.atomic
-    def createFromRanges(cls, user, ranges, absence_kind, comment):
+    def createFromRanges(cls, user, ranges, absence_kind, comment, do_mails=True):
         """ Create an absence together with all its absence ranges (in one atomic transaction)."""
         new_abs = cls(user=user, absence_kind=absence_kind, total_workdays=0, comment=comment)
         new_abs.save()
@@ -200,15 +203,8 @@ class Absence(models.Model):
             new_range.save()
             new_abs.total_workdays += new_range.workday_count
         new_abs.save()
-        # if the absence doesn't need acceptance, skip to ACCEPTED
-        if new_abs.absence_kind and not new_abs.absence_kind.require_acceptance:
-            new_abs.accept()
-        else:
-            # send mail to our test email to check if its ok
-            # TODO send a proper mail to the right address
-            send_mail(new_abs.mail_request_title(), new_abs.mail_request_text(),
-                      EMAIL_NOREPLY_ADDRESS, [new_abs.mail_fake_manager_address()],
-                      html_message=new_abs.mail_common_html('New absence request!', True))
+        if do_mails:
+            new_abs.request_acceptance()
         return new_abs
 
     @transaction.atomic
@@ -220,14 +216,17 @@ class Absence(models.Model):
          * resend any needed emails.
         """
         AbsenceRange.objects.filter(absence=self).delete()
-        tmp_abs = self.__class__.createFromRanges(self.user, ranges, absence_kind, comment)
+        tmp_abs = self.__class__.createFromRanges(self.user, ranges, absence_kind, comment, False)
         for new_range in AbsenceRange.objects.filter(absence=tmp_abs):
             new_range.absence = self
             new_range.save()
         self.absence_kind = tmp_abs.absence_kind
         self.comment = tmp_abs.comment
+        self.status = self.PENDING
         tmp_abs.delete()
         self.save()
+        self.request_acceptance()
+        return self
 
     def toDict(self):
         """ Returns needed Absence's attributes as dict, e.g. for converting to json. """
@@ -236,13 +235,24 @@ class Absence(models.Model):
             'user_id': self.user.id,
             'user_name': self.user.get_full_name(),
             'date_created': dateToString(self.dateCreated),
-            'kind': self.absence_kind.id,
+            'kind_id': self.absence_kind.id,
             'kind_name': self.absence_kind.name,
             'total_workdays': self.total_workdays,
             'comment': self.comment,
             'kind_icon': self.absence_kind.icon_name,
             'status': self.status,
         }
+
+    def request_acceptance(self):
+        # if the absence doesn't need acceptance, skip to ACCEPTED
+        if self.absence_kind and not self.absence_kind.require_acceptance:
+            self.accept()
+        else:
+            # send mail to our test email to check if its ok
+            # TODO send a proper mail to the right address
+            send_mail(self.mail_request_title(), self.mail_request_text(),
+                      EMAIL_NOREPLY_ADDRESS, [self.mail_fake_manager_address()],
+                      html_message=self.mail_common_html('New absence request!', True))
 
     def accept(self):
         self.status = self.ACCEPTED
@@ -378,7 +388,7 @@ class AbsenceRange(models.Model):
         
         users should be a list of users or '*' for everyone. """
         # first of all: don't show rejected or cancelled absences
-        user_ranges = cls.objects.exclude(absence__status__in=[Absence.REJECTED, Absence.CANCELLED])
+        user_ranges = cls.objects.exclude(absence__status__in=Absence.STALE_STATUSES)
         # second, filter needed users
         if users != '*':
             user_ranges = user_ranges.filter(absence__user__in=users)
@@ -393,7 +403,7 @@ class AbsenceRange(models.Model):
         
         Returns single (first if many) intersecting AbsenceRange or None. """
         try:
-            return cls.objects.exclude(absence__status=Absence.REJECTED).filter(
+            return cls.objects.exclude(absence__status__in=Absence.STALE_STATUSES).filter(
                 Q(begin__lt=rend, begin__gte=rbegin) | Q(end__gt=rbegin, end__lte=rend),
                 absence__user=user)[0]
         except IndexError:

@@ -32,22 +32,23 @@ class IndexView(View):
         self.context = generate_main_context()
         if 'edit-absence-id' in request.GET:
             try:
-                absence = Absence.objects.get(
-                        id=request.GET['edit-absence-id'], status=Absence.PENDING)
-                self.context['edit_absence'] = absence
-                handle_absence_edit(request, absence) # throws on error
-            except ObjectDoesNotExist:
-                messages.error(request, 'Invalid or already accepted absence selected.')
+                self.prepare_absence_edit(request) # throws on error
             except InternalError as e:
                 messages.error(request, e.message)
         return render(request, 'planner/index.html', self.context)
 
-    def handle_absence_edit(self, request, absence):
+    def prepare_absence_edit(self, request):
+        try:
+            absence = Absence.objects.get(id=request.GET['edit-absence-id'], status=Absence.PENDING)
+            self.context['edit_absence'] = absence
+            self.context['edit_absence_json'] = objToJson(absence)
+            self.context['edit_ranges'] = objListToJson(AbsenceRange.objects.filter(absence=absence))
+        except ObjectDoesNotExist:
+            raise InternalError('Invalid or already accepted absence selected.')
         if not request.user.is_authenticated():
             raise InternalError('Log in now to edit your absence.')
         if request.user.id != absence.user_id:
             raise InternalError('Only absence\'s owner can edit it.')
-        self.context['edit_absence'] = absence
 
 
 class RegisterView(SuccessMessageMixin, FormView):
@@ -102,11 +103,11 @@ class PlanAbsenceView(View):
             else:
                 new_abs = self.handle_add_absence(request, ranges, kind, comment) # throws on error
                 message = 'Absence planned successfully, '
-            if new_abs.kind.require_acceptance:
+            if new_abs.absence_kind.require_acceptance:
                 message += 'acceptance request was send to the team leader.'
             else:
                 message += 'no further confirmation needed.'
-            messages.success(request, text)
+            messages.success(request, message)
         except InternalError as e:
             messages.error(request, e.message)
         except ValidationError as e:
@@ -140,7 +141,7 @@ class PlanAbsenceView(View):
         try:
             old_absence = Absence.objects.get(
                     id=request.POST['edit-absence-id'], status=Absence.PENDING)
-            if not request.user.is_authenticated() or request.user.id != absence.user_id:
+            if not request.user.is_authenticated() or request.user.id != old_absence.user_id:
                 raise InternalError('Only absence\'s owner can edit it.')
             return old_absence.editFromRanges(ranges, absence_kind, comment)
         except ObjectDoesNotExist:
@@ -160,7 +161,7 @@ class ManageAbsenceView(View):
                 # user can review his pending and accepted absences,
                 # manager only his team's pending ones
                 if mode == 'selfcare':
-                    statuses = [Absence.PENDING, Absence.ACCEPTED, ]
+                    statuses = Absence.ALIVE_STATUSES
                 else:
                     statuses = [Absence.PENDING, ]
                 absence = Absence.objects.get(id=request.GET['absence-id'], status__in=statuses)

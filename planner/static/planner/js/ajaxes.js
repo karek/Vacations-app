@@ -145,6 +145,9 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
                 if (accept_mode_enabled() && ranges[i].absence_id == global_accept_absence_id) {
                     continue;
                 }
+                if (edit_mode_enabled() && ranges[i].absence_id == global_edit_absence.id) {
+                    continue;
+                }
                 if (!global_show_others_absences && ranges[i].user_id != global_logged_user_id) {
                     continue;
                 }
@@ -326,4 +329,12 @@ function show_mng_absence_as_li(absence) {
 function select_managed_absence() {
     select_ranges_from_json(global_accept_ranges);
     global_disable_selecting = true;
+}
+
+function select_edited_absence() {
+    select_ranges_from_json(global_edit_ranges);
+    $('#planning-comment').val(global_edit_absence.comment);
+    var string_kind = new String(global_edit_absence.kind_id);
+    console.debug('kind str: ', string_kind);
+    $('#planning-kind-select').val(string_kind).change();
 }
