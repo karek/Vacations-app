@@ -145,6 +145,9 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
                 if (accept_mode_enabled() && ranges[i].absence_id == global_accept_absence_id) {
                     continue;
                 }
+                if (edit_mode_enabled() && ranges[i].absence_id == global_edit_absence.id) {
+                    continue;
+                }
                 if (!global_show_others_absences && ranges[i].user_id != global_logged_user_id) {
                     continue;
                 }
@@ -289,7 +292,10 @@ function show_management_absences() {
     manage_hdr.hide();
     if (global_mng_absences.length == 0) {
         manage_hdr.show();
-        manage_hdr.html('No pending absence requests.');
+        var text = (global_manage_mode == 'selfcare'
+                ? 'No upcoming absences.'
+                : 'No pending absence requests.')
+        manage_hdr.html(text);
         manage_list.hide();
         return;
     }
@@ -308,6 +314,10 @@ function show_mng_absence_as_li(absence) {
         label_class += ' progress-bar-success';
         label_text += '&nbsp;<span class="glyphicon glyphicon-ok"></span>';
     }
+    var comment_row = '';
+    if (absence.comment) {
+        comment_row = '<tr><th scope="row">Comment</th><td>' + absence.comment + '</td></tr>';
+    }
     return ''
         + '<a class="list-group-item" href="' + link + '">'
         + '<span class="'+ label_class + '" style="margin-top: 10px;">' + label_text + '</span>'
@@ -316,6 +326,20 @@ function show_mng_absence_as_li(absence) {
         + '<tbody><tr>'
         + '<th scope="row">Kind</th><td>' + absence.kind_name + '</td></tr>'
         + '<tr><th scope="row">Created</th><td>' + absence.date_created + '</td></tr>'
+        + comment_row
         + '</tbody></table>'
         + '</a>';
+}
+
+function select_managed_absence() {
+    select_ranges_from_json(global_accept_ranges);
+    global_disable_selecting = true;
+}
+
+function select_edited_absence() {
+    select_ranges_from_json(global_edit_ranges);
+    $('#planning-comment').val(global_edit_absence.comment);
+    var string_kind = new String(global_edit_absence.kind_id);
+    console.debug('kind str: ', string_kind);
+    $('#planning-kind-select').val(string_kind).change();
 }

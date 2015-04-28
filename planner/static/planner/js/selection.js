@@ -9,6 +9,8 @@ function log_date(msg, date) {
 global_select_mode = 'deselect';
 function deselect_enabled() { return global_select_mode === 'deselect'; }
 function compute_selections() { return global_select_mode != 'confirmed'; }
+// For manual selection disabling, e.g. when processing an absence in management panel
+global_disable_selecting = false;
 
 function get_selection_highlight_classes() {
     if (global_select_mode === 'deselect' ) return [ 'fc-highlight', 'deselect-highlight' ];
@@ -32,7 +34,7 @@ function set_selection_type(start_point) {
 
 function selectf(begin, end, jsEvent, view) {
 	// console.debug("selectf")
-    if (compute_selections()) {
+    if (compute_selections() && !global_disable_selecting) {
         log_date("selectf.begin:", begin);
         log_date("selectf.end:", end);
         var range = {
@@ -40,6 +42,12 @@ function selectf(begin, end, jsEvent, view) {
             end: moment(end.format('YYYY-MM-DD')) 
         };
         check_and_add_range(range);
+    } else if (compute_selections() && global_disable_selecting) {
+        // we are called by a normal selection event, but selecting is disabled.
+        // we must refresh the currently selected ranges, to remove FC's selection highlight which
+        // is apparently done before calling selectf()
+        //console.debug('selecting disabled!');
+        highlight_selected_ranges();
     } else {
         // if we are called just to highlight the range, abort further calculations
         //console.debug('compute off');
@@ -408,6 +416,10 @@ function accept_mode_enabled() {
 
 function user_is_logged_in() {
     return global_logged_user_id != -1;
+}
+
+function edit_mode_enabled() {
+    return (typeof global_edit_absence !== 'undefined');
 }
 
 global_show_others_absences = false;

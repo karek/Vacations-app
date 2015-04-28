@@ -14,6 +14,9 @@
         <form id='plan-absence' method='POST' action="{% url 'planner:plan-absence' %}">
             {% csrf_token %}
             {% include 'planner/planning_controls.html' %}
+            {% if edit_absence %}
+                <input type="hidden" name="edit-absence-id" value="{{ edit_absence.id }}"/>
+            {% endif %}
         </form>
         {% endblock %}
     </div>
@@ -42,10 +45,16 @@
         global_logged_user_name = "";
         global_logged_user_team_id = -1;
     {% endif %}
+    global_after_load_callbacks = $.Callbacks();
     {% autoescape off %}
     saveUserData({{ users }});
+    {% if edit_absence %}
+        global_edit_absence = {{ edit_absence_json }};
+        global_edit_ranges = {{ edit_ranges }};
+        global_after_load_callbacks.add(select_edited_absence);
+    {% endif %}
     {% endautoescape %}
-    global_after_load_callbacks = $.Callbacks();
+
 </script>
 {% endblock %}
 

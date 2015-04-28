@@ -53,3 +53,8 @@ body {
 .label-as-badge {
     border-radius: 1em;
 }
+
+table.pending-details-table > tbody > tr > th,
+table.pending-details-table > tbody > tr > td {
+    line-height: 0.8;
+}
