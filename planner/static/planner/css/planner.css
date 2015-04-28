@@ -49,3 +49,7 @@ body {
 .fc-title {
     white-space: nowrap;
 }
+
+.label-as-badge {
+    border-radius: 1em;
+}
