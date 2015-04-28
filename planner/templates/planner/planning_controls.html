@@ -45,11 +45,6 @@
     </div>
     <ul id='absence_select' class="list-group" style="text-align: left;"></ul>
 
-    <div id="absence_length" hidden="hidden" style="text-align: right; padding: 0px 17px 10px 0px;">
-    </div>
-
-    
-
     <div id="absence_other_fields" hidden="hidden">
         <div>
             <select name='absence_kind' class="form-control selectpicker">
@@ -58,14 +53,10 @@
                 {% endfor %}
             </select>
         </div>
-        <div style = "padding: 20px 0px 10px 0px;">
+        <div style = "padding: 20px 0 0 0;">
             <input type="text" class="form-control" name="comment" style="width: 100%" placeholder="Leave comment..." maxlength="80"></input>
         </div>
     </div>
-
-    <!-- <div id="absence_comment" hidden="hidden" style="text-align: left;  "> -->
-       
-    <!-- </div> -->
 
     <div id="manage_buttons" class='btn-group btn-group-justified' role='group' style="display: none;">
         {% if manage_mode == "selfcare" %}
@@ -83,7 +74,10 @@
     </div>
     <div id="plan_absence_button" class='btn-group-justified' hidden="hidden">
         <div class="btn-group">
-            <button type='submit' name='book-value-submit' class='btn btn-primary'><span class="glyphicon glyphicon-send"></span> Request Absence</button>
+            <button type='submit' name='book-value-submit' class='btn btn-primary'><span
+                    class="glyphicon glyphicon-send"></span> Request Absence
+                    <span id="absence_length" class="badge"></span>
+            </button>
         </div>
     </div>
     <div id="exit_manager_mode" style="margin-top: 15px" class="btn-group btn-group-justified" hidden="hidden">

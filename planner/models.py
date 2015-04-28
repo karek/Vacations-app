@@ -185,8 +185,9 @@ class Absence(models.Model):
     comment = models.TextField(default='', max_length=81)
 
     def __unicode__(self):
-        # return "Absence by %s %s, Kind: %s, Total workdays: %s" % (self.user.first_name, self.user.last_name, self.absence_kind.name, self.total_workdays,)
-        return "%s days of %s requested by %s %s on %s" % (self.total_workdays, self.absence_kind.name, self.user.first_name, self.user.last_name, self.dateCreated.strftime('%Y-%m-%d'),)
+        return "%s days of %s requested by %s %s on %s" % \
+               (self.total_workdays, self.absence_kind.name, self.user.first_name,
+                self.user.last_name, self.dateCreated.strftime('%Y-%m-%d'),)
 
     @classmethod
     @transaction.atomic
@@ -222,7 +223,7 @@ class Absence(models.Model):
             'kind': self.absence_kind.id,
             'kind_name': self.absence_kind.name,
             'total_workdays': self.total_workdays,
-            'comment' : self.comment,
+            'comment': self.comment,
             'kind_icon': self.absence_kind.icon_name,
             'status': self.status,
         }
