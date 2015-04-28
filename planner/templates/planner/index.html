@@ -16,10 +16,13 @@
         </form>
         {% endblock %}
 
-        <br>
-        <div id='team-select'>
-            <h4> Select teams you want to see on calendar: </h4>
-
+        <div class='btn-group btn-group-justified' role='group' style="padding-top: 25px;">
+            <div class="btn-group">
+                <button id="toggle-filter-panel" class="btn btn-default">
+                    <span class="glyphicon glyphicon-filter"></span> View filtering</button>
+            </div>
+        </div>
+        <div id='team-select' style="padding-top: 10px" hidden="hidden">
             <form id="teams-form" action="." method="POST">
                 {% csrf_token %}
                 {% for field in teamsForm.visible_fields %}
@@ -30,11 +33,21 @@
                 {% endfor %}
             </form>
 
-        <input id="select-all" type="button" name="select-all" value="Select all"/>
-        <input id="unselect-all" type="button" name="unselect-all" value="Unselect all"/>
+            <div class='btn-group btn-group-justified' role='group'>
+                <div class="btn-group">
+                    <button id="unselect-all" class="btn btn-warning btn-sm" name="unselect-all">
+                        <span class="glyphicon glyphicon-ban-circle"></span> Unselect all</button>
+                </div>
+                <div class="btn-group">
+                    <button id="select-all" class="btn btn-primary btn-sm" name="select-all">
+                        <span class="glyphicon glyphicon-th-list"></span> Select all</button>
+                </div>
+            </div>
+
+            <div style="text-align: center; padding-top: 15px; ">
+                <input id="toggle-others-absences" type="checkbox" name="toggle-others-absences"/>
+            </div>
         </div>
-         <br>
-        <input id="toggle-others-absences" type="checkbox" name="toggle-others-absences"/>
 
     </div>
 </div>
@@ -76,6 +89,7 @@
 
 {% block calendarDeclaration %}
     <script type="text/javascript">
+    prettify_team_select();
     $(document).ready(function() {
         display_or_hide_planning_controls();
         $('#calendar').fullCalendar({
@@ -111,21 +125,22 @@
             state: false,
             size: 'small',
             labelText: 'show others\' absences',
-            onSwitchChange: toggle_others_absences
+            onSwitchChange: toggle_others_absences,
+            handleWidth: 50,
+            labelWidth: 171,
+            offColor: 'warning',
+            onColor: 'primary',
+            inverse: true,
         });
 
-        $('#teams-form').on('click', function (event) {
-            getUsersFromSelectedTeams(event);
-        });
-
-         $('#select-all').on('click', function (event) {
+         $('#select-all').on('click', function(event) {
              {% for t in teams %}
                 changeButtonState({{ t.id }}, true);
             {% endfor %}
             selectAllTeams();
         });
 
-        $('#unselect-all').on('click', function (event) {
+        $('#unselect-all').on('click', function(event) {
             {% for t in teams %}
                 changeButtonState({{ t.id }}, false);
             {% endfor %}
@@ -137,9 +152,12 @@
             global_teams_selected[{{ t.id }}] = 0;
         {% endfor %}
 
-        var curTeam = "#id_teams_" + (global_logged_user_team_id - 1);
-        var a = $(curTeam);
-        a.click();
+        getUsersFromSelectedTeamsById(global_logged_user_team_id);
+        changeButtonState(global_logged_user_team_id, true);
+
+        $('#toggle-filter-panel').on('click', function(event) {
+            $('#team-select').toggle('fast');
+        });
     });
 </script>
 {% endblock %}

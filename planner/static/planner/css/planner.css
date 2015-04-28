@@ -53,3 +53,12 @@ body {
 .label-as-badge {
     border-radius: 1em;
 }
+
+ul#id_teams {
+    list-style-type: none;
+    padding: 0;
+}
+
+ul#id_teams li {
+    margin: 0;
+}

@@ -419,11 +419,15 @@ function toggle_others_absences(jsevent, state) {
 function getUsersFromSelectedTeams(jsevent) {
 
     var curTeam = jsevent.target.value;
+    getUsersFromSelectedTeamsById(curTeam);
+    console.log('TUTEJ: ', curTeam);
+}
 
-    if (global_teams_selected[curTeam] != curTeam)
-        global_teams_selected[curTeam] = curTeam;
+function getUsersFromSelectedTeamsById(team_id) {
+    if (global_teams_selected[team_id] != team_id)
+        global_teams_selected[team_id] = team_id;
     else
-        global_teams_selected[curTeam] = 0;
+        global_teams_selected[team_id] = 0;
 
     filterGlobalUsers();
 	$('#calendar').fullCalendar('refetchEvents');
@@ -451,7 +455,7 @@ function unselectAllTeams() {
 function changeButtonState(id, state) {
     var curTeam = "#id_teams_" + (id - 1);
     var a = $(curTeam);
-    a.prop('checked', state);
+    a.bootstrapSwitch('state', state, state);
 }
 
 function filterGlobalUsers() {
@@ -468,4 +472,29 @@ function filterGlobalUsers() {
     var date = $('#calendar').fullCalendar('getDate');
     $('#calendar').fullCalendar('next');
     $('#calendar').fullCalendar( 'gotoDate', date );
+}
+
+function prettify_team_select() {
+    $('ul#id_teams').siblings('label').remove();
+    var labels= $('ul#id_teams label');
+    labels.each(function(index){
+        var text = $(this).html().replace(/.*>/, '');
+        var rest = $(this).html().replace(text, '');
+        $(this).html(rest);
+        $(this).children('input').bootstrapSwitch({
+            state: false,
+            size: 'mini',
+            offColor: 'warning',
+            onColor: 'primary',
+            inverse: true,
+            labelText: text,
+            handleWidth: 50,
+            labelWidth: 189,
+            onSwitchChange: team_select_clicked,
+        });
+    });
+}
+
+function team_select_clicked(jsevent, state) {
+    getUsersFromSelectedTeams(jsevent);
 }
