@@ -180,11 +180,11 @@ class Absence(models.Model):
     )
 
     user = models.ForeignKey(EmailUser)
-    dateCreated = models.DateTimeField(auto_now_add=True)
+    dateCreated = models.DateTimeField(auto_now=True)
     absence_kind = models.ForeignKey(AbsenceKind)
     status = models.IntegerField(default=PENDING, choices=STATUS_CHOICES)
     total_workdays = models.IntegerField(default=0, null=False, blank=False)
-    comment = models.TextField(default='', max_length=81)
+    comment = models.CharField(default='', max_length=81)
 
     def __unicode__(self):
         return "%s days of %s requested by %s %s on %s" % \
@@ -241,6 +241,7 @@ class Absence(models.Model):
             'comment': self.comment,
             'kind_icon': self.absence_kind.icon_name,
             'status': self.status,
+            'change_ts': self.change_timestamp(),
         }
 
     def request_acceptance(self):
@@ -358,8 +359,14 @@ class Absence(models.Model):
             text = 'Am accepted abence (listed below) was CANCELLED.'
         return text + '\n\n' + self.description()
 
+    def change_timestamp(self):
+        return self.dateCreated.strftime('%s')
+
+    def manage_path(self):
+        return '/manage-absences?absence-id=%d&ts=%s' % (self.id, self.change_timestamp())
+
     def manage_url(self):
-        return settings.BASE_URL + '/manage-absences?absence-id=' + str(self.id)
+        return settings.BASE_URL + self.manage_path()
 
 
 class AbsenceRange(models.Model):

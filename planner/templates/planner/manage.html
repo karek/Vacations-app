@@ -9,6 +9,7 @@
         <form id='plan-absence' method='GET' action="{{ request.path }}">
             {% if accept_absence %}
             <input type="hidden" name="absence-id" value="{{ accept_absence.id }}"/>
+            <input type="hidden" name="ts" value="{{ accept_absence.change_ts }}"/>
             {% endif %}
             {% include 'planner/planning_controls.html' %}
         </form>

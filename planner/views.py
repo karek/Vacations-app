@@ -165,6 +165,9 @@ class ManageAbsenceView(View):
                 else:
                     statuses = [Absence.PENDING, ]
                 absence = Absence.objects.get(id=request.GET['absence-id'], status__in=statuses)
+                if 'ts' in request.GET and absence.change_timestamp() != request.GET['ts']:
+                    messages.warning(request, 'Absence was changed, please review the new version.')
+                    return HttpResponseRedirect(absence.manage_path())
                 self.handle_absence_management(request, absence)
             except ObjectDoesNotExist:
                 messages.error(request, 'Invalid or already processed absence selected.')
