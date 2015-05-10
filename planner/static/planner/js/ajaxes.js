@@ -113,9 +113,17 @@ function calcSorted(data) {
 
 //grouping by team
         if (a.team_id != b.team_id)
-            return a.team_id > b.team_id;
+        {
+            if (a.team_id == global_logged_user_team_id)
+                return false;
 
-//They are in the same team
+            if (b.team_id == global_logged_user_team_id)
+                return true;
+
+            return a.team_id > b.team_id;
+        }
+
+//They are in the same team -> further sorting
         if (a.is_teamleader)
             return false;
 
