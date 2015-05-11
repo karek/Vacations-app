@@ -6037,10 +6037,6 @@ var CustomResourceGrid = TimeGrid.extend({
             var currPerson = global_users_sorted[i];
             var name = currPerson.first_name + " "  + currPerson.last_name;
 
-            if (currPerson.id == global_logged_user_id) {
-                continue;
-            }
-
             axisHtml =
 				'<td class="fc-axis fc-time ' + view.widgetContentClass + '" ' + view.axisStyleAttr() + '>' +
 						'<span>' + // for matchCellWidths
@@ -9986,7 +9982,7 @@ fcViews.Workers = agendaView.extend ({
         return '' +
             '<td class="fc-axis ' + this.widgetContentClass + '" ' + this.axisStyleAttr() + '>' +
             '<span>' + // needed for matchCellWidths
-            (this.opt('allDayHtml') || htmlEscape(global_logged_user_name)) +
+            (this.opt('allDayHtml') || htmlEscape("Holidays")) +
             '</span>' +
             '</td>';
     },
@@ -10001,8 +9997,7 @@ fcViews.Workers = agendaView.extend ({
 
 // separate the events into all-day and timed
         for (i = 0; i < events.length; i++) {
-            if (events[i].user_id == global_logged_user_id ||
-                    events[i].user_id == global_event_is_holiday) {
+            if (events[i].user_id == global_event_is_holiday) {
                 myEvents.push(events[i]);
             }
             else {
