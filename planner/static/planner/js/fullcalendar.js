@@ -9982,7 +9982,7 @@ fcViews.Workers = agendaView.extend ({
         return '' +
             '<td class="fc-axis ' + this.widgetContentClass + '" ' + this.axisStyleAttr() + '>' +
             '<span>' + // needed for matchCellWidths
-            (this.opt('allDayHtml') || htmlEscape("Events")) +
+            (this.opt('allDayHtml') || htmlEscape("Holidays")) +
             '</span>' +
             '</td>';
     },
