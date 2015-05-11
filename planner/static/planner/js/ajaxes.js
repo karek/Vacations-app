@@ -110,7 +110,27 @@ function calcSorted(data) {
         });
 
     sortAndSaveUsersOrder(function (a, b) {
-        return a.last_name > b.last_name;
+
+//grouping by team
+        if (a.team_id != b.team_id)
+        {
+            if (a.team_id == global_logged_user_team_id)
+                return false;
+
+            if (b.team_id == global_logged_user_team_id)
+                return true;
+
+            return a.team_id > b.team_id;
+        }
+
+//They are in the same team -> further sorting
+        if (a.is_teamleader)
+            return false;
+
+        if (b.is_teamleader)
+            return true;
+
+        return a.last_name.toUpperCase() > b.last_name.toUpperCase();
     });
 
 }
