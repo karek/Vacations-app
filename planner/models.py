@@ -255,7 +255,8 @@ class Absence(models.Model):
     def request_acceptance(self):
         # if the absence doesn't need acceptance, skip to ACCEPTED
         if self.absence_kind and not self.absence_kind.require_acceptance:
-            self.accept()
+            self.status = self.ACCEPTED
+            self.save()
         else:
             # send mail to our test email to check if its ok
             # TODO send a proper mail to the right address
