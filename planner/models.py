@@ -243,6 +243,8 @@ class Absence(models.Model):
             'date_created': dateToString(self.dateCreated),
             'kind_id': self.absence_kind.id,
             'kind_name': self.absence_kind.name,
+            'kind_bg_color': self.absence_kind.bg_color,
+            'kind_text_color': self.absence_kind.text_color,
             'total_workdays': self.total_workdays,
             'comment': self.comment,
             'kind_icon': self.absence_kind.icon_name,
