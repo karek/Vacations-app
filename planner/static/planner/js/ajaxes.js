@@ -254,11 +254,13 @@ function calendar_event_from_range(range) {
 
     // On clicking an event, open its absence details or management
     if (manage_mode_team_manager()) {
-        // TODO  check also absence creator's team
-        cal_event.url = '/manage-absences/?absence-id=' + range.absence_id;
+        if (global_logged_user_team_id == global_users_by_id[range.user_id].team_id) {
+            cal_event.url = '/manage-absences/?absence-id=' + range.absence_id;
+        }
     } else {
-        // TODO check also user's id
-        cal_event.url = '/my-absences/?absence-id=' + range.absence_id;
+        if (range.user_id == global_logged_user_id) {
+            cal_event.url = '/my-absences/?absence-id=' + range.absence_id;
+        }
     }
     return cal_event;
 }
