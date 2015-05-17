@@ -154,6 +154,7 @@
                 changeButtonState({{ t.id }}, true);
             {% endfor %}
             selectAllTeams();
+            global_view_filters_clicked = true;
         });
 
         $('#unselect-all').on('click', function(event) {
@@ -162,6 +163,7 @@
                 changeButtonState({{ t.id }}, false);
             {% endfor %}
             unselectAllTeams();
+            global_view_filters_clicked = true;
         });
 
         {% for t in teams %}
@@ -169,16 +171,17 @@
             global_teams_selected[{{ t.id }}] = 0;
         {% endfor %}
 
-        getUsersFromSelectedTeamsById(global_logged_user_team_id);
-        changeButtonState(global_logged_user_team_id, true);
-
         $('#toggle-filter-panel').on('click', function(event) {
             $('#team-select').toggle('fast');
         });
 
         {% if not request.user.is_authenticated %}
         $('#select-all').click();
+        {% else %}
+        getUsersFromSelectedTeamsById(-1); {# to initialize the selections properly... #}
         {% endif %}
+        
+        global_view_filters_clicked = false;
     });
 </script>
 {% endblock %}

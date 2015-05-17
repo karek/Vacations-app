@@ -386,6 +386,17 @@ function highlight_selected_ranges() {
 // To be connected to FC's viewRender callback, triggered after every view switch.
 function view_render_callback(view, element) {
     highlight_selected_ranges();
+    if (typeof global_view_filters_clicked !== 'undefined' && !global_view_filters_clicked) {
+        if (view.name == 'weekWorkers' && global_teams_selected[global_logged_user_team_id] == 0) {
+            getUsersFromSelectedTeamsById(global_logged_user_team_id);
+            changeButtonState(global_logged_user_team_id, true);
+        }
+        if (view.name == 'month' && global_teams_selected[global_logged_user_team_id] == 1) {
+            global_teams_selected[global_logged_user_team_id] = 0;
+            changeButtonState(global_logged_user_team_id, false);
+            $('#calendar').fullCalendar('refetchEvents');
+        }
+    }
 }
 
 // Manually add selection from given ranges (from DB's json)
@@ -434,6 +445,7 @@ global_show_my_absences = true;
 function toggle_my_absences(jsevent, state) {
     global_show_my_absences = state;
 	$('#calendar').fullCalendar('refetchEvents');
+    global_view_filters_clicked = true;
 }
 
 function getUsersFromSelectedTeams(jsevent) {
@@ -474,7 +486,7 @@ function unselectAllTeams() {
 function changeButtonState(id, state) {
     var curTeam = "#id_teams_" + (id - 1);
     var a = $(curTeam);
-    a.bootstrapSwitch('state', state, state);
+    a.bootstrapSwitch('state', state, true);
 }
 
 function filterGlobalUsers() {
@@ -515,6 +527,7 @@ function prettify_team_select() {
 
 function team_select_clicked(jsevent, state) {
     getUsersFromSelectedTeams(jsevent);
+    global_view_filters_clicked = true;
 }
 
 function event_render_callback(event, element) {
