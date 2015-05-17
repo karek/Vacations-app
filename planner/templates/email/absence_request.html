@@ -55,12 +55,22 @@
                             {% endif %}
                             <tr>
                                 <td style="padding: 10px 15px 10px 15px; border: 0">
-                                    <strong>Created</strong>
+                                    <strong>{% if status == 1 %}Created{% else %}Requested{% endif %}</strong>
                                 </td>
                                 <td style="padding: 10px 15px 10px 15px; border: 0">
                                     {{ date_created }}
                                 </td>
                             </tr>
+                            {% if created_ts != modified_ts %}
+                            <tr>
+                                <td style="padding: 10px 15px 10px 15px; border: 0">
+                                    <strong>Modified</strong>
+                                </td>
+                                <td style="padding: 10px 15px 10px 15px; border: 0">
+                                    {{ date_modified }}
+                                </td>
+                            </tr>
+                            {% endif %}
                         </table>
                     </td>
                 </tr>

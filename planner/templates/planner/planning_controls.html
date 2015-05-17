@@ -36,6 +36,12 @@
                     <th scope="row">{% if accept_absence.status == 1 %}Created{% else %}Requested{% endif %}</th>
                     <td>{{ accept_absence.date_created }}</td>
                 </tr>
+                {% if accept_absence.created_ts != accept_absence.modified_ts %}
+                <tr>
+                    <th scope="row">Modified</th>
+                    <td>{{ accept_absence.date_modified }}</td>
+                </tr>
+                {% endif %}
                 {% if accept_absence.comment %}
                 <tr>
                     <th scope="row">Comment</th>

@@ -356,6 +356,10 @@ function show_mng_absence_as_li(absence) {
     if (absence.comment) {
         comment_row = '<tr><th scope="row">Comment</th><td>' + absence.comment + '</td></tr>';
     }
+    var modified_row = '';
+    if (absence.created_ts != absence.modified_ts) {
+        modified_row = '<tr><th scope="row">Modified</th><td>' + absence.date_modified + '</td></tr>';
+    }
     var date_desc = (absence.status == status_ACCEPTED) ? 'Created' : 'Requested';
     return ''
         + '<a class="list-group-item" href="' + link + '">'
@@ -365,6 +369,7 @@ function show_mng_absence_as_li(absence) {
         + '<tbody><tr>'
         + '<th scope="row">Kind</th><td>' + absence.kind_name + '</td></tr>'
         + '<tr><th scope="row">' + date_desc + '</th><td>' + absence.date_created + '</td></tr>'
+        + modified_row
         + comment_row
         + '</tbody></table>'
         + '</a>';
