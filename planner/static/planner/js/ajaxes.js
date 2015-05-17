@@ -240,6 +240,8 @@ function calendar_event_from_range(range) {
     else classes.push('absence-status-pending');
     var kindclass = 'absence-kind-' + range.kind_name.toLowerCase().replace(' ', '-');
     classes.push(kindclass);
+    var tooltip_text = '';
+    if (range.comment) tooltip_text = '<i>' + range.comment + '</i>';
 
     var cal_event = {
         id: range.id,
@@ -256,12 +258,21 @@ function calendar_event_from_range(range) {
     if (manage_mode_team_manager()) {
         if (global_logged_user_team_id == global_users_by_id[range.user_id].team_id) {
             cal_event.url = '/manage-absences/?absence-id=' + range.absence_id;
+            if (tooltip_text) tooltip_text += '<br/>';
+            tooltip_text += 'Click to manage';
         }
     } else {
         if (range.user_id == global_logged_user_id) {
             cal_event.url = '/my-absences/?absence-id=' + range.absence_id;
+            if (tooltip_text) tooltip_text += '<br/>';
+            tooltip_text += 'Click to view details';
         }
     }
+
+    if (tooltip_text) {
+        cal_event.tooltip_text = tooltip_text;
+    }
+
     return cal_event;
 }
 

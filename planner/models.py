@@ -456,6 +456,7 @@ class AbsenceRange(models.Model):
             'kind_id': self.absence.absence_kind.id,
             'kind_name': self.absence.absence_kind.name,
             'kind_icon': self.absence.absence_kind.icon_name,
+            'comment': self.absence.comment,
         }
 
     @property

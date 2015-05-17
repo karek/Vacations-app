@@ -516,3 +516,12 @@ function prettify_team_select() {
 function team_select_clicked(jsevent, state) {
     getUsersFromSelectedTeams(jsevent);
 }
+
+function event_render_callback(event, element) {
+    if (event.tooltip_text) {
+        element.tooltip({
+            title: event.tooltip_text,
+            html: true,
+        });
+    }
+}
