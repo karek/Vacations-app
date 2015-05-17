@@ -259,13 +259,13 @@ function calendar_event_from_range(range) {
         if (global_logged_user_team_id == global_users_by_id[range.user_id].team_id) {
             cal_event.url = '/manage-absences/?absence-id=' + range.absence_id;
             if (tooltip_text) tooltip_text += '<br/>';
-            tooltip_text += 'Click to manage';
+            tooltip_text += '<span class="glyphicon glyphicon-wrench"></span>&nbsp;Click to manage';
         }
     } else {
         if (range.user_id == global_logged_user_id) {
             cal_event.url = '/my-absences/?absence-id=' + range.absence_id;
             if (tooltip_text) tooltip_text += '<br/>';
-            tooltip_text += 'Click to view details';
+            tooltip_text += '<span class="glyphicon glyphicon-zoom-in"></span>&nbsp;Click to view details';
         }
     }
 
