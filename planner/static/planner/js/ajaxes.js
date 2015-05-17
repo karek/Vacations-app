@@ -356,6 +356,7 @@ function show_mng_absence_as_li(absence) {
     if (absence.comment) {
         comment_row = '<tr><th scope="row">Comment</th><td>' + absence.comment + '</td></tr>';
     }
+    var date_desc = (absence.status == status_ACCEPTED) ? 'Created' : 'Requested';
     return ''
         + '<a class="list-group-item" href="' + link + '">'
         + '<span class="'+ label_class + '" style="margin-top: 10px;">' + label_text + '</span>'
@@ -363,7 +364,7 @@ function show_mng_absence_as_li(absence) {
         + '<table class="table pending-details-table" style="margin-bottom: 0px;">'
         + '<tbody><tr>'
         + '<th scope="row">Kind</th><td>' + absence.kind_name + '</td></tr>'
-        + '<tr><th scope="row">Created</th><td>' + absence.date_created + '</td></tr>'
+        + '<tr><th scope="row">' + date_desc + '</th><td>' + absence.date_created + '</td></tr>'
         + comment_row
         + '</tbody></table>'
         + '</a>';

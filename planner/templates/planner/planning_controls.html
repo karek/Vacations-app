@@ -33,7 +33,7 @@
                     <td>{{ accept_absence.kind_name }}</td>
                 </tr>
                 <tr>
-                    <th scope="row">Created</th>
+                    <th scope="row">{% if accept_absence.status == 1 %}Created{% else %}Requested{% endif %}</th>
                     <td>{{ accept_absence.date_created }}</td>
                 </tr>
                 {% if accept_absence.comment %}
