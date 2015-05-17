@@ -25,7 +25,7 @@ function set_selection_type(start_point) {
         $(".s_range").each(function(index) { 
             var old_range = { begin: moment($(this).attr("s_begin")), end: moment($(this).attr("s_end"))};
             if (in_range(start_point, old_range)) {
-                console.log('activating DESELECT');
+                //console.debug('activating DESELECT');
                 global_select_mode = 'deselect';
             }
         });
@@ -409,6 +409,14 @@ function manage_mode_enabled() {
     return (typeof global_manage_mode !== 'undefined');
 }
 
+function manage_mode_selfcare() {
+    return manage_mode_enabled() && global_manage_mode == 'selfcare';
+}
+
+function manage_mode_team_manager() {
+    return manage_mode_enabled() && global_manage_mode == 'manager';
+}
+
 // Returns true if we are in management mode AND processing an absence request
 function accept_mode_enabled() {
     return (typeof global_accept_absence_id !== 'undefined');
@@ -432,7 +440,6 @@ function getUsersFromSelectedTeams(jsevent) {
 
     var curTeam = jsevent.target.value;
     getUsersFromSelectedTeamsById(curTeam);
-    console.log('TUTEJ: ', curTeam);
 }
 
 function getUsersFromSelectedTeamsById(team_id) {
@@ -477,7 +484,6 @@ function filterGlobalUsers() {
             global_users_filtered.push(global_users[i]);
         }
     }
-    console.log(global_users_filtered);
     calcSorted(global_users_filtered);
 
     //Somebody fix dat shit down there please VVV :(

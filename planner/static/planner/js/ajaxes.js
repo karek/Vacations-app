@@ -175,36 +175,19 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
                 if (accept_mode_enabled() && ranges[i].absence_id == global_accept_absence_id) {
                     continue;
                 }
-
                 if (edit_mode_enabled() && ranges[i].absence_id == global_edit_absence.id) {
                     continue;
                 }
 
-                //not in currently selected teams
-
+                // not in currently selected teams
                 if (global_teams_selected[global_users_by_id[ranges[i].user_id].team_id] == 0) {
                     continue;
                 }
-
                 if (!global_show_others_absences && ranges[i].user_id != global_logged_user_id) {
                     continue;
                 }
-                var classes = new Array();
-                if (ranges[i].status == status_ACCEPTED) classes.push('absence-status-accepted');
-                else classes.push('absence-status-pending');
-                var kindclass = 'absence-kind-' + ranges[i].kind_name.toLowerCase().replace(' ', '-');
-                classes.push(kindclass);
 
-                event_objects.push({
-                    id: ranges[i].id,
-                    title: global_users_by_id[ranges[i].user_id].full_name,
-                    start: ranges[i].begin,
-                    end: ranges[i].end,
-                    user_id: ranges[i].user_id,
-                    className: classes,
-                    type: ranges[i].kind_name,
-                    icon: ranges[i].kind_icon
-                });
+                event_objects.push(calendar_event_from_range(ranges[i]));
 
                 // pull out current user's absences
                 if (global_logged_user_id === ranges[i].user_id) {
@@ -249,6 +232,35 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
             );
         }
     );
+}
+
+function calendar_event_from_range(range) {
+    var classes = new Array();
+    if (range.status == status_ACCEPTED) classes.push('absence-status-accepted');
+    else classes.push('absence-status-pending');
+    var kindclass = 'absence-kind-' + range.kind_name.toLowerCase().replace(' ', '-');
+    classes.push(kindclass);
+
+    var cal_event = {
+        id: range.id,
+        title: global_users_by_id[range.user_id].full_name,
+        start: range.begin,
+        end: range.end,
+        user_id: range.user_id,
+        className: classes,
+        type: range.kind_name,
+        icon: range.kind_icon,
+    };
+
+    // On clicking an event, open its absence details or management
+    if (manage_mode_team_manager()) {
+        // TODO  check also absence creator's team
+        cal_event.url = '/manage-absences/?absence-id=' + range.absence_id;
+    } else {
+        // TODO check also user's id
+        cal_event.url = '/my-absences/?absence-id=' + range.absence_id;
+    }
+    return cal_event;
 }
 
 
@@ -303,7 +315,7 @@ function getMatchingAbsences(params, on_success) {
 // 'manager' => PENDING absences of manager's team
 function get_management_absences() {
     var params = {};
-    if (global_manage_mode == 'selfcare') {
+    if (manage_mode_selfcare()) {
         params = {
             'user-id': global_logged_user_id,
             'date-not-before': moment().format('YYYY-MM-DD'),
@@ -330,7 +342,7 @@ function show_management_absences() {
     manage_hdr.hide();
     if (global_mng_absences.length == 0) {
         manage_hdr.show();
-        var text = (global_manage_mode == 'selfcare'
+        var text = (manage_mode_selfcare()
                 ? 'No upcoming absences.'
                 : 'No pending absence requests.')
         manage_hdr.html(text);
@@ -348,7 +360,7 @@ function show_mng_absence_as_li(absence) {
     var link = global_manage_url + '?absence-id=' + absence.id;
     var label_text = absence.total_workdays;
     var label_class = 'badge';
-    if (global_manage_mode = 'selfcare' && absence.status == status_ACCEPTED) {
+    if (manage_mode_selfcare() && absence.status == status_ACCEPTED) {
         label_class += ' progress-bar-success';
         label_text += '&nbsp;<span class="glyphicon glyphicon-ok"></span>';
     }
