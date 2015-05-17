@@ -180,10 +180,11 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
                 }
 
                 // not in currently selected teams
-                if (global_teams_selected[global_users_by_id[ranges[i].user_id].team_id] == 0) {
+                if (global_teams_selected[global_users_by_id[ranges[i].user_id].team_id] == 0
+                        && ranges[i].user_id != global_logged_user_id) {
                     continue;
                 }
-                if (!global_show_others_absences && ranges[i].user_id != global_logged_user_id) {
+                if (!global_show_my_absences && ranges[i].user_id == global_logged_user_id) {
                     continue;
                 }
 

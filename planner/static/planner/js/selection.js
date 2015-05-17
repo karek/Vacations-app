@@ -430,9 +430,9 @@ function edit_mode_enabled() {
     return (typeof global_edit_absence !== 'undefined');
 }
 
-global_show_others_absences = false;
-function toggle_others_absences(jsevent, state) {
-    global_show_others_absences = state;
+global_show_my_absences = true;
+function toggle_my_absences(jsevent, state) {
+    global_show_my_absences = state;
 	$('#calendar').fullCalendar('refetchEvents');
 }
 
