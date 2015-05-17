@@ -255,18 +255,15 @@ function calendar_event_from_range(range) {
     };
 
     // On clicking an event, open its absence details or management
-    if (manage_mode_team_manager()) {
-        if (global_logged_user_team_id == global_users_by_id[range.user_id].team_id) {
-            cal_event.url = '/manage-absences/?absence-id=' + range.absence_id;
-            if (tooltip_text) tooltip_text += '<br/>';
-            tooltip_text += '<span class="glyphicon glyphicon-wrench"></span>&nbsp;Click to manage';
-        }
-    } else {
-        if (range.user_id == global_logged_user_id) {
-            cal_event.url = '/my-absences/?absence-id=' + range.absence_id;
-            if (tooltip_text) tooltip_text += '<br/>';
-            tooltip_text += '<span class="glyphicon glyphicon-zoom-in"></span>&nbsp;Click to view details';
-        }
+    if (!manage_mode_team_manager() && range.user_id == global_logged_user_id) {
+        cal_event.url = '/my-absences/?absence-id=' + range.absence_id;
+        if (tooltip_text) tooltip_text += '<br/>';
+        tooltip_text += '<span class="glyphicon glyphicon-zoom-in"></span>&nbsp;Click to view details';
+    } else if (global_logged_user_team_id == global_users_by_id[range.user_id].team_id
+            && global_logged_user_is_teamleader && range.status == status_PENDING) {
+        cal_event.url = '/manage-absences/?absence-id=' + range.absence_id;
+        if (tooltip_text) tooltip_text += '<br/>';
+        tooltip_text += '<span class="glyphicon glyphicon-wrench"></span>&nbsp;Click to manage';
     }
 
     if (tooltip_text) {

@@ -72,14 +72,17 @@
     global_absence_url = "{% url 'planner:absence' %}";
     global_teams_url = "{% url 'planner:teams' %}";
 
+    global_logged_user_id = -1;
+    global_logged_user_name = "";
+    global_logged_user_team_id = -1;
+    global_logged_user_is_teamleader = false;
     {% if request.user.is_authenticated %}
         global_logged_user_id = {{ request.user.id }};
         global_logged_user_name = "{{ request.user.first_name }}" + " " + "{{ request.user.last_name }}";
         global_logged_user_team_id = {{ request.user.team.id }};
-    {% else %}
-        global_logged_user_id = -1;
-        global_logged_user_name = "";
-        global_logged_user_team_id = -1;
+        {% if request.user.is_teamleader %}
+            global_logged_user_is_teamleader = true;
+        {% endif %}
     {% endif %}
 
     {% autoescape off %}
