@@ -84,14 +84,13 @@
 
     {% autoescape off %}
     saveUserData({{ users }});
+    global_after_load_callbacks = $.Callbacks();
     {% if edit_absence %}
         global_edit_absence = {{ edit_absence_json }};
         global_edit_ranges = {{ edit_ranges }};
         global_after_load_callbacks.add(select_edited_absence);
     {% endif %}
     {% endautoescape %}
-
-    global_after_load_callbacks = $.Callbacks();
 
 </script>
 {% endblock %}
