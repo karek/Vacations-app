@@ -6030,6 +6030,9 @@ var CustomResourceGrid = TimeGrid.extend({
 		var isRTL = this.isRTL;
 		var html = '';
 		var axisHtml;
+        var axisEnd = '</span>' + '</td>';
+        var axisBeg = '<td class="fc-axis fc-time ' + view.widgetContentClass + '" ' + view.axisStyleAttr() + '>' +
+                    '<span>' ; // for matchCellWidths
 
 		// Calculate the time for each slot
         for (i in global_users_sorted) {
@@ -6037,11 +6040,13 @@ var CustomResourceGrid = TimeGrid.extend({
             var currPerson = global_users_sorted[i];
             var name = currPerson.first_name + " "  + currPerson.last_name;
 
-            axisHtml =
-				'<td class="fc-axis fc-time ' + view.widgetContentClass + '" ' + view.axisStyleAttr() + '>' +
-						'<span>' + // for matchCellWidths
-							htmlEscape(name) +
-						'</span>' +	'</td>';
+//            if(currPerson.id == global_logged_user_id && !global_show_my_absences)
+//                continue;
+            console.log(currPerson);
+            if (!currPerson.is_teamleader)
+                axisHtml = axisBeg +  htmlEscape(name) + axisEnd;
+            else
+                axisHtml = axisBeg + '<span class="glyphicon glyphicon-star-empty"></span>' +  htmlEscape(name) + axisEnd;
 
 			html +=
 				'<tr>' +
