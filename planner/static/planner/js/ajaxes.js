@@ -104,10 +104,11 @@ function calcSorted(data) {
     }
 
 // In future functions sort it in some other way
-//    global_users_sorted = global_users_sorted.filter(
-//        function (a) {
-//            return a.id != global_logged_user_id;
-//        });
+    if (!global_show_my_absences)
+    global_users_sorted = global_users_sorted.filter(
+        function (a) {
+            return a.id != global_logged_user_id;
+        });
 
     sortAndSaveUsersOrder(function (a, b) {
 
