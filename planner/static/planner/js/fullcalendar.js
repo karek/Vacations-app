@@ -6039,14 +6039,19 @@ var CustomResourceGrid = TimeGrid.extend({
 
             var currPerson = global_users_sorted[i];
             var name = currPerson.first_name + " "  + currPerson.last_name;
+            var maybeBold = htmlEscape(name);
+             console.log(currPerson);
 
-//            if(currPerson.id == global_logged_user_id && !global_show_my_absences)
-//                continue;
-            console.log(currPerson);
+            if (currPerson.id == global_logged_user_id)
+                if (!global_show_my_absences)
+                    continue;
+                else maybeBold = '<b>' + htmlEscape(name) + '</b>';
+
+
             if (!currPerson.is_teamleader)
-                axisHtml = axisBeg +  htmlEscape(name) + axisEnd;
+                axisHtml = axisBeg + maybeBold + axisEnd;
             else
-                axisHtml = axisBeg + '<span class="glyphicon glyphicon-star-empty"></span>' +  htmlEscape(name) + axisEnd;
+                axisHtml = axisBeg + '<span class="glyphicon glyphicon-star-empty"></span>' +  maybeBold + axisEnd;
 
 			html +=
 				'<tr>' +
