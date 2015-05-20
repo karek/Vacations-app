@@ -6040,7 +6040,6 @@ var CustomResourceGrid = TimeGrid.extend({
             var currPerson = global_users_sorted[i];
             var name = currPerson.first_name + " "  + currPerson.last_name;
             var maybeBold = htmlEscape(name);
-             console.log(currPerson);
 
             if (currPerson.id == global_logged_user_id)
                 if (!global_show_my_absences)
