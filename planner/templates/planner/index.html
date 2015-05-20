@@ -25,8 +25,11 @@
                     <span class="glyphicon glyphicon-filter"></span> View filtering</button>
             </div>
         </div>
-        <div id='team-select' style="padding-top: 10px" hidden="hidden">
-            <form id="teams-form" action="." method="POST">
+        <div id='team-select' style="padding-top: 0px" hidden="hidden">
+            <div style="text-align: center; padding-top: 15px; ">
+                <input id="toggle-my-absences" type="checkbox" name="toggle-my-absences"/>
+            </div>
+            <form id="teams-form" action="." method="POST" style="padding-top: 15px;">
                 {% csrf_token %}
                 {% for field in teamsForm.visible_fields %}
                     <div class="fieldWrapper">
@@ -47,9 +50,6 @@
                 </div>
             </div>
 
-            <div style="text-align: center; padding-top: 15px; ">
-                <input id="toggle-others-absences" type="checkbox" name="toggle-others-absences"/>
-            </div>
         </div>
 
     </div>
@@ -72,26 +72,28 @@
     global_absence_url = "{% url 'planner:absence' %}";
     global_teams_url = "{% url 'planner:teams' %}";
 
+    global_logged_user_id = -1;
+    global_logged_user_name = "";
+    global_logged_user_team_id = -1;
+    global_logged_user_is_teamleader = false;
     {% if request.user.is_authenticated %}
         global_logged_user_id = {{ request.user.id }};
         global_logged_user_name = "{{ request.user.first_name }}" + " " + "{{ request.user.last_name }}";
         global_logged_user_team_id = {{ request.user.team.id }};
-    {% else %}
-        global_logged_user_id = -1;
-        global_logged_user_name = "";
-        global_logged_user_team_id = -1;
+        {% if request.user.is_teamleader %}
+            global_logged_user_is_teamleader = true;
+        {% endif %}
     {% endif %}
 
     {% autoescape off %}
     saveUserData({{ users }});
+    global_after_load_callbacks = $.Callbacks();
     {% if edit_absence %}
         global_edit_absence = {{ edit_absence_json }};
         global_edit_ranges = {{ edit_ranges }};
         global_after_load_callbacks.add(select_edited_absence);
     {% endif %}
     {% endautoescape %}
-
-    global_after_load_callbacks = $.Callbacks();
 
 </script>
 {% endblock %}
@@ -129,31 +131,39 @@
             },
             viewRender: view_render_callback,
             firstDay: 1,
+            eventRender: event_render_callback,
         });
-        $('#toggle-others-absences').bootstrapSwitch({
-            state: false,
-            size: 'small',
-            labelText: 'show others\' absences',
-            onSwitchChange: toggle_others_absences,
+
+        $('#toggle-my-absences').bootstrapSwitch({
+            state: true,
+            size: 'mini',
+            labelText: '<b>Myself</b>',
+            onText: '<b>ON</b>',
+            offText: '<b>OFF</b>',
+            onSwitchChange: toggle_my_absences,
             handleWidth: 50,
-            labelWidth: 171,
+            labelWidth: 189,
             offColor: 'warning',
             onColor: 'primary',
             inverse: true,
         });
 
          $('#select-all').on('click', function(event) {
-             {% for t in teams %}
+            $('#toggle-my-absences').bootstrapSwitch('state', true, false);
+            {% for t in teams %}
                 changeButtonState({{ t.id }}, true);
             {% endfor %}
             selectAllTeams();
+            global_view_filters_clicked = true;
         });
 
         $('#unselect-all').on('click', function(event) {
+            $('#toggle-my-absences').bootstrapSwitch('state', false, false);
             {% for t in teams %}
                 changeButtonState({{ t.id }}, false);
             {% endfor %}
             unselectAllTeams();
+            global_view_filters_clicked = true;
         });
 
         {% for t in teams %}
@@ -161,12 +171,17 @@
             global_teams_selected[{{ t.id }}] = 0;
         {% endfor %}
 
-        getUsersFromSelectedTeamsById(global_logged_user_team_id);
-        changeButtonState(global_logged_user_team_id, true);
-
         $('#toggle-filter-panel').on('click', function(event) {
             $('#team-select').toggle('fast');
         });
+
+        {% if not request.user.is_authenticated %}
+        $('#select-all').click();
+        {% else %}
+        getUsersFromSelectedTeamsById(-1); {# to initialize the selections properly... #}
+        {% endif %}
+        
+        global_view_filters_clicked = false;
     });
 </script>
 {% endblock %}

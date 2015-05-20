@@ -25,7 +25,7 @@ function set_selection_type(start_point) {
         $(".s_range").each(function(index) { 
             var old_range = { begin: moment($(this).attr("s_begin")), end: moment($(this).attr("s_end"))};
             if (in_range(start_point, old_range)) {
-                console.log('activating DESELECT');
+                //console.debug('activating DESELECT');
                 global_select_mode = 'deselect';
             }
         });
@@ -386,6 +386,17 @@ function highlight_selected_ranges() {
 // To be connected to FC's viewRender callback, triggered after every view switch.
 function view_render_callback(view, element) {
     highlight_selected_ranges();
+    if (typeof global_view_filters_clicked !== 'undefined' && !global_view_filters_clicked) {
+        if (view.name == 'weekWorkers' && global_teams_selected[global_logged_user_team_id] == 0) {
+            getUsersFromSelectedTeamsById(global_logged_user_team_id);
+            changeButtonState(global_logged_user_team_id, true);
+        }
+        if (view.name == 'month' && global_teams_selected[global_logged_user_team_id] == 1) {
+            global_teams_selected[global_logged_user_team_id] = 0;
+            changeButtonState(global_logged_user_team_id, false);
+            $('#calendar').fullCalendar('refetchEvents');
+        }
+    }
 }
 
 // Manually add selection from given ranges (from DB's json)
@@ -409,6 +420,14 @@ function manage_mode_enabled() {
     return (typeof global_manage_mode !== 'undefined');
 }
 
+function manage_mode_selfcare() {
+    return manage_mode_enabled() && global_manage_mode == 'selfcare';
+}
+
+function manage_mode_team_manager() {
+    return manage_mode_enabled() && global_manage_mode == 'manager';
+}
+
 // Returns true if we are in management mode AND processing an absence request
 function accept_mode_enabled() {
     return (typeof global_accept_absence_id !== 'undefined');
@@ -422,17 +441,17 @@ function edit_mode_enabled() {
     return (typeof global_edit_absence !== 'undefined');
 }
 
-global_show_others_absences = false;
-function toggle_others_absences(jsevent, state) {
-    global_show_others_absences = state;
+global_show_my_absences = true;
+function toggle_my_absences(jsevent, state) {
+    global_show_my_absences = state;
 	$('#calendar').fullCalendar('refetchEvents');
+    global_view_filters_clicked = true;
 }
 
 function getUsersFromSelectedTeams(jsevent) {
 
     var curTeam = jsevent.target.value;
     getUsersFromSelectedTeamsById(curTeam);
-    console.log('TUTEJ: ', curTeam);
 }
 
 function getUsersFromSelectedTeamsById(team_id) {
@@ -467,7 +486,7 @@ function unselectAllTeams() {
 function changeButtonState(id, state) {
     var curTeam = "#id_teams_" + (id - 1);
     var a = $(curTeam);
-    a.bootstrapSwitch('state', state, state);
+    a.bootstrapSwitch('state', state, true);
 }
 
 function filterGlobalUsers() {
@@ -477,7 +496,6 @@ function filterGlobalUsers() {
             global_users_filtered.push(global_users[i]);
         }
     }
-    console.log(global_users_filtered);
     calcSorted(global_users_filtered);
 
     //Somebody fix dat shit down there please VVV :(
@@ -509,4 +527,14 @@ function prettify_team_select() {
 
 function team_select_clicked(jsevent, state) {
     getUsersFromSelectedTeams(jsevent);
+    global_view_filters_clicked = true;
+}
+
+function event_render_callback(event, element) {
+    if (event.tooltip_text) {
+        element.tooltip({
+            title: event.tooltip_text,
+            html: true,
+        });
+    }
 }

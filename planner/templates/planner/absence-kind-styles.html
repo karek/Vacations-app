@@ -1,6 +1,7 @@
 <style>
 {% for kind in absence_kinds %}
-.fc-event-container .absence-kind-{{ kind.name|slugify }}{
+.fc-event-container .absence-kind-{{ kind.name|slugify }}, .absence-kind-{{ kind.name|slugify }}
+{
     color: {{ kind.text_color }};
     background-color: {{ kind.bg_color }};
     border-color: {{ kind.bg_color }};

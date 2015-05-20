@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, get_user_model
 from django.contrib.messages.views import SuccessMessageMixin
+from django.db.models import Min
 from django.http.response import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.views.generic.base import View
@@ -308,7 +309,8 @@ class AbsenceRestView(View):
         if 'date-not-after' in request.GET:
             absences = absences.exclude(
                     absencerange__end__gt=stringToDate(request.GET['date-not-after']))
-        return _make_json_response(objListToJson(absences.order_by('dateCreated', 'user')))
+        absences = absences.annotate(min_range_begin=Min('absencerange__begin'))
+        return _make_json_response(objListToJson(absences.order_by('min_range_begin')))
 
 
 class HolidayRestView(View):

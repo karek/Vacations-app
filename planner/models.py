@@ -186,7 +186,8 @@ class Absence(models.Model):
     )
 
     user = models.ForeignKey(EmailUser)
-    dateCreated = models.DateTimeField(auto_now=True)
+    dateCreated = models.DateTimeField(auto_now_add=True)
+    dateModified = models.DateTimeField(auto_now=True)
     absence_kind = models.ForeignKey(AbsenceKind)
     status = models.IntegerField(default=PENDING, choices=STATUS_CHOICES)
     total_workdays = models.IntegerField(default=0, null=False, blank=False)
@@ -241,13 +242,15 @@ class Absence(models.Model):
             'user_id': self.user.id,
             'user_name': self.user.get_full_name(),
             'date_created': dateToString(self.dateCreated),
+            'date_modified': dateToString(self.dateModified),
             'kind_id': self.absence_kind.id,
             'kind_name': self.absence_kind.name,
             'total_workdays': self.total_workdays,
             'comment': self.comment,
             'kind_icon': self.absence_kind.icon_name,
             'status': self.status,
-            'change_ts': self.change_timestamp(),
+            'modified_ts': self.change_timestamp(),
+            'created_ts': self.created_timestamp(),
         }
 
     def request_acceptance(self):
@@ -292,13 +295,16 @@ class Absence(models.Model):
         self.save()
 
     def description(self):
-        body = (
-                'Absence by: %(user_name)s\n'
-                'Requested on: %(date_created)s\n'
-                'Absence kind: %(kind_name)s\n'
-                'Total workdays: %(total_workdays)d\n'
-                'For days:\n'
-            ) % self.toDict()
+        body = ['Absence by: %(user_name)s',
+                ('Requested' if self.status == self.PENDING else 'Created') + ' on: %(date_created)s',
+                'Absence kind: %(kind_name)s',
+                'Total workdays: %(total_workdays)d',
+                'For days:',
+                ''
+                ]
+        if self.was_modified():
+            body.insert(2, 'Modified on: %(date_modified)s')
+        body = '\n'.join(body) % self.toDict()
         for r in AbsenceRange.objects.filter(absence=self).order_by('begin', 'end'):
             body += ' * ' + unicode(r) + '\n'
         return body
@@ -366,7 +372,13 @@ class Absence(models.Model):
         return text + '\n\n' + self.description()
 
     def change_timestamp(self):
+        return self.dateModified.strftime('%s')
+
+    def created_timestamp(self):
         return self.dateCreated.strftime('%s')
+
+    def was_modified(self):
+        return self.dateCreated != self.dateModified
 
     def manage_path(self):
         return '/manage-absences?absence-id=%d&ts=%s' % (self.id, self.change_timestamp())
@@ -444,6 +456,7 @@ class AbsenceRange(models.Model):
             'kind_id': self.absence.absence_kind.id,
             'kind_name': self.absence.absence_kind.name,
             'kind_icon': self.absence.absence_kind.icon_name,
+            'comment': self.absence.comment,
         }
 
     @property
