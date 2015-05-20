@@ -111,6 +111,13 @@ function calcSorted(data) {
 
     sortAndSaveUsersOrder(function (a, b) {
 
+//Logged user will be first
+        if(a.id == global_logged_user_id)
+            return false;
+
+        if(b.id == global_logged_user_id)
+            return true;
+
 //grouping by team
         if (a.team_id != b.team_id)
         {
