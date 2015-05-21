@@ -10,6 +10,7 @@ from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
 from django.template.loader import render_to_string
+from django.utils import timezone
 from planner.utils import dateToString
 from django.core.mail import send_mail
 from colorful.fields import RGBColorField
@@ -239,7 +240,7 @@ class Absence(models.Model):
 
     user = models.ForeignKey(EmailUser)
     dateCreated = models.DateTimeField(auto_now_add=True)
-    dateModified = models.DateTimeField(auto_now=True)
+    dateModified = models.DateTimeField(default=timezone.now)
     absence_kind = models.ForeignKey(AbsenceKind)
     status = models.IntegerField(default=PENDING, choices=STATUS_CHOICES)
     total_workdays = models.IntegerField(default=0, null=False, blank=False)
@@ -261,6 +262,7 @@ class Absence(models.Model):
             new_range.full_clean()
             new_range.save()
             new_abs.total_workdays += new_range.workday_count
+        new_abs.dateModified = new_abs.dateCreated
         new_abs.save()
         if do_mails:
             new_abs.request_acceptance()
@@ -282,6 +284,7 @@ class Absence(models.Model):
         self.absence_kind = tmp_abs.absence_kind
         self.comment = tmp_abs.comment
         self.status = self.PENDING
+        self.dateModified = timezone.now()
         tmp_abs.delete()
         self.save()
         self.request_acceptance()

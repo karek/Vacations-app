@@ -6030,18 +6030,27 @@ var CustomResourceGrid = TimeGrid.extend({
 		var isRTL = this.isRTL;
 		var html = '';
 		var axisHtml;
+        var axisEnd = '</span>' + '</td>';
+        var axisBeg = '<td class="fc-axis fc-time ' + view.widgetContentClass + '" ' + view.axisStyleAttr() + '>' +
+                    '<span>' ; // for matchCellWidths
 
 		// Calculate the time for each slot
         for (i in global_users_sorted) {
 
             var currPerson = global_users_sorted[i];
             var name = currPerson.first_name + " "  + currPerson.last_name;
+            var maybeBold = htmlEscape(name);
 
-            axisHtml =
-				'<td class="fc-axis fc-time ' + view.widgetContentClass + '" ' + view.axisStyleAttr() + '>' +
-						'<span>' + // for matchCellWidths
-							htmlEscape(name) +
-						'</span>' +	'</td>';
+            if (currPerson.id == global_logged_user_id)
+                if (!global_show_my_absences)
+                    continue;
+                else maybeBold = '<b><span class="glyphicon glyphicon-user"></span>' + htmlEscape(name) + '</b>';
+
+
+            if (!currPerson.is_teamleader)
+                axisHtml = axisBeg + maybeBold + axisEnd;
+            else
+                axisHtml = axisBeg + '<span class="glyphicon glyphicon-star-empty"></span>' +  maybeBold + axisEnd;
 
 			html +=
 				'<tr>' +
