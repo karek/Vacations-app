@@ -15,7 +15,7 @@ class EmailUserAdmin(UserAdmin):
     # The fields to be used in displaying the User model.
     # These override the definitions on the base UserAdmin
     # that reference specific fields on auth.User.
-    list_display = ('email', 'first_name', 'last_name', 'is_admin', 'team', 'holidays', 'is_teamleader')
+    list_display = ('email', 'first_name', 'last_name', 'is_admin', 'team', 'is_teamleader')
     list_filter = ('is_admin',)
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
@@ -45,8 +45,21 @@ class HolidayAdmin(admin.ModelAdmin):
         return my_urls + urls
 
     change_list_template = 'planner/change_list.html'
-    list_display = ('name', 'day')
+    list_display = ('name', 'day', 'calendar')
     ordering = ('-day', 'name')
+    list_filter = ('calendar',)
+
+
+class HolidayInline(admin.TabularInline):
+    model = Holiday
+    fields = ['name', 'day']
+    template = 'admin/tabular.html'
+    extra = 1
+
+
+class HolidayCalendarAdmin(admin.ModelAdmin):
+    fields = ['name']
+    inlines = [HolidayInline]
 
 
 class EmailUserInline(admin.TabularInline):
@@ -124,7 +137,7 @@ admin.site.register(Team, TeamAdmin)
 admin.site.register(AbsenceRange, AbsenceRangeAdmin)
 admin.site.register(AbsenceKind, AbsenceKindAdmin)
 admin.site.register(Holiday, HolidayAdmin)
-admin.site.register(HolidayCalendar)
+admin.site.register(HolidayCalendar, HolidayCalendarAdmin)
 # ... and, since we're not using Django's built-in permissions,
 # unregister the Group model from admin.
 admin.site.unregister(Group)

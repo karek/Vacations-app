@@ -2,20 +2,20 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
+import django.utils.timezone
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('planner', '0012_auto_20150426_1835'),
+        ('planner', '0023_auto_20150521_1259'),
     ]
 
     operations = [
         migrations.AlterField(
             model_name='absence',
-            name='status',
-            field=models.IntegerField(
-                default=0, choices=[(0, b'Pending'), (1, b'Accepted'), (2, b'Rejected'), (3, b'Cancelled')]),
+            name='dateModified',
+            field=models.DateTimeField(default=django.utils.timezone.now),
             preserve_default=True,
         ),
     ]
