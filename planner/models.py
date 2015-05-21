@@ -29,7 +29,58 @@ class Team(models.Model):
         }
 
 
+class Holiday(models.Model):
+
+    """ A single work-free day. """
+    name = models.CharField(max_length=30, blank=False)
+    day = models.DateField()
+
+    def __unicode__(self):
+        return '%s : %s' % (self.day, self.name)
+
+    @classmethod
+    def dateRange(cls, start_date, end_date):
+        for n in xrange(int((end_date - start_date).days)):
+            yield start_date + timedelta(n)
+
+    @classmethod
+    def yearRange(cls, year):
+        return cls.dateRange(date(year, 1, 1), date(year + 1, 1, 1))
+
+    @classmethod
+    def weekends(cls, year):
+        return ((weekend, weekend.strftime("%A")) for weekend in cls.yearRange(year)
+                if weekend.weekday() == 5 or weekend.weekday() == 6)
+
+    # TODO: FK to HolidayCalendar
+
+    def toDict(self):
+        return {
+            'id': self.id,
+            'day': dateToString(self.day),
+            'name': self.name,
+        }
+
+
+class HolidayCalendar(models.Model):
+
+    """ A set of work-free days. """
+    holidays = models.ManyToManyField(Holiday)
+    name = models.CharField(max_length=30, blank=False)
+
+    def __unicode__(self):
+        return '%s' % (self.name)
+
+    def toDict(self):
+        return {
+            'id': self.id,
+            'holidays': [holiday.toDict for holiday in self.holidays],
+            'name': self.name,
+        }
+
+
 class EmailUserManager(BaseUserManager):
+
     def create_user(self, email, first_name, last_name, team, password=None, is_teamleader=False):
         if not email:
             raise ValueError('Users must have an email address')
@@ -51,7 +102,7 @@ class EmailUserManager(BaseUserManager):
                                 first_name=first_name,
                                 last_name=last_name,
                                 is_teamleader=is_teamleader,
-        )
+                                )
         user.is_admin = True
         user.save(using=self._db)
         return user
@@ -69,6 +120,7 @@ class EmailUser(AbstractBaseUser):
     is_admin = models.BooleanField(default=False)
     is_teamleader = models.BooleanField(default=False)
     team = models.ForeignKey(Team, blank=False, null=False)
+    hoildays = models.ForeignKey(HolidayCalendar)
 
     objects = EmailUserManager()
 
@@ -154,19 +206,19 @@ class AbsenceKind(models.Model):
     name = models.CharField(max_length=30, blank=False, unique=True)
     require_acceptance = models.BooleanField(default=True)
     text_color = RGBColorField(default='#ffffff', null=False, blank=False,
-            verbose_name='Event text color')
+                               verbose_name='Event text color')
     bg_color = RGBColorField(default='#888888', null=False, blank=False,
-            verbose_name='Event background color')
+                             verbose_name='Event background color')
     icon_name = models.CharField(max_length=20, null=True, blank=True,
-            verbose_name='Glyphicon name',
-            help_text='See glyphicon-NAME here: http://getbootstrap.com/components/#glyphicons')
+                                 verbose_name='Glyphicon name',
+                                 help_text='See glyphicon-NAME here: http://getbootstrap.com/components/#glyphicons')
 
     def __unicode__(self):  # __unicode__ on Python 2
         return self.name
 
 
-
 class Absence(models.Model):
+
     """ User's whole Absence. Describes parameters and has many AbsenceRanges attached. """
 
     # Status choices. Adding new status append it to one of the lists below.
@@ -175,8 +227,8 @@ class Absence(models.Model):
     REJECTED = 2
     CANCELLED = 3
 
-    ALIVE_STATUSES=[PENDING, ACCEPTED]
-    STALE_STATUSES=[REJECTED, CANCELLED]
+    ALIVE_STATUSES = [PENDING, ACCEPTED]
+    STALE_STATUSES = [REJECTED, CANCELLED]
 
     STATUS_CHOICES = (
         (PENDING, 'Pending'),
@@ -339,13 +391,13 @@ class Absence(models.Model):
     def mail_request_text(self):
         desc = self.description()
         return desc + (
-                '\n'
-                'to accept: %(mng_url)s&accept-submit\n'
-                'to reject: %(mng_url)s&reject-submit\n'
-                'to view details: %(mng_url)s\n'
-            ) % {
-                'mng_url': self.manage_url()
-            }
+            '\n'
+            'to accept: %(mng_url)s&accept-submit\n'
+            'to reject: %(mng_url)s&reject-submit\n'
+            'to view details: %(mng_url)s\n'
+        ) % {
+            'mng_url': self.manage_url()
+        }
 
     def mail_accepted_title(self):
         return 'Absence was accepted'
@@ -388,6 +440,7 @@ class Absence(models.Model):
 
 
 class AbsenceRange(models.Model):
+
     """ A single, continous period of absence as part of an Absence. """
     absence = models.ForeignKey(Absence)
     begin = models.DateField()
@@ -410,7 +463,7 @@ class AbsenceRange(models.Model):
     @classmethod
     def getBetween(cls, users, rbegin, rend):
         """ Returns all users' vacations intersecting with given period.
-        
+
         users should be a list of users or '*' for everyone. """
         # first of all: don't show rejected or cancelled absences
         user_ranges = cls.objects.exclude(absence__status__in=Absence.STALE_STATUSES)
@@ -425,7 +478,7 @@ class AbsenceRange(models.Model):
     @classmethod
     def getIntersection(cls, user, rbegin, rend):
         """ Does the user already have any absence range during given period?
-        
+
         Returns single (first if many) intersecting AbsenceRange or None. """
         try:
             return cls.objects.exclude(absence__status__in=Absence.STALE_STATUSES).filter(
@@ -462,39 +515,5 @@ class AbsenceRange(models.Model):
     @property
     def workday_count(self):
         holidays = (Holiday.objects.filter(day__gte=self.begin, day__lt=self.end)
-                .values('day').distinct())
+                    .values('day').distinct())
         return (self.end - self.begin).days - holidays.count()
-
-
-class Holiday(models.Model):
-    """ A single work-free day. """
-    name = models.CharField(max_length=30, blank=False)
-    day = models.DateField()
-
-    def __unicode__(self):
-        return '%s : %s' % (self.day, self.name)
-
-    @classmethod
-    def dateRange(cls, start_date, end_date):
-        for n in xrange(int((end_date - start_date).days)):
-            yield start_date + timedelta(n)
-
-    @classmethod
-    def yearRange(cls, year):
-        return cls.dateRange(date(year, 1, 1), date(year + 1, 1, 1))
-
-    @classmethod
-    def weekends(cls, year):
-        return ((weekend, weekend.strftime("%A")) for weekend in cls.yearRange(year)
-                if weekend.weekday() == 5 or weekend.weekday() == 6)
-
-    # TODO: FK to HolidayCalendar
-
-    def toDict(self):
-        return {
-            'id': self.id,
-            'day': dateToString(self.day),
-            'name': self.name,
-        }
-
-
