@@ -61,6 +61,9 @@ class Holiday(models.Model):
             'name': self.name,
         }
 
+    def isWeekend(self):
+        return self.name in ['Saturday', 'Sunday']
+
 
 class HolidayCalendar(models.Model):
 
