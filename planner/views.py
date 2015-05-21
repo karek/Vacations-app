@@ -11,7 +11,7 @@ from django.shortcuts import render, redirect
 from django.views.generic.base import View
 from django.views.generic.edit import FormView
 from planner.forms import RegisterForm, YearForm, TeamsForm
-from planner.models import Absence, AbsenceRange, Holiday, AbsenceKind, Team
+from planner.models import Absence, AbsenceRange, Holiday, AbsenceKind, Team, HolidayCalendar
 from planner.utils import InternalError, stringToDate, dateToString, objToJson, objListToJson
 from datetime import datetime
 
@@ -34,11 +34,12 @@ def generate_main_context():
 
 
 class IndexView(View):
+
     def get(self, request, *args, **kwargs):
         self.context = generate_main_context()
         if 'edit-absence-id' in request.GET:
             try:
-                self.prepare_absence_edit(request) # throws on error
+                self.prepare_absence_edit(request)  # throws on error
             except InternalError as e:
                 messages.error(request, e.message)
         return render(request, 'planner/index.html', self.context)
@@ -65,7 +66,7 @@ class RegisterView(SuccessMessageMixin, FormView):
 
     def get_initial(self):
         initial = super(RegisterView, self).get_initial()
-        initial['email'] = self.request.GET.get('email','')
+        initial['email'] = self.request.GET.get('email', '')
         return initial
 
     def form_valid(self, form):
@@ -91,6 +92,7 @@ def user_login(request):
 
 
 class PlanAbsenceView(View):
+
     def get(self, request, *args, **kwargs):
         """ Redirect to index, just in case. """
         return HttpResponseRedirect('/')
@@ -104,10 +106,10 @@ class PlanAbsenceView(View):
             kind = AbsenceKind.objects.get(id=request.POST['absence_kind'])
             comment = request.POST.get('comment')
             if 'edit-submit' in request.POST:
-                new_abs = self.handle_edit_absence(request, ranges, kind, comment) # throws on error
+                new_abs = self.handle_edit_absence(request, ranges, kind, comment)  # throws on error
                 message = 'Absence edited successfully, '
             else:
-                new_abs = self.handle_add_absence(request, ranges, kind, comment) # throws on error
+                new_abs = self.handle_add_absence(request, ranges, kind, comment)  # throws on error
                 message = 'Absence planned successfully, '
             if new_abs.absence_kind.require_acceptance:
                 message += 'acceptance request was send to the team leader.'
@@ -138,7 +140,7 @@ class PlanAbsenceView(View):
 
     def handle_add_absence(self, request, ranges, absence_kind, comment):
         """ Takes a list of ranges (date pairs) and saves them as a vacation.
-        
+
         AbsenceRange's clean() checks if the ranges are valid and not intersecting (with themselves
         nor with previous user's absences). """
         return Absence.createFromRanges(request.user, ranges, absence_kind, comment)
@@ -146,7 +148,7 @@ class PlanAbsenceView(View):
     def handle_edit_absence(self, request, ranges, absence_kind, comment):
         try:
             old_absence = Absence.objects.get(
-                    id=request.POST['edit-absence-id'], status=Absence.PENDING)
+                id=request.POST['edit-absence-id'], status=Absence.PENDING)
             if not request.user.is_authenticated() or request.user.id != old_absence.user_id:
                 raise InternalError('Only absence\'s owner can edit it.')
             return old_absence.editFromRanges(ranges, absence_kind, comment)
@@ -155,7 +157,7 @@ class PlanAbsenceView(View):
 
 
 class ManageAbsenceView(View):
-    
+
     template = 'planner/manage.html'
 
     def get(self, request, mode='manager', *args, **kwargs):
@@ -183,10 +185,10 @@ class ManageAbsenceView(View):
         # process Accept/Reject request if any
         try:
             if 'accept-submit' in request.GET or 'reject-submit' in request.GET:
-                self.accept_reject_absence(request, absence) # throws on error
+                self.accept_reject_absence(request, absence)  # throws on error
                 return
             elif 'cancel-submit' in request.GET:
-                self.cancel_absence(request, absence) # throws on error
+                self.cancel_absence(request, absence)  # throws on error
                 return
             elif not request.user.is_authenticated():
                 messages.warning(request, 'View-only mode, log in to make any changes.')
@@ -195,32 +197,32 @@ class ManageAbsenceView(View):
         # otherwise, or on processing error, prepare the management panel
         self.context['accept_absence'] = absence.toDict()
         self.context['accept_ranges'] = objListToJson(
-                AbsenceRange.objects.filter(absence=request.GET['absence-id']))
+            AbsenceRange.objects.filter(absence=request.GET['absence-id']))
 
     def accept_reject_absence(self, request, absence):
         """ Method for handling Accept/Reject requests.
-        
+
         Expects request data in GET.
         Returns if the operation succeeded, otherwise raises InternalError. """
         if not request.user.is_authenticated():
             raise InternalError(
-                    'Log in now to commit your changes to request from %s.'
-                    % absence.user.get_full_name())
+                'Log in now to commit your changes to request from %s.'
+                % absence.user.get_full_name())
         if not request.user.is_manager_of(absence.user):
             raise InternalError(
-                    'Only the leader of team %s can manage this absence.'
-                    % absence.user.team.name)
+                'Only the leader of team %s can manage this absence.'
+                % absence.user.team.name)
         if 'accept-submit' in request.GET:
             absence.accept()
             messages.success(
-                    request,
-                    'Absence request by %s accepted' % absence.user.get_full_name())
+                request,
+                'Absence request by %s accepted' % absence.user.get_full_name())
             return
         elif 'reject-submit' in request.GET:
             absence.reject()
             messages.info(
-                    request,
-                    'Absence request by %s rejected' % absence.user.get_full_name())
+                request,
+                'Absence request by %s rejected' % absence.user.get_full_name())
             return
         else:
             messages.error(request, 'Invalid request: no decision made.')
@@ -244,18 +246,21 @@ def _make_error_response(msg):
 
 
 class UserRestView(View):
+
     def get(self, request):
         """ Returns all users as array of json objects. """
         return _make_json_response(objListToJson(get_user_model().objects.all()))
 
 
 class TeamRestView(View):
+
     def get(self, request):
         """ Returns all users as array of json objects. """
         return _make_json_response(objListToJson(Team.objects.all()))
 
 
 class RangeRestView(View):
+
     def get(self, request):
         """ Returns all ranges between given dates for given users (or everyone if not specified),
         as array of json objects.
@@ -275,6 +280,7 @@ class RangeRestView(View):
 
 
 class AbsenceRestView(View):
+
     def get(self, request):
         """ Returns all absences (without ranges) matching requested parameters:
          * id
@@ -299,21 +305,22 @@ class AbsenceRestView(View):
             absences = absences.filter(status__in=statuses)
         if 'date-at-least' in request.GET:
             absences = absences.filter(
-                    absencerange__end__gt=stringToDate(request.GET['date-at-least']))
+                absencerange__end__gt=stringToDate(request.GET['date-at-least']))
         if 'date-at-most' in request.GET:
             absences = absences.filter(
-                    absencerange__begin__lte=stringToDate(request.GET['date-at-most']))
+                absencerange__begin__lte=stringToDate(request.GET['date-at-most']))
         if 'date-not-before' in request.GET:
             absences = absences.exclude(
-                    absencerange__begin__lt=stringToDate(request.GET['date-not-before']))
+                absencerange__begin__lt=stringToDate(request.GET['date-not-before']))
         if 'date-not-after' in request.GET:
             absences = absences.exclude(
-                    absencerange__end__gt=stringToDate(request.GET['date-not-after']))
+                absencerange__end__gt=stringToDate(request.GET['date-not-after']))
         absences = absences.annotate(min_range_begin=Min('absencerange__begin'))
         return _make_json_response(objListToJson(absences.order_by('min_range_begin')))
 
 
 class HolidayRestView(View):
+
     def get(self, request):
         """ Returns all holidays between given dates"""
         # TODO: ^^ for given users (or holiday calendars?)
@@ -331,18 +338,22 @@ class HolidayRestView(View):
 
 
 class YearFormView(FormView):
-        template_name = 'planner/year_form.html'
-        form_class = YearForm
-        success_url = '/save_weekends'
+    template_name = 'planner/year_form.html'
+    form_class = YearForm
+    success_url = '/save_weekends'
 
-        def form_valid(self, form):
-            self.request.session['_year'] = date.strftime(form.cleaned_data['year'], '%Y-%m-%d')
-            return HttpResponseRedirect('/save_weekends')
+    def form_valid(self, form):
+        self.request.session['_year'] = date.strftime(form.cleaned_data['year'], '%Y-%m-%d')
+        return HttpResponseRedirect('/save_weekends')
 
 
 def SaveWeekendsView(request):
     date = datetime.strptime(request.session['_year'], '%Y-%m-%d')
     days = Holiday.weekends(date.year)
-    holidays = [Holiday(day=day, name=name) for (day,name) in days]
-    Holiday.objects.bulk_create(holidays)
+    weekends = [Holiday(day=day, name=name) for (day, name) in days]
+    weekend_calendar = HolidayCalendar(name='Weekends for ' + str(date.year))
+    weekend_calendar.save()
+    for weekend in weekends:
+        weekend.save()
+        weekend_calendar.holidays.add(weekend)
     return HttpResponseRedirect('/admin/planner/holiday')

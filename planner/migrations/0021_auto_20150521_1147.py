@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='emailuser',
             name='holidays',
-            field=models.ForeignKey(blank=True, to='planner.HolidayCalendar', null=True),
+            field=models.ManyToManyField(to='planner.HolidayCalendar'),
             preserve_default=True,
         ),
     ]
