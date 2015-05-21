@@ -444,6 +444,7 @@ function edit_mode_enabled() {
 global_show_my_absences = true;
 function toggle_my_absences(jsevent, state) {
     global_show_my_absences = state;
+    filterGlobalUsers();
 	$('#calendar').fullCalendar('refetchEvents');
     global_view_filters_clicked = true;
 }
@@ -495,6 +496,9 @@ function filterGlobalUsers() {
         if(global_teams_selected[global_users[i].team_id] != 0) {
             global_users_filtered.push(global_users[i]);
         }
+        else
+            if (global_users[i].id == global_logged_user_id && global_show_my_absences)
+                global_users_filtered.push(global_users[i]);
     }
     calcSorted(global_users_filtered);
 
