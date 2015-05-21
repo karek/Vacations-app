@@ -350,10 +350,8 @@ class YearFormView(FormView):
 def SaveWeekendsView(request):
     date = datetime.strptime(request.session['_year'], '%Y-%m-%d')
     days = Holiday.weekends(date.year)
-    weekends = [Holiday(day=day, name=name) for (day, name) in days]
-    weekend_calendar = HolidayCalendar(name='Weekends for ' + str(date.year))
+    (weekend_calendar, if_created) = HolidayCalendar.objects.get_or_create(name='Weekends')
     weekend_calendar.save()
-    for weekend in weekends:
-        weekend.save()
-        weekend_calendar.holidays.add(weekend)
+    weekends = [Holiday(day=day, name=name, calendar=weekend_calendar) for (day, name) in days]
+    Holiday.objects.bulk_create(weekends)
     return HttpResponseRedirect('/admin/planner/holiday')

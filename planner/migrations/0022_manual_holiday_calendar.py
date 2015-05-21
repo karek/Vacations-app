@@ -24,15 +24,13 @@ def add_weekends(apps, schema_editor):
     Holiday = apps.get_model("planner", "Holiday")
     HolidayCalendar = apps.get_model("planner", "HolidayCalendar")
 
-    days = weekends(2015)
-    holidays = [Holiday(day=day, name=name) for (day, name) in days]
-
-    weekend_calendar = HolidayCalendar(name='Weekends for 2015')
+    (weekend_calendar, if_created) = HolidayCalendar.objects.get_or_create(name='Weekends')
     weekend_calendar.save()
 
-    for weekend in holidays:
-        weekend.save()
-        weekend_calendar.holidays.add(weekend)
+    days = weekends(2015)
+    holidays = [Holiday(day=day, name=name, calendar=weekend_calendar) for (day, name) in days]
+
+    Holiday.objects.bulk_create(holidays)
 
 
 def create_holiday_calendar(apps, schema_editor):
@@ -41,16 +39,18 @@ def create_holiday_calendar(apps, schema_editor):
 
     admiral_bday = Holiday.objects.get(name="Urodziny Admirała")
     rks_game = Holiday.objects.get(name="Mecz RKS HUWDU")
-    building_starfleeet = Holiday.objects.get(name="Rocznica ustanowienia Gwiezdnej floty")
+    building_starfleet = Holiday.objects.get(name="Rocznica ustanowienia Gwiezdnej floty")
     sultan_bday = Holiday.objects.get(name="Urodziny Sułtana Kosmitów")
 
     fleet_holidays = HolidayCalendar(name="Dni wolne od pracy w Gwiezdnej Flocie")
     fleet_holidays.save()
-    fleet_holidays.holidays.add(admiral_bday, rks_game, building_starfleeet)
+    admiral_bday.calendar = fleet_holidays
+    rks_game.calendar = fleet_holidays
+    building_starfleet.calendar = fleet_holidays
 
     aliens_holidays = HolidayCalendar(name="Dni wolne od pracy kosmitów")
     aliens_holidays.save()
-    aliens_holidays.holidays.add(sultan_bday, rks_game)
+    sultan_bday.calendar = aliens_holidays
 
 
 def set_holidays(apps, schema_editor):
@@ -61,7 +61,7 @@ def set_holidays(apps, schema_editor):
 
     fleet_holidays = HolidayCalendar.objects.get(name="Dni wolne od pracy w Gwiezdnej Flocie")
     aliens_holidays = HolidayCalendar.objects.get(name="Dni wolne od pracy kosmitów")
-    weekend_calendar = HolidayCalendar.objects.get(name='Weekends for 2015')
+    weekend_calendar = HolidayCalendar.objects.get(name='Weekends')
 
     fleet = EmailUser.objects.all().exclude(team=Team.objects.get(name="Kosmici"))
     aliens = EmailUser.objects.all().filter(team=Team.objects.get(name="Kosmici"))
@@ -77,7 +77,7 @@ def set_holidays(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('planner', '0021_auto_20150521_1147'),
+        ('planner', '0021_auto_20150521_1250'),
     ]
 
     operations = [

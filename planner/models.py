@@ -29,11 +29,27 @@ class Team(models.Model):
         }
 
 
+class HolidayCalendar(models.Model):
+
+    """ A set of work-free days. """
+    name = models.CharField(max_length=30)
+
+    def __unicode__(self):
+        return '%s' % (self.name)
+
+    def toDict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+        }
+
+
 class Holiday(models.Model):
 
     """ A single work-free day. """
     name = models.CharField(max_length=30, blank=False)
     day = models.DateField()
+    calendar = models.ForeignKey(HolidayCalendar)
 
     def __unicode__(self):
         return '%s : %s' % (self.day, self.name)
@@ -59,27 +75,11 @@ class Holiday(models.Model):
             'id': self.id,
             'day': dateToString(self.day),
             'name': self.name,
+            'calendar': self.calendar.name
         }
 
     def isWeekend(self):
         return self.name in ['Saturday', 'Sunday']
-
-
-class HolidayCalendar(models.Model):
-
-    """ A set of work-free days. """
-    holidays = models.ManyToManyField(Holiday)
-    name = models.CharField(max_length=30, blank=False)
-
-    def __unicode__(self):
-        return '%s' % (self.name)
-
-    def toDict(self):
-        return {
-            'id': self.id,
-            'holidays': [holiday.toDict for holiday in self.holidays],
-            'name': self.name,
-        }
 
 
 class EmailUserManager(BaseUserManager):
