@@ -78,9 +78,6 @@ class Holiday(models.Model):
             'calendar': self.calendar.name
         }
 
-    def isWeekend(self):
-        return self.name in ['Saturday', 'Sunday']
-
 
 class EmailUserManager(BaseUserManager):
 

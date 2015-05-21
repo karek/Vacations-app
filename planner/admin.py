@@ -45,8 +45,9 @@ class HolidayAdmin(admin.ModelAdmin):
         return my_urls + urls
 
     change_list_template = 'planner/change_list.html'
-    list_display = ('name', 'day')
+    list_display = ('name', 'day', 'calendar')
     ordering = ('-day', 'name')
+    list_filter = ('calendar',)
 
 
 class EmailUserInline(admin.TabularInline):
