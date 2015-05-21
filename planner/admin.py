@@ -50,6 +50,18 @@ class HolidayAdmin(admin.ModelAdmin):
     list_filter = ('calendar',)
 
 
+class HolidayInline(admin.TabularInline):
+    model = Holiday
+    fields = ['name', 'day']
+    template = 'admin/tabular.html'
+    extra = 1
+
+
+class HolidayCalendarAdmin(admin.ModelAdmin):
+    fields = ['name']
+    inlines = [HolidayInline]
+
+
 class EmailUserInline(admin.TabularInline):
     model = EmailUser
     fields = ['email', 'first_name', 'last_name', 'is_teamleader']
@@ -125,7 +137,7 @@ admin.site.register(Team, TeamAdmin)
 admin.site.register(AbsenceRange, AbsenceRangeAdmin)
 admin.site.register(AbsenceKind, AbsenceKindAdmin)
 admin.site.register(Holiday, HolidayAdmin)
-admin.site.register(HolidayCalendar)
+admin.site.register(HolidayCalendar, HolidayCalendarAdmin)
 # ... and, since we're not using Django's built-in permissions,
 # unregister the Group model from admin.
 admin.site.unregister(Group)
