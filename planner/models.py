@@ -50,7 +50,7 @@ class Holiday(models.Model):
     """ A single work-free day. """
     name = models.CharField(max_length=30, blank=False)
     day = models.DateField()
-    calendar = models.ForeignKey(HolidayCalendar, blank=True, null=True)
+    calendar = models.ForeignKey(HolidayCalendar, blank=False, null=False)
 
     def __unicode__(self):
         return '%s : %s' % (self.day, self.name)
