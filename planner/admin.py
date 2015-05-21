@@ -15,11 +15,11 @@ class EmailUserAdmin(UserAdmin):
     # The fields to be used in displaying the User model.
     # These override the definitions on the base UserAdmin
     # that reference specific fields on auth.User.
-    list_display = ('email', 'first_name', 'last_name', 'is_admin', 'team', 'is_teamleader')
+    list_display = ('email', 'first_name', 'last_name', 'is_admin', 'team', 'holidays', 'is_teamleader')
     list_filter = ('is_admin',)
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        ('Personal info', {'fields': ('first_name', 'last_name', 'team', 'is_teamleader')}),
+        ('Personal info', {'fields': ('first_name', 'last_name', 'team', 'holidays', 'is_teamleader')}),
         ('Permissions', {'fields': ('is_admin',)}),
     )
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
@@ -28,8 +28,8 @@ class EmailUserAdmin(UserAdmin):
         (None, {
             'classes': ('wide',),
             # 'fields': ('email', 'first_name', 'last_name', 'password1', 'password2')}
-            'fields': ('email', 'first_name', 'last_name', 'team', 'is_teamleader')}
-        ),
+            'fields': ('email', 'first_name', 'last_name', 'team', 'holidays', 'is_teamleader')}
+         ),
     )
     search_fields = ('email', 'first_name', 'last_name', 'team')
     ordering = ('team', 'last_name', 'first_name', 'email')
@@ -37,10 +37,11 @@ class EmailUserAdmin(UserAdmin):
 
 
 class HolidayAdmin(admin.ModelAdmin):
+
     def get_urls(self):
         urls = super(HolidayAdmin, self).get_urls()
         my_urls = patterns('', url(r'^add_weekend/$', YearFormView.as_view(), name='planner_holiday_add_weekend')
-        )
+                           )
         return my_urls + urls
 
     change_list_template = 'planner/change_list.html'
@@ -123,6 +124,7 @@ admin.site.register(Team, TeamAdmin)
 admin.site.register(AbsenceRange, AbsenceRangeAdmin)
 admin.site.register(AbsenceKind, AbsenceKindAdmin)
 admin.site.register(Holiday, HolidayAdmin)
+admin.site.register(HolidayCalendar)
 # ... and, since we're not using Django's built-in permissions,
 # unregister the Group model from admin.
 admin.site.unregister(Group)

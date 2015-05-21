@@ -120,7 +120,7 @@ class EmailUser(AbstractBaseUser):
     is_admin = models.BooleanField(default=False)
     is_teamleader = models.BooleanField(default=False)
     team = models.ForeignKey(Team, blank=False, null=False)
-    hoildays = models.ForeignKey(HolidayCalendar)
+    holidays = models.ForeignKey(HolidayCalendar, blank=True, null=True)
 
     objects = EmailUserManager()
 
