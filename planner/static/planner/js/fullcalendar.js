@@ -6044,7 +6044,7 @@ var CustomResourceGrid = TimeGrid.extend({
             if (currPerson.id == global_logged_user_id)
                 if (!global_show_my_absences)
                     continue;
-                else maybeBold = '<b>' + htmlEscape(name) + '</b>';
+                else maybeBold = '<b><span class="glyphicon glyphicon-user"></span>' + htmlEscape(name) + '</b>';
 
 
             if (!currPerson.is_teamleader)
