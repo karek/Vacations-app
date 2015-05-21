@@ -44,13 +44,18 @@ def create_holiday_calendar(apps, schema_editor):
 
     fleet_holidays = HolidayCalendar(name="Dni wolne od pracy w Gwiezdnej Flocie")
     fleet_holidays.save()
+
     admiral_bday.calendar = fleet_holidays
+    admiral_bday.save()
     rks_game.calendar = fleet_holidays
+    rks_game.save()
     building_starfleet.calendar = fleet_holidays
+    building_starfleet.save()
 
     aliens_holidays = HolidayCalendar(name="Dni wolne od pracy kosmitów")
     aliens_holidays.save()
     sultan_bday.calendar = aliens_holidays
+    sultan_bday.save()
 
 
 def set_holidays(apps, schema_editor):
