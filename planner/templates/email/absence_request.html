@@ -32,7 +32,9 @@
                                     <strong>Total workdays</strong>
                                 </td>
                                 <td style="padding: 10px 15px 10px 15px; border: 0">
-                                    {{ total_workdays }}
+                                    <span style="color: #ffffff; text-align: center; display: inline; padding: 1px 5px 1px 5px; background: #337AB7; border-radius: 20px; text-decoration: none!important; font-weight: bold;">
+                                        {{ total_workdays }}
+                                    </span>
                                 </td>
                             </tr>
                             <tr>
@@ -40,7 +42,9 @@
                                     <strong>Kind</strong>
                                 </td>
                                 <td style="padding: 10px 15px 10px 15px; border: 0">
-                                    {{ kind_name }}
+                                    <span style="color: {{ kind_text_color }}; text-align: center; display: inline; padding: 1px 5px 1px 5px; background: {{ kind_bg_color }}; border-radius: 5px; text-decoration: none!important; font-weight: bold;">
+                                        {{ kind_name }}
+                                    </span>
                                 </td>
                             </tr>
                             {% if not comment == '' %}
@@ -84,7 +88,7 @@
                                 </td>
                                 <td width="20px"
                                     style="padding: 10px 15px 10px 15px; border: 0; {% if not forloop.last %} border-bottom: 1px solid #dddddd {% endif %} ">
-                                    <span style="color: #ffffff; text-align: center; display: block; width: 20px; padding: 1px 0; background: #777777; border-radius: 20px; text-decoration: none!important; font-weight: bold;">
+                                    <span style="color: #ffffff; text-align: center; display: inline; padding: 1px 5px 1px 5px; background: #777777; border-radius: 20px; text-decoration: none!important; font-weight: bold;">
                                         {{ workdays }}
                                     </span>
                                 </td>
@@ -125,8 +129,8 @@
         </td>
     </tr>
     <tr>
-        <td bgcolor="#ee4c50"
-            style="text-align: center; color: #ffffff; padding: 40px 30px 40px 30px; font-family: Arial, sans-serif; font-size: 14px;">
+        <td bgcolor="#cccccc"
+            style="text-align: center; color: #ffffff; padding: 20px 30px 20px 30px; font-family: Arial, sans-serif; font-size: 14px;">
             &copy; Vacations for Syncron {% now "Y" %}<br/>
         </td>
     </tr>

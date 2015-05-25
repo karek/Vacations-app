@@ -300,6 +300,8 @@ class Absence(models.Model):
             'date_modified': dateToString(self.dateModified),
             'kind_id': self.absence_kind.id,
             'kind_name': self.absence_kind.name,
+            'kind_bg_color': self.absence_kind.bg_color,
+            'kind_text_color': self.absence_kind.text_color,
             'total_workdays': self.total_workdays,
             'comment': self.comment,
             'kind_icon': self.absence_kind.icon_name,
@@ -311,7 +313,11 @@ class Absence(models.Model):
     def request_acceptance(self):
         # if the absence doesn't need acceptance, skip to ACCEPTED
         if self.absence_kind and not self.absence_kind.require_acceptance:
-            self.accept()
+            self.status = self.ACCEPTED
+            self.save()
+            send_mail(self.mail_autoaccepted_title(), self.mail_accepted_text(),
+                      EMAIL_NOREPLY_ADDRESS, [self.mail_fake_manager_address(), EMAIL_HR_ADDRESS],
+                      html_message=self.mail_common_html('New auto-accepted absence!', False))
         else:
             # send mail to our test email to check if its ok
             # TODO send a proper mail to the right address
@@ -323,9 +329,9 @@ class Absence(models.Model):
         self.status = self.ACCEPTED
         # TODO send a proper mail to the right address
         # TODO in the current form the email could be send BOTH to user and HR
-        send_mail(self.mail_accepted_title(), self.mail_accepted_body(),
+        send_mail(self.mail_accepted_title(), self.mail_accepted_text(),
                   EMAIL_NOREPLY_ADDRESS, [self.mail_fake_user_address(), EMAIL_HR_ADDRESS],
-                  html_message=self.mail_common_html('Your request was accepted!', False))
+                  html_message=self.mail_common_html('Absence request was accepted!', False))
         self.save()
 
     def reject(self):
@@ -375,6 +381,9 @@ class Absence(models.Model):
     def mail_request_title(self):
         return 'Absence request from ' + self.user.get_full_name()
 
+    def mail_autoaccepted_title(self):
+        return 'New absence planned by ' + self.user.get_full_name()
+
     def mail_prepare_ranges(self):
         ranges = []
         for r in AbsenceRange.objects.filter(absence=self).order_by('begin', 'end'):
@@ -405,7 +414,7 @@ class Absence(models.Model):
     def mail_accepted_title(self):
         return 'Absence was accepted'
 
-    def mail_accepted_body(self):
+    def mail_accepted_text(self):
         return ('Absence request (listed below) was accepted. Have fun!\n\n' +
                 self.description())
 
