@@ -128,6 +128,10 @@ class EmailUser(AbstractBaseUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name']
 
+    class Meta:
+        verbose_name = "employee"
+        verbose_name_plural = "employees"
+
     def clean(self):
         super(EmailUser, self).clean()
         if self.email is not None:
