@@ -16,14 +16,14 @@ from planner.utils import InternalError, stringToDate, dateToString, objToJson, 
 from datetime import datetime
 
 
-def generate_main_context():
+def generate_main_context(request):
     d = date.today()
     month_begin = date(d.year, d.month, 1)
     month_end = date(d.year, d.month, monthrange(d.year, d.month)[1])
     teamsForm = TeamsForm()
     teams = Team.objects.all()
     teamsForm.fields['teams'].choices = [(x.id, x) for x in Team.objects.all()]
-    return {
+    context = {
         'month_begin': dateToString(month_begin),
         'month_end': dateToString(month_end),
         'users': objListToJson(get_user_model().objects.all()),
@@ -31,12 +31,13 @@ def generate_main_context():
         'teamsForm': teamsForm,
         'teams': teams,
     }
+    return context
 
 
 class IndexView(View):
 
     def get(self, request, *args, **kwargs):
-        self.context = generate_main_context()
+        self.context = generate_main_context(request)
         if 'edit-absence-id' in request.GET:
             try:
                 self.prepare_absence_edit(request)  # throws on error
@@ -105,6 +106,8 @@ class PlanAbsenceView(View):
                                          request.POST.getlist('end[]'))
             kind = AbsenceKind.objects.get(id=request.POST['absence_kind'])
             comment = request.POST.get('comment')
+            if ranges:
+                request.session['goto_date'] = dateToString(ranges[0][0])
             if 'edit-submit' in request.POST:
                 new_abs = self.handle_edit_absence(request, ranges, kind, comment)  # throws on error
                 message = 'Absence edited successfully, '
@@ -162,7 +165,7 @@ class ManageAbsenceView(View):
 
     def get(self, request, mode='manager', *args, **kwargs):
         # prepare data for management panel
-        self.context = generate_main_context()
+        self.context = generate_main_context(request)
         self.context['manage_mode'] = mode
         if 'absence-id' in request.GET:
             try:
@@ -184,6 +187,7 @@ class ManageAbsenceView(View):
     def handle_absence_management(self, request, absence):
         # process Accept/Reject request if any
         try:
+            request.session['goto_date'] = dateToString(absence.absencerange_set.first().begin)
             if 'accept-submit' in request.GET or 'reject-submit' in request.GET:
                 self.accept_reject_absence(request, absence)  # throws on error
                 return
