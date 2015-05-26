@@ -1,5 +1,9 @@
+function date_to_string(date) {
+    return date.format("YYYY-MM-DD HH:mm:ss:SS")
+}
+
 function log_date(msg, date) {
-    console.debug(msg + " " + date.format("YYYY-MM-DD HH:mm:ss:SS") + " | " + date);
+    console.debug(msg + " " + date_to_string(date) + " | " + date);
 }
 
 // Selection mode switch. If empty, it means the select action was called by the user, so we must
@@ -68,9 +72,10 @@ function count_range_length(begin, end) {
     var absence_length = 0;
     var days = 0;
 
-    duration = moment.duration(end - begin).days()
+    var duration = moment.duration(end - begin).asDays();
+    //console.log("begin: ", date_to_string(begin), "end: ", date_to_string(end), "duration: ", duration);
 
-    date = begin.add(-1,'days');
+    var date = begin.add(-1,'days');
     while (duration > 0) {
         date = date.add(1, 'days');
         if (!is_holiday(date)) {
