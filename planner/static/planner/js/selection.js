@@ -416,7 +416,7 @@ function select_ranges_from_json(ranges) {
         add_checked_range(range);
     }
     // ensure at least the first of selected ranges is visible
-	$('#calendar').fullCalendar('gotoDate', moment(ranges[0].begin));
+	goto_date(ranges[0].begin);
     highlight_selected_ranges();
 }
 
@@ -546,4 +546,9 @@ function event_render_callback(event, element) {
             html: true,
         });
     }
+}
+
+function goto_date(date_string) {
+    //console.debug("goto_date: ", date_string, " -> ", date_to_string(moment(date_string)));
+	$('#calendar').fullCalendar('gotoDate', moment(date_string));
 }

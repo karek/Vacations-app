@@ -29,7 +29,7 @@ def generate_main_context():
         'users': objListToJson(get_user_model().objects.all()),
         'absence_kinds': AbsenceKind.objects.all(),
         'teamsForm': teamsForm,
-        'teams': teams
+        'teams': teams,
     }
 
 
