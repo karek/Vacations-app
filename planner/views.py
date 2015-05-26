@@ -31,6 +31,16 @@ def generate_main_context(request):
         'teamsForm': teamsForm,
         'teams': teams,
     }
+    if 'goto_date' in request.session:
+        context['goto_date'] = request.session['goto_date']
+        del request.session['goto_date']
+    elif 'goto_date' in request.GET:
+        try:
+            stringToDate(request.GET['goto_date'])  # just to validate
+            request.session['goto_date'] = request.GET['goto_date']
+        except InternalError:
+            # wrong date, probably changed by the user, skip
+            pass
     return context
 
 

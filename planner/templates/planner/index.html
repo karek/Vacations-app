@@ -93,8 +93,8 @@
         global_edit_ranges = {{ edit_ranges }};
         global_after_load_callbacks.add(select_edited_absence);
     {% endif %}
-    {% if request.session.goto_date %}
-        global_after_load_callbacks.add(function(){ return goto_date('{{ request.session.goto_date }}'); });
+    {% if goto_date %}
+        global_after_load_callbacks.add(function(){ return goto_date('{{ goto_date }}'); });
     {% endif %}
     {% endautoescape %}
 
