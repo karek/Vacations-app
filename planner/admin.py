@@ -112,7 +112,7 @@ class AbsenceRangeInline(admin.TabularInline):
 
 
 class AbsenceAdmin(admin.ModelAdmin):
-    list_display = ('user', 'first_day', 'last_day', 'total_workdays', 'ranges', 'absence_kind', 'status', 'comment')
+    list_display = ('__unicode__', 'user', 'first_day', 'last_day', 'total_workdays', 'ranges', 'absence_kind', 'status', 'comment')
     fieldsets = (
         ('Basic information', {'fields': ('user', 'absence_kind', 'comment')}),
         ('Status',  {'fields': ('status',)}),
