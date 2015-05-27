@@ -174,6 +174,9 @@ class ManageAbsenceView(View):
     template = 'planner/manage.html'
 
     def get(self, request, mode='manager', *args, **kwargs):
+        if not request.user.is_authenticated():
+            messages.error(request, 'You have to be logged in as a team manager to manage absences.')
+            return redirect('planner:index')
         # prepare data for management panel
         self.context = generate_main_context(request)
         self.context['manage_mode'] = mode
