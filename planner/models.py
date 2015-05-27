@@ -126,7 +126,7 @@ class EmailUser(AbstractBaseUser):
     objects = EmailUserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name']
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'team']
 
     class Meta:
         verbose_name = "employee"
