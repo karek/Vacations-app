@@ -68,6 +68,9 @@ class HolidayCalendarAdmin(admin.ModelAdmin):
     def users_using_count(self, obj):
         return obj.emailuser_set.count()
 
+    holiday_count.short_description = "Days in the calendar"
+    users_using_count.short_description = 'Employees using this calendar'
+
 
 class EmailUserInline(admin.TabularInline):
     model = EmailUser
