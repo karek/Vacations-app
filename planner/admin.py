@@ -114,8 +114,7 @@ class AbsenceRangeInline(admin.TabularInline):
 
 
 class AbsenceAdmin(admin.ModelAdmin):
-    # TODO display how many working days in the absence
-    list_display = ('user', 'first_day', 'last_day', 'ranges', 'absence_kind', 'status', 'comment')
+    list_display = ('user', 'first_day', 'last_day', 'total_workdays', 'ranges', 'absence_kind', 'status', 'comment')
     fieldsets = (
         ('Basic information', {'fields': ('user', 'absence_kind', 'comment')}),
         ('Status',  {'fields': ('status',)}),
