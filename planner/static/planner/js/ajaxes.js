@@ -398,7 +398,7 @@ function show_mng_absence_as_li(absence) {
         + '<h4>' + absence.user_name + '</h4>'
         + '<table class="table pending-details-table" style="margin-bottom: 0px;">'
         + '<tbody><tr>'
-        + '<th scope="row">Kind</th><td>' + absence.kind_name + '</td></tr>'
+        + '<th scope="row">Kind</th><td>' + absence_kind_label(absence.kind_name) + '</td></tr>'
         + '<tr><th scope="row">' + date_desc + '</th><td>' + absence.date_created + '</td></tr>'
         + modified_row
         + comment_row
@@ -417,4 +417,9 @@ function select_edited_absence() {
     var string_kind = new String(global_edit_absence.kind_id);
     console.debug('kind str: ', string_kind);
     $('#planning-kind-select').val(string_kind).change();
+}
+
+function absence_kind_label(kind) {
+    var kindclass = 'absence-kind-' + kind.toLowerCase().replace(' ', '-');
+    return '<span class="label ' + kindclass + '">' + kind + '</span>';
 }

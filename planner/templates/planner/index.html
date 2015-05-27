@@ -93,6 +93,10 @@
         global_edit_ranges = {{ edit_ranges }};
         global_after_load_callbacks.add(select_edited_absence);
     {% endif %}
+    {% if goto_date %}
+        save_goto_date('{{ goto_date }}');
+    {% endif %}
+    global_after_load_callbacks.add(load_saved_goto_date);
     {% endautoescape %}
 
 </script>
