@@ -100,7 +100,7 @@ class AbsenceRangeAdmin(admin.ModelAdmin):
     fieldsets = (
         ('Day range', {'fields': ('begin', 'end',)}),
     )
-    list_display = ('absence', 'begin', 'end', 'workday_count')
+    list_display = ('__unicode__', 'begin', 'end', 'workday_count', 'absence')
     ordering = ('-begin', '-end')
 
 
