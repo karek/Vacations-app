@@ -145,8 +145,9 @@ class EmailUser(AbstractBaseUser):
                     })
         managers = EmailUser.objects.exclude(id=self.id).filter(team=self.team, is_teamleader=True)
         if self.is_teamleader and managers.exists():
+            manager = managers[0].get_full_name()
             raise ValidationError({
-                'is_teamleader': 'User can\'t be a team leader, team %s already has a leader.' % self.team.name
+                'is_teamleader': '%s is already the leader of team %s.' % (manager, self.team.name)
             })
 
     def get_full_name(self):
