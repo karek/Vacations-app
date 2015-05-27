@@ -388,6 +388,7 @@ function highlight_selected_ranges() {
     global_select_mode = '';
 }
 
+global_goto_date_loaded = false;
 // To be connected to FC's viewRender callback, triggered after every view switch.
 function view_render_callback(view, element) {
     highlight_selected_ranges();
@@ -395,13 +396,45 @@ function view_render_callback(view, element) {
         if (view.name == 'weekWorkers' && global_teams_selected[global_logged_user_team_id] == 0) {
             getUsersFromSelectedTeamsById(global_logged_user_team_id);
             changeButtonState(global_logged_user_team_id, true);
+            return;
         }
         if (view.name == 'month' && global_teams_selected[global_logged_user_team_id] == 1) {
             global_teams_selected[global_logged_user_team_id] = 0;
             changeButtonState(global_logged_user_team_id, false);
             $('#calendar').fullCalendar('refetchEvents');
+            return;
         }
     }
+    // we need to prevent overriding the saved date before we even load it
+    if (global_goto_date_loaded) {
+        save_current_goto_date();
+    }
+}
+
+// To be connected to date-changing buttons
+function save_current_goto_date() {
+    var goto_date = $('#calendar').fullCalendar('getDate').format('YYYY-MM-DD');
+    return save_goto_date(goto_date);
+}
+
+// To save a given date, on which the calendar will be opened later
+function save_goto_date(goto_date) {
+    var t_plus_eps = moment().add(1, 'minutes').toDate().toUTCString();
+    //console.debug('cookie str: ', 'goto_date=' + goto_date + '; expires=' + t_plus_eps);
+    document.cookie = 'goto_date=' + goto_date + '; expires=' + t_plus_eps + '; path=/';
+    //console.debug("cookies: ", document.cookie);
+}
+
+// to be run after page load, to show previously saved date (if any)
+function load_saved_goto_date() {
+    var goto_match = /goto_date=(\d{4}-\d\d-\d\d)/.exec(document.cookie);
+    if (goto_match) goto_match = goto_match[1];
+    //console.debug("goto_date from cookie: ", goto_match);
+    var cur_date = $('#calendar').fullCalendar('getDate').format('YYYY-MM-DD');
+    if (goto_match && goto_match != cur_date) {
+        goto_date(goto_match);
+    }
+    global_goto_date_loaded = true;
 }
 
 // Manually add selection from given ranges (from DB's json)
