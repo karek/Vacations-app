@@ -60,6 +60,13 @@ class HolidayInline(admin.TabularInline):
 class HolidayCalendarAdmin(admin.ModelAdmin):
     fields = ['name']
     inlines = [HolidayInline]
+    list_display = ('name', 'holiday_count', 'users_using_count')
+
+    def holiday_count(self, obj):
+        return obj.holiday_set.count()
+
+    def users_using_count(self, obj):
+        return obj.emailuser_set.count()
 
 
 class EmailUserInline(admin.TabularInline):
