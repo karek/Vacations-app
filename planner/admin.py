@@ -120,6 +120,8 @@ class AbsenceAdmin(admin.ModelAdmin):
         ('Status',  {'fields': ('status',)}),
     )
     inlines = [AbsenceRangeInline]
+    list_filter = ('absence_kind', 'status')
+    search_fields = ('user', 'total_workdays', 'absence_kind', 'status', 'comment')
 
     def first_day(self, obj):
         first_range = obj.absencerange_set.earliest('begin')
