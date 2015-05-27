@@ -199,10 +199,10 @@ class ManageAbsenceView(View):
         try:
             request.session['goto_date'] = dateToString(absence.absencerange_set.first().begin)
             if 'accept-submit' in request.GET or 'reject-submit' in request.GET:
-                self.accept_reject_absence(request, absence)  # throws on error
+                self.accept_reject_absence(request, absence)
                 return
             elif 'cancel-submit' in request.GET:
-                self.cancel_absence(request, absence)  # throws on error
+                self.cancel_absence(request, absence)
                 return
             elif not request.user.is_authenticated():
                 messages.warning(request, 'View-only mode, log in to make any changes.')
