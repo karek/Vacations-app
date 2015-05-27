@@ -44,6 +44,7 @@ class HolidayAdmin(admin.ModelAdmin):
                            )
         return my_urls + urls
 
+    search_fields = ('name',)
     change_list_template = 'planner/change_list.html'
     list_display = ('name', 'day', 'calendar')
     ordering = ('-day', 'name')
@@ -91,6 +92,7 @@ class TeamAdmin(admin.ModelAdmin):
         teamleaders = obj.emailuser_set.filter(is_teamleader=True)
         return teamleaders.exists()
 
+    search_fields = ('name',)
     has_teamleader.boolean = True
 
 
