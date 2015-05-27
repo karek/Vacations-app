@@ -3,7 +3,7 @@ from datetime import date
 
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, get_user_model
+from django.contrib.auth import authenticate, login, get_user_model, logout
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Min
 from django.http.response import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
@@ -219,13 +219,13 @@ class ManageAbsenceView(View):
         Expects request data in GET.
         Returns if the operation succeeded, otherwise raises InternalError. """
         if not request.user.is_authenticated():
-            raise InternalError(
-                'Log in now to commit your changes to request from %s.'
-                % absence.user.get_full_name())
+            user = authenticate(email=absence.user.manager)
+            login(request, user)
         if not request.user.is_manager_of(absence.user):
-            raise InternalError(
-                'Only the leader of team %s can manage this absence.'
-                % absence.user.team.name)
+            logout(request)
+            user = authenticate(email=absence.user.manager)
+            # authenticate(email=absence.user.manager.email)
+            login(request, user)
         if 'accept-submit' in request.GET:
             absence.accept()
             messages.success(
