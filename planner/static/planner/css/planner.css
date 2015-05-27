@@ -67,3 +67,7 @@ ul#id_teams {
 ul#id_teams li {
     margin: 0;
 }
+
+table.pending-details-table span.label {
+    font-size: 80%;
+}
