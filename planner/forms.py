@@ -51,6 +51,7 @@ class UserChangeForm(forms.ModelForm):
 class RegisterForm(UserCreationForm):
     first_name = forms.CharField(required=True)
     last_name = forms.CharField(required=True)
+    team = forms.ModelChoiceField(required=True, queryset=Team.objects.all(), empty_label=None)
 
     class Meta:
         model = EmailUser
