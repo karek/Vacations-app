@@ -98,11 +98,9 @@ class TeamAdmin(admin.ModelAdmin):
 
 class AbsenceRangeAdmin(admin.ModelAdmin):
     fieldsets = (
-        # ('Absence', {'fields': ('absence',)}),
         ('Day range', {'fields': ('begin', 'end',)}),
     )
-    # TODO display how many working days in the absence range
-    list_display = ('absence', 'begin', 'end')
+    list_display = ('absence', 'begin', 'end', 'workday_count')
     ordering = ('-begin', '-end')
 
 
