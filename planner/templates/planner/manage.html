@@ -37,7 +37,9 @@
     {% endautoescape %}
     global_after_load_callbacks.add(select_managed_absence);
 {% else %}
+{% if manage_mode == "manager" %} {# allow clicking on selfcare management #}
     global_disable_selecting = true;
+    {% endif %}
 {% endif %}
 </script>
 {% endblock %}

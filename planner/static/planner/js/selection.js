@@ -46,6 +46,7 @@ function selectf(begin, end, jsEvent, view) {
             end: moment(end.format('YYYY-MM-DD')) 
         };
         check_and_add_range(range);
+        display_or_hide_planning_controls();
     } else if (compute_selections() && global_disable_selecting) {
         // we are called by a normal selection event, but selecting is disabled.
         // we must refresh the currently selected ranges, to remove FC's selection highlight which
@@ -114,7 +115,6 @@ function check_and_add_range(range) {
                 this.remove();
                 //since this is not a merge of ranges, we have to check if this wasn't the last range on the list
                 //and if it is, we should hide Plan button
-                display_or_hide_planning_controls();
                 var old_minus_new = subtract_range(old_range, range);
                 for (var i in old_minus_new) {
                     add_checked_range(old_minus_new[i]);
@@ -272,6 +272,7 @@ function mapAjaxAbsenceToRange(absence) {
 }
 
 // Shows or hides Plan button if there are no ranges selected at the moment
+// Also, when no ranges are selected, show back the selfcare management panel
 function display_or_hide_planning_controls() {
     console.debug("display_or_hide_planning_controls");
     var currently_selected_ranges = $('#absence_select > li').length;
@@ -312,7 +313,8 @@ function display_or_hide_planning_controls() {
 
     absence_select.hide();
 
-    if (manage_mode_enabled()) {
+    // manager mode with clicking disabled: for team request or managing own absence
+    if (manage_mode_team_manager() || accept_mode_enabled()) {
         // TODO zmienilem tutaj zarzadzanie widocznymi elementami,
         // mozna ukryc cos jak uzytkownik nie jest zalogowany w trybie akceptowania
         // wywoluje ta funkcje przy renderowaniu index.html i manage.html
@@ -336,9 +338,12 @@ function display_or_hide_planning_controls() {
             }
         }
     } else {
+        // else: show selfcare panel or planned ranges
         if (ranges_not_selected) {
             if (user_is_logged_in()) {
                 invitation_select_days.show();
+                manage_no_absences.show();
+                get_management_absences();
             } else {
                 invitation_log_in.show();
             }
