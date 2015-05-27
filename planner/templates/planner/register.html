@@ -44,6 +44,10 @@
         }
     }
 
+    function autoselect_weekends() {
+        $('#id_holidays option:contains("Weekends")').attr('selected','selected');
+    }
+
     $(document).ready(function ($) {
         $.getJSON("{% url 'planner:user' %}", function (serialized_users_json) {
             serialized_users_json.forEach(function (user_json) {
@@ -53,6 +57,7 @@
 
         prepare_for_email_verification();
         check_if_user_exists($('#id_email').val());
+        autoselect_weekends();
 
         $('#id_email').on('input', function () {
             console.log($(this).val());
