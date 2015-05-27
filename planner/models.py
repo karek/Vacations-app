@@ -242,7 +242,7 @@ class Absence(models.Model):
         (CANCELLED, 'Cancelled'),
     )
 
-    user = models.ForeignKey(EmailUser)
+    user = models.ForeignKey(EmailUser, verbose_name="employee")
     dateCreated = models.DateTimeField(auto_now_add=True)
     dateModified = models.DateTimeField(default=timezone.now)
     absence_kind = models.ForeignKey(AbsenceKind)
