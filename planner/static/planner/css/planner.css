@@ -70,4 +70,9 @@ ul#id_teams li {
 
 table.pending-details-table span.label {
     font-size: 80%;
+    padding-bottom: 0.1em;
+}
+
+table.pending-details-table > tbody > tr > th {
+    width: 100px;
 }

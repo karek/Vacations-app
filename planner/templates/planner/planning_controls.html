@@ -30,7 +30,10 @@
                 <tbody>
                 <tr>
                     <th scope="row">Kind</th>
-                    <td><span class="label absence-kind-{{ accept_absence.kind_name|slugify }}">{{ accept_absence.kind_name }}</span></td>
+                    <td><span class="label absence-kind-{{ accept_absence.kind_name|slugify }}">
+                            <span class="glyphicon glyphicon-{{ accept_absence.kind_icon }}"></span>&nbsp;
+                            {{ accept_absence.kind_name }}</span>
+                    </td>
                 </tr>
                 <tr>
                     <th scope="row">{% if accept_absence.status == 1 %}Created{% else %}Requested{% endif %}</th>
