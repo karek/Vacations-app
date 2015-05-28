@@ -78,6 +78,10 @@ class RegisterView(SuccessMessageMixin, FormView):
     def get_initial(self):
         initial = super(RegisterView, self).get_initial()
         initial['email'] = self.request.GET.get('email', '')
+        try:
+            initial['holidays'] = [HolidayCalendar.objects.get(name='Weekends').pk,]
+        except HolidayCalendar.DoesNotExist:
+            pass
         return initial
 
     def form_valid(self, form):
