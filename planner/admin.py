@@ -16,7 +16,7 @@ class EmailUserAdmin(UserAdmin):
     # These override the definitions on the base UserAdmin
     # that reference specific fields on auth.User.
     list_display = ('email', 'first_name', 'last_name', 'is_admin', 'team', 'is_teamleader')
-    list_filter = ('is_admin',)
+    list_filter = ('is_admin', 'is_teamleader')
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         ('Personal info', {'fields': ('first_name', 'last_name', 'team', 'holidays', 'is_teamleader')}),
@@ -44,6 +44,7 @@ class HolidayAdmin(admin.ModelAdmin):
                            )
         return my_urls + urls
 
+    search_fields = ('name',)
     change_list_template = 'planner/change_list.html'
     list_display = ('name', 'day', 'calendar')
     ordering = ('-day', 'name')
@@ -60,6 +61,16 @@ class HolidayInline(admin.TabularInline):
 class HolidayCalendarAdmin(admin.ModelAdmin):
     fields = ['name']
     inlines = [HolidayInline]
+    list_display = ('name', 'holiday_count', 'users_using_count')
+
+    def holiday_count(self, obj):
+        return obj.holiday_set.count()
+
+    def users_using_count(self, obj):
+        return obj.emailuser_set.count()
+
+    holiday_count.short_description = "Days in the calendar"
+    users_using_count.short_description = 'Employees using this calendar'
 
 
 class EmailUserInline(admin.TabularInline):
@@ -81,16 +92,15 @@ class TeamAdmin(admin.ModelAdmin):
         teamleaders = obj.emailuser_set.filter(is_teamleader=True)
         return teamleaders.exists()
 
+    search_fields = ('name',)
     has_teamleader.boolean = True
 
 
 class AbsenceRangeAdmin(admin.ModelAdmin):
     fieldsets = (
-        # ('Absence', {'fields': ('absence',)}),
         ('Day range', {'fields': ('begin', 'end',)}),
     )
-    # TODO display how many working days in the absence range
-    list_display = ('absence', 'begin', 'end')
+    list_display = ('__unicode__', 'begin', 'end', 'workday_count', 'absence')
     ordering = ('-begin', '-end')
 
 
@@ -102,13 +112,14 @@ class AbsenceRangeInline(admin.TabularInline):
 
 
 class AbsenceAdmin(admin.ModelAdmin):
-    # TODO display how many working days in the absence
-    list_display = ('user', 'first_day', 'last_day', 'ranges', 'absence_kind', 'status', 'comment')
+    list_display = ('__unicode__', 'user', 'first_day', 'last_day', 'total_workdays', 'ranges', 'absence_kind', 'status', 'comment')
     fieldsets = (
         ('Basic information', {'fields': ('user', 'absence_kind', 'comment')}),
         ('Status',  {'fields': ('status',)}),
     )
     inlines = [AbsenceRangeInline]
+    list_filter = ('absence_kind', 'status')
+    search_fields = ('user', 'total_workdays', 'absence_kind', 'status', 'comment')
 
     def first_day(self, obj):
         first_range = obj.absencerange_set.earliest('begin')
