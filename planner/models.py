@@ -134,7 +134,7 @@ class EmailUser(AbstractBaseUser):
 
     def clean(self):
         super(EmailUser, self).clean()
-        if self.email is not None:
+        if self.email:
             self.email = self.email.lower()
             if self._state.adding:
                 emailuser = EmailUser.objects.filter(email__iexact=self.email)
@@ -143,7 +143,11 @@ class EmailUser(AbstractBaseUser):
                     raise ValidationError({
                         'email': 'That email address is already associated with an account.'
                     })
-        managers = EmailUser.objects.exclude(id=self.id).filter(team=self.team, is_teamleader=True)
+        try:
+            managers = EmailUser.objects.exclude(id=self.id).filter(
+                    team=self.team, is_teamleader=True)
+        except Team.DoesNotExist:
+            raise ValidationError({'team': 'Team not selected or does not exist.'})
         if self.is_teamleader and managers.exists():
             manager = managers[0].get_full_name()
             raise ValidationError({
