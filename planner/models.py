@@ -34,7 +34,8 @@ class HolidayCalendar(models.Model):
 
     """ A set of work-free days. """
     name = models.CharField(max_length=30)
-    selectedByDefault = models.BooleanField(default=False, blank=False, null=False)
+    selectedByDefault = models.BooleanField(default=False, blank=False, null=False,
+            verbose_name='selected by default in registration form')
 
     def __unicode__(self):
         return '%s' % (self.name)

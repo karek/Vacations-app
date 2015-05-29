@@ -58,7 +58,7 @@ class HolidayInline(admin.TabularInline):
 
 
 class HolidayCalendarAdmin(admin.ModelAdmin):
-    fields = ['name']
+    fields = ['name', 'selectedByDefault']
     inlines = [HolidayInline]
 
 
