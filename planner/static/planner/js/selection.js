@@ -491,10 +491,10 @@ function edit_mode_enabled() {
 
 global_show_my_absences = true;
 function toggle_my_absences(jsevent, state) {
+    global_view_filters_clicked = true;
     global_show_my_absences = state;
     filterGlobalUsers();
 	$('#calendar').fullCalendar('refetchEvents');
-    global_view_filters_clicked = true;
 }
 
 function getUsersFromSelectedTeams(jsevent) {
@@ -578,8 +578,8 @@ function prettify_team_select() {
 }
 
 function team_select_clicked(jsevent, state) {
-    getUsersFromSelectedTeams(jsevent);
     global_view_filters_clicked = true;
+    getUsersFromSelectedTeams(jsevent);
 }
 
 function event_render_callback(event, element) {

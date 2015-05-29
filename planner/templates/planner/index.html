@@ -153,21 +153,21 @@
         });
 
          $('#select-all').on('click', function(event) {
+            global_view_filters_clicked = true;
             $('#toggle-my-absences').bootstrapSwitch('state', true, false);
             {% for t in teams %}
                 changeButtonState({{ t.id }}, true);
             {% endfor %}
             selectAllTeams();
-            global_view_filters_clicked = true;
         });
 
         $('#unselect-all').on('click', function(event) {
+            global_view_filters_clicked = true;
             $('#toggle-my-absences').bootstrapSwitch('state', false, false);
             {% for t in teams %}
                 changeButtonState({{ t.id }}, false);
             {% endfor %}
             unselectAllTeams();
-            global_view_filters_clicked = true;
         });
 
         {% for t in teams %}
