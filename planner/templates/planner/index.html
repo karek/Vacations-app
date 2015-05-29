@@ -9,7 +9,7 @@
     </div>
     <div class="col-lg-3">
         {% block selected_absence_panel %}
-        <form id='plan-absence' method='POST' action="{% url 'planner:plan-absence' %}">
+        <form id='plan-absence' method='POST' action="{% url 'planner:plan-absence' %}" hidden="hidden">
             <h2 id="right-panel-header">Selected absence</h2>
             {% csrf_token %}
             {% include 'planner/planning_controls.html' %}
