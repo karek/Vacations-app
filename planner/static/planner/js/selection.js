@@ -295,8 +295,12 @@ function display_or_hide_planning_controls() {
     var absence_other_fields = $('#absence_other_fields');
     var plan_absence_button = $('#plan_absence_button');
     var invitation_log_in = $('#invitation_log_in');
+    var invitation_log_in_plan = $('#invitation_log_in_plan');
 
     var absence_select = $('#absence_select');
+
+    var planner_form = $('form#plan-absence');
+    var manager_form = $('form#manage-absence');
 
     manage_list.hide();
     manage_no_absences.hide();
@@ -310,15 +314,14 @@ function display_or_hide_planning_controls() {
     absence_other_fields.hide();
     plan_absence_button.hide();
     invitation_log_in.hide();
+    invitation_log_in_plan.hide();
 
     absence_select.hide();
 
     // manager mode with clicking disabled: for team request or managing own absence
     if (manage_mode_team_manager() || accept_mode_enabled()) {
-        // TODO zmienilem tutaj zarzadzanie widocznymi elementami,
-        // mozna ukryc cos jak uzytkownik nie jest zalogowany w trybie akceptowania
-        // wywoluje ta funkcje przy renderowaniu index.html i manage.html
-
+        manager_form.show();
+        planner_form.hide();
         if (!accept_mode_enabled()) {
             manage_exit_button.show();
             if(user_is_logged_in()) {
@@ -340,6 +343,7 @@ function display_or_hide_planning_controls() {
     } else {
         // else: show selfcare panel or planned ranges
         if (ranges_not_selected) {
+            planner_form.slideUp(150, function(){manager_form.slideDown(150);});
             if (user_is_logged_in()) {
                 invitation_select_days.show();
                 manage_no_absences.show();
@@ -348,13 +352,14 @@ function display_or_hide_planning_controls() {
                 invitation_log_in.show();
             }
         } else {
+            manager_form.slideUp(150, function(){planner_form.slideDown(150);});
             absence_select.show();
             if (user_is_logged_in()) {
                 // absence_comment.show();
                 absence_other_fields.show();
                 plan_absence_button.show();
             } else {
-                invitation_log_in.show();
+                invitation_log_in_plan.show();
             }
         }
     }
