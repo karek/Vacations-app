@@ -182,7 +182,12 @@
         {% if not request.user.is_authenticated %}
         $('#select-all').click();
         {% else %}
-        getUsersFromSelectedTeamsById(-1); {# to initialize the selections properly... #}
+            {% if manage_mode == "manager" %}
+            getUsersFromSelectedTeamsById(global_logged_user_team_id);
+            changeButtonState(global_logged_user_team_id, true);
+            {% else %}
+            getUsersFromSelectedTeamsById(-1); {# to initialize the selections properly... #}
+            {% endif %}
         {% endif %}
         
         global_view_filters_clicked = false;

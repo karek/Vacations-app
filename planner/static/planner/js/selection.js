@@ -408,7 +408,8 @@ function view_render_callback(view, element) {
             changeButtonState(global_logged_user_team_id, true);
             return;
         }
-        if (view.name == 'month' && global_teams_selected[global_logged_user_team_id] == 1) {
+        if (view.name == 'month' && global_teams_selected[global_logged_user_team_id] == 1
+                && !manage_mode_team_manager()) {
             global_teams_selected[global_logged_user_team_id] = 0;
             changeButtonState(global_logged_user_team_id, false);
             $('#calendar').fullCalendar('refetchEvents');
