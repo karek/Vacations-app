@@ -78,14 +78,11 @@
         {% endif %}
     </div>
     <div id="exit_manager_mode" style="margin-top: 15px" class="btn-group btn-group-justified" hidden="hidden">
-        <a href="{% url 'planner:index' %}" class="btn btn-default"><span class="glyphicon glyphicon-off"></span> Exit Manager</a>
+        <a href="{% url 'planner:my-absences' %}" class="btn btn-default"><span class="glyphicon glyphicon-off"></span> Exit Manager</a>
     </div>
     <div id="manage_back_button" style="margin-top: 15px" class="btn-group btn-group-justified" hidden="hidden">
         <div class="btn-group">
             <a href="{{ request.path }}" class="btn btn-default"><span class="glyphicon glyphicon-chevron-left"></span> Back</a>
-        </div>
-        <div class="btn-group">
-            <a href="{% url 'planner:index' %}" class="btn btn-default"><span class="glyphicon glyphicon-off"></span> Exit Manager</a>
         </div>
     </div>
 </div>

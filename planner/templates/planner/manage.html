@@ -6,7 +6,7 @@
 {{ block.super }}
         <form id='manage-absence' method='GET' action="{{ request.path }}">
             <h2 id="right-panel-header">
-                {% if manage_mode == "selfcare" %}Planned absences{% else %}Absence Manager{% endif %}
+                {% if manage_mode == "selfcare" %}My absences{% else %}Team requests{% endif %}
             </h2>
             {% if accept_absence %}
             <input type="hidden" name="absence-id" value="{{ accept_absence.id }}"/>
