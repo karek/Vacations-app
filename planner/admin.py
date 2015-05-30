@@ -58,8 +58,8 @@ class HolidayInline(admin.TabularInline):
 
 
 class HolidayCalendarAdmin(admin.ModelAdmin):
-    fields = ['name', 'selectedByDefault']
-    selectedByDefault.boolean = True
+    fields = ['name', 'selected_by_default']
+    selected_by_default.boolean = True
     inlines = [HolidayInline]
 
 
