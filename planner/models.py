@@ -250,8 +250,8 @@ class Absence(models.Model):
     )
 
     user = models.ForeignKey(EmailUser)
-    dateCreated = models.DateTimeField(auto_now_add=True)
-    dateModified = models.DateTimeField(default=timezone.now)
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(default=timezone.now)
     absence_kind = models.ForeignKey(AbsenceKind)
     status = models.IntegerField(default=PENDING, choices=STATUS_CHOICES)
     total_workdays = models.IntegerField(default=0, null=False, blank=False)
@@ -260,7 +260,7 @@ class Absence(models.Model):
     def __unicode__(self):
         return "%s days of %s requested by %s %s on %s" % \
                (self.total_workdays, self.absence_kind.name, self.user.first_name,
-                self.user.last_name, self.dateCreated.strftime('%Y-%m-%d'),)
+                self.user.last_name, self.date_created.strftime('%Y-%m-%d'),)
 
     @classmethod
     @transaction.atomic
@@ -273,7 +273,7 @@ class Absence(models.Model):
             new_range.full_clean()
             new_range.save()
             new_abs.total_workdays += new_range.workday_count
-        new_abs.dateModified = new_abs.dateCreated
+        new_abs.date_modified = new_abs.date_created
         new_abs.save()
         if do_mails:
             new_abs.request_acceptance()
@@ -295,7 +295,7 @@ class Absence(models.Model):
         self.absence_kind = tmp_abs.absence_kind
         self.comment = tmp_abs.comment
         self.status = self.PENDING
-        self.dateModified = timezone.now()
+        self.date_modified = timezone.now()
         tmp_abs.delete()
         self.save()
         self.request_acceptance()
@@ -307,8 +307,8 @@ class Absence(models.Model):
             'id': self.id,
             'user_id': self.user.id,
             'user_name': self.user.get_full_name(),
-            'date_created': dateToString(self.dateCreated),
-            'date_modified': dateToString(self.dateModified),
+            'date_created': dateToString(self.date_created),
+            'date_modified': dateToString(self.date_modified),
             'kind_id': self.absence_kind.id,
             'kind_name': self.absence_kind.name,
             'kind_bg_color': self.absence_kind.bg_color,
@@ -447,13 +447,13 @@ class Absence(models.Model):
         return text + '\n\n' + self.description()
 
     def change_timestamp(self):
-        return self.dateModified.strftime('%s')
+        return self.date_modified.strftime('%s')
 
     def created_timestamp(self):
-        return self.dateCreated.strftime('%s')
+        return self.date_created.strftime('%s')
 
     def was_modified(self):
-        return self.dateCreated != self.dateModified
+        return self.date_created != self.date_modified
 
     def manage_path(self):
         return '/manage-absences?absence-id=%d&ts=%s' % (self.id, self.change_timestamp())
