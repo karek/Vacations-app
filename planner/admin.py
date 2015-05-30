@@ -59,10 +59,8 @@ class HolidayInline(admin.TabularInline):
 
 class HolidayCalendarAdmin(admin.ModelAdmin):
     fields = ['name', 'selected_by_default']
-    selected_by_default.boolean = True
     inlines = [HolidayInline]
-
-
+    
 class EmailUserInline(admin.TabularInline):
     model = EmailUser
     fields = ['email', 'first_name', 'last_name', 'is_teamleader']
