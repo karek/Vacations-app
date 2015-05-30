@@ -1,0 +1,88 @@
+{# note: this form is shown INSTEAD OF the planning form when no ranges are selected, or in team-manager mode #}
+<div class="form-actions" style="text-align: center;">
+    <p id="invitation_select_days" hidden="hidden">
+        Select days for your absence by clicking on the calendar.
+    </p>
+
+    <p id="invitation_log_in" hidden="hidden">
+        You have to be logged in to plan or view absences.
+    </p>
+
+    <p id="manage_invitation_log_in" hidden="hidden">
+        You have to be logged in to manage absences.
+    </p>
+
+    <p id="manage_no_absences" hidden="hidden">
+        No absences to manage.
+    </p>
+
+    <div id="manage_absence_list" hidden="hidden" class="list-group" style="text-align: left;">
+        {% if accept_absence %}
+        <div class="list-group-item">
+            {% if manage_mode == "selfcare" and accept_absence.status == 1 %}
+            <span class="badge progress-bar-success" style="margin-top: 10px;">
+                {{ accept_absence.total_workdays }}&nbsp;<span class="glyphicon glyphicon-ok"></span>
+            </span>
+            {% else %}
+            <span class="badge" style="margin-top: 10px;">{{ accept_absence.total_workdays }}</span>
+            {% endif %}
+            <h4>{{ accept_absence.user_name }}</h4>
+            <table class="table pending-details-table" style="margin-bottom: 0px;">
+                <tbody>
+                <tr>
+                    <th scope="row">Kind</th>
+                    <td><span class="label absence-kind-{{ accept_absence.kind_name|slugify }}">
+                            <span class="glyphicon glyphicon-{{ accept_absence.kind_icon }}"></span>&nbsp;
+                            {{ accept_absence.kind_name }}</span>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">{% if accept_absence.status == 1 %}Created{% else %}Requested{% endif %}</th>
+                    <td>{{ accept_absence.date_created }}</td>
+                </tr>
+                {% if accept_absence.created_ts != accept_absence.modified_ts %}
+                <tr>
+                    <th scope="row">Modified</th>
+                    <td>{{ accept_absence.date_modified }}</td>
+                </tr>
+                {% endif %}
+                {% if accept_absence.comment %}
+                <tr>
+                    <th scope="row">Comment</th>
+                    <td>{{ accept_absence.comment }}</td>
+                </tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+
+    <div id="manage_buttons" class='btn-group btn-group-justified' role='group' style="display: none;">
+        {% if manage_mode == "selfcare" %}
+        <div class="btn-group">
+            <button type='submit' name='cancel-submit' class='btn btn-danger'><span class="glyphicon glyphicon-trash"></span> Remove</button>
+        </div>
+        {% if accept_absence and accept_absence.status == 0 %}
+        <div class="btn-group" id="manage_buttons_edit">
+            <a href="{% url 'planner:index' %}?edit-absence-id={{ accept_absence.id }}" name='edit-submit' class='btn btn-info'><span class="glyphicon glyphicon-pencil"></span> Edit</a>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="btn-group">
+            <button type='submit' name='reject-submit' class='btn btn-danger'><span class="glyphicon glyphicon-ban-circle"></span> Reject</button>
+        </div>
+        <div class="btn-group">
+            <button type='submit' name='accept-submit' class='btn btn-success'><span class="glyphicon glyphicon-ok"></span> Accept</button>
+        </div>
+        {% endif %}
+    </div>
+    <div id="exit_manager_mode" style="margin-top: 15px" class="btn-group btn-group-justified" hidden="hidden">
+        <a href="{% url 'planner:my-absences' %}" class="btn btn-default"><span class="glyphicon glyphicon-off"></span> Exit Manager</a>
+    </div>
+    <div id="manage_back_button" style="margin-top: 15px" class="btn-group btn-group-justified" hidden="hidden">
+        <div class="btn-group">
+            <a href="{{ request.path }}" class="btn btn-default"><span class="glyphicon glyphicon-chevron-left"></span> Back</a>
+        </div>
+    </div>
+</div>

@@ -53,7 +53,8 @@ class IndexView(View):
                 self.prepare_absence_edit(request)  # throws on error
             except InternalError as e:
                 messages.error(request, e.message)
-        return render(request, 'planner/index.html', self.context)
+            return render(request, 'planner/manage.html', self.context)
+        return HttpResponseRedirect('/my-absences')
 
     def prepare_absence_edit(self, request):
         try:
