@@ -111,15 +111,16 @@
             header: {
                 left: 'prev,next today',
                 center: 'title',
-                right: 'month,weekWorkers'
+                right: 'month,resourceWeekView'
             },
             eventLimit: true,
+            defaultView: 'resourceWeekView',
             views: {
                 month: {
                     eventLimit: 2,
                     weekends: false
                 },
-                weekWorkers: {
+                resourceWeekView: {
                     eventLimit: false,
                     weekends: true
                 }

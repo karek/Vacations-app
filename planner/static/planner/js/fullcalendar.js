@@ -6003,12 +6003,15 @@ var UnclickableDayGrid = DayGrid.extend({
 
 });;
 
+
     /* A component that renders rows with custom values given by json (atm. Global Users)
 ----------------------------------------------------------------------------------------------------------------------*/
 
-var CustomResourceGrid = TimeGrid.extend({
+var ResourceDayGrid = UnclickableDayGrid.extend({
 
     dayMousedown: function() {},
+	slatEls: null, // elements running horizontally across all columns
+	slatTops: null, // an array of top positions, relative to the container. last item holds bottom of last slot
 
     renderHtml: function() {
 		return '' +
@@ -6023,6 +6026,58 @@ var CustomResourceGrid = TimeGrid.extend({
 				'</table>' +
 			'</div>';
 	},
+
+	// Renders the time grid into `this.el`, which should already be assigned.
+	// Relies on the view's colCnt. In the future, this component should probably be self-sufficient.
+	render: function() {
+		this.el.html(this.renderHtml());
+		this.dayEls = this.el.find('.fc-day');
+		this.slatEls = this.el.find('.fc-slats tr');
+
+		this.computeSlatTops();
+
+		var view = this.view;
+		var rowCnt = this.rowCnt;
+		var colCnt = this.colCnt;
+		var cellCnt = rowCnt * colCnt;
+		var html = '';
+		var row;
+		var i, cell;
+
+		for (row = 0; row < rowCnt; row++) {
+			html += this.dayRowHtml(row, isRigid);
+		}
+		this.el.html(html);
+
+		this.rowEls = this.el.find('.fc-row');
+		this.dayEls = this.el.find('.fc-day');
+
+		// trigger dayRender with each cell's element
+		for (i = 0; i < cellCnt; i++) {
+			cell = this.getCell(i);
+			view.trigger('dayRender', null, cell.start, this.dayEls.eq(i));
+		}
+
+		Grid.prototype.render.call(this); // call the super-method
+	},
+
+
+	// Queries each `slatEl` for its position relative to the grid's container and stores it in `slatTops`.
+	// Includes the the bottom of the last slat as the last item in the array.
+	computeSlatTops: function() {
+		var tops = [];
+		var top;
+
+		this.slatEls.each(function(i, node) {
+			top = $(node).position().top;
+			tops.push(top);
+		});
+
+		tops.push(top + this.slatEls.last().outerHeight()); // bottom of the last slat
+
+		this.slatTops = tops;
+	},
+
 
     // Generates the HTML for the horizontal "slats" that run width-wise. Has a person axis on a side. Depends on RTL.
     slatRowHtml: function() {
@@ -10064,9 +10119,40 @@ fcViews.Workers = agendaView.extend ({
 
 fcViews.weekWorkers = {
 	type: 'Workers',
-	duration: { week: 1 }
+	duration: { weeks: 1 }
 };
+;;
 
+fcViews.Resource = BasicView.extend({
+
+	axisWidth: null, // the width of the time axis running down the side
+
+	initialize: function() {
+		this.dayGrid = new ResourceDayGrid(this);
+		this.coordMap = this.dayGrid.coordMap; // the view's date-to-cell mapping is identical to the subcomponent's
+	},
+
+	// Generates an HTML attribute string for setting the width of the axis, if it is known
+	axisStyleAttr: function() {
+		if (this.axisWidth !== null) {
+			 return 'style="width:' + this.axisWidth + 'px"';
+		}
+		return '';
+	},
+
+	// Refreshes the horizontal dimensions of the view
+	updateWidth: function() {
+		// make all axis cells line up, and record the width so newly created axis cells will have it
+		this.axisWidth = matchCellWidths(this.el.find('.fc-axis'));
+	},
+
+});
+;;
+
+fcViews.resourceWeekView = {
+	type: 'Resource',
+	duration: { days: 10 }
+};
 ;;
 
 });
