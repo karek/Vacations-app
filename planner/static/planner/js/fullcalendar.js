@@ -6117,7 +6117,6 @@ var ResourceDayGrid = UnclickableDayGrid.extend({
                     '<span>' ; // for matchCellWidths
 
         this.slatNoByUserId = new Array();
-        console.debug('-- clear slatNo --');
 		// Calculate the time for each slot
         for (i in global_users_sorted) {
 
@@ -6125,7 +6124,6 @@ var ResourceDayGrid = UnclickableDayGrid.extend({
             var name = currPerson.first_name + " "  + currPerson.last_name;
             var maybeBold = htmlEscape(name);
             this.slatNoByUserId[currPerson.id] = i;
-            console.debug('user: ', currPerson.id, ' slatNo: ', i);
 
             if (currPerson.id == global_logged_user_id)
                 if (!global_show_my_absences)
@@ -6208,19 +6206,53 @@ var ResourceDayGrid = UnclickableDayGrid.extend({
     },
 
 
-	// Utility for generating a CSS string with all the event skin-related properties
-	getEventSkinCss: function(event) {
-		var statements = new Array;
-        var oldCss = DayGrid.prototype.getEventSkinCss.call(this, event);
-        if (oldCss) statements.push(oldCss);
-        //if (event.user_id != global_event_is_holiday) {
-            //var userSlatNo = this.slatNoByUserId[event.user_id];
-            //statements.push('top: ' + this.slatTops[userSlatNo] + 'px');
-            //console.debug('event user: ', event.user_id, ' slatNo: ', userSlatNo, ' top: ', this.slatTops[userSlatNo]);
-        //}
-		return statements.join(';');
+    // In normal DayGrid this function stacks a flat array of segments, which are all assumed
+    // to be in the same row, into subarrays of vertical levels.
+    // In ResourceDayGrid we always want to have as many levels as resources, and put each seg
+    // into its respective level.
+	buildSegLevels: function(segs) {
+		var levels = [];
+		var i, seg;
+		var j;
+
+        // make as many levels as Resources on the left pane
+        for (i = 0; i <= global_users_sorted.length; ++i) {
+            levels.push([]);
+        }
+
+		// Give preference to elements with certain criteria, so they have
+		// a chance to be closer to the top.
+		//segs.sort(compareSegs);
+
+        // assign segs to the proper resource levels
+		for (i = 0; i < segs.length; i++) {
+			seg = segs[i];
+            userSlatNo = this.slatNoByUserId[seg.event.user_id] || global_users_sorted.length;
+            levels[userSlatNo].push(seg);
+		}
+
+		// order segments left-to-right. very important if calendar is RTL
+		for (j = 0; j < levels.length; j++) {
+			levels[j].sort(compareDaySegCols);
+		}
+
+		return levels;
 	},
 
+
+    // render the row as always, and then assign each row explicit height to match its slat
+    renderSegRow: function(row, rowSegs) {
+        this.computeSlatTops();
+        var segRow = DayGrid.prototype.renderSegRow.call(this, row, rowSegs);
+        var tops = this.slatTops;
+        segRow.tbodyEl.find('tr').each(function(i, node) {
+            var slatHeight = tops[i+1] - tops[i];
+            if (slatHeight) {
+                $(node).css('height', '' + slatHeight + 'px');
+            }
+        });
+        return segRow;
+    }
 
 
 });;
