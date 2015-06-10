@@ -1040,3 +1040,7 @@ be a descendant of the grid when it is being dragged.
 .fc-resource-day-grid .fc-helper-skeleton {
 	z-index: 6;
 }
+
+.fc-resource-day-grid .fc-event-container {
+    padding: 2px;
+}

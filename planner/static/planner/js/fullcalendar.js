@@ -6106,7 +6106,7 @@ var ResourceDayGrid = UnclickableDayGrid.extend({
 	},
 
 
-    // Generates the HTML for the horizontal "slats" that run width-wise. Has a person axis on a side. Depends on RTL.
+    // Generates the HTML for the horizontal "slats" that run width-wise. Has a resource axis on a side. Depends on RTL.
     slatRowHtml: function() {
 		var view = this.view;
 		var isRTL = this.isRTL;
@@ -6115,15 +6115,25 @@ var ResourceDayGrid = UnclickableDayGrid.extend({
         var axisEnd = '</span>' + '</td>';
         var axisBeg = '<td class="fc-axis fc-time ' + view.widgetContentClass + '" ' + view.axisStyleAttr() + '>' +
                     '<span>' ; // for matchCellWidths
-
         this.slatNoByUserId = new Array();
-		// Calculate the time for each slot
-        for (i in global_users_sorted) {
 
+        // events not assigned to any resource go into the first slat
+        this.slatNoByUserId[-1] = 0;
+        var unassignedRowAxis = axisBeg + view.opt('noResourceText') + axisEnd;
+        html += '<tr class="fc-resource-unassigned-row">' +
+					(!isRTL ? unassignedRowAxis : '') +
+					'<td class="' + view.widgetContentClass + '"/>' +
+					(isRTL ? unassignedRowAxis : '') +
+				"</tr>";
+        var slatCount = 1;
+
+        // next, add one row per resource
+        for (i in global_users_sorted) {
             var currPerson = global_users_sorted[i];
             var name = currPerson.first_name + " "  + currPerson.last_name;
             var maybeBold = htmlEscape(name);
-            this.slatNoByUserId[currPerson.id] = i;
+            this.slatNoByUserId[currPerson.id] = slatCount;
+            slatCount++;
 
             if (currPerson.id == global_logged_user_id)
                 if (!global_show_my_absences)
@@ -6195,17 +6205,6 @@ var ResourceDayGrid = UnclickableDayGrid.extend({
 			'</a>';
 	},
 
-    computeSegVerticals: function(segs) {
-        var i, seg;
-
-        for (i = 0; i < segs.length; i++) {
-            seg = segs[i];
-            seg.top = this.slatTops[global_users_order[seg.event.user_id]];
-            seg.bottom = this.slatTops[global_users_order[seg.event.user_id]+1];
-        }
-    },
-
-
     // In normal DayGrid this function stacks a flat array of segments, which are all assumed
     // to be in the same row, into subarrays of vertical levels.
     // In ResourceDayGrid we always want to have as many levels as resources, and put each seg
@@ -6227,7 +6226,7 @@ var ResourceDayGrid = UnclickableDayGrid.extend({
         // assign segs to the proper resource levels
 		for (i = 0; i < segs.length; i++) {
 			seg = segs[i];
-            userSlatNo = this.slatNoByUserId[seg.event.user_id] || global_users_sorted.length;
+            userSlatNo = this.slatNoByUserId[seg.event.user_id];
             levels[userSlatNo].push(seg);
 		}
 
@@ -10324,6 +10323,7 @@ fcViews.Resource = BasicView.extend({
 fcViews.resourceWeekView = {
 	type: 'Resource',
 	duration: { days: 10 },
+    allDayText: '',
 };
 ;;
 
