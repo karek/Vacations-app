@@ -62,6 +62,7 @@ var defaults = {
 		month: 'Individual',
 		week: 'week',
         weekWorkers: 'Team',
+        resourceWeekView: 'Team',
 		day: 'day'
 	},
 
