@@ -61,7 +61,6 @@ var defaults = {
 		today: 'today',
 		month: 'Individual',
 		week: 'week',
-        weekWorkers: 'Team',
         resourceWeekView: 'Team',
 		day: 'day'
 	},
@@ -9725,10 +9724,8 @@ var agendaView = fcViews.agenda = View.extend({ // AgendaView
 
 	initialize: function() {
 
-        this.customGrid = new CustomResourceGrid(this)
+        this.customGrid = new TimeGrid(this)
 		this.timeGrid = this.customGrid;
-		// we don't allow selections on agenda view
-		this.options['selectable'] = false;
 
 
 		if (this.opt('allDaySlot')) { // should we display the "all-day" area?
@@ -10120,93 +10117,6 @@ fcViews.agendaDay = {
 };
 ;;
 
-fcViews.Workers = agendaView.extend ({
-
-    initialize: function() {
-        agendaView.prototype.initialize.call(this);
-        this.dayGrid = new UnclickableDayGrid(this);
-    },
-
-    dayIntroHtml: function() {
-        return '' +
-            '<td class="fc-axis ' + this.widgetContentClass + '" ' + this.axisStyleAttr() + '>' +
-            '<span>' + // needed for matchCellWidths
-            (this.opt('allDayHtml') || htmlEscape("Holidays")) +
-            '</span>' +
-            '</td>';
-    },
-
-    renderEvents: function(events) {
-
-        var myEvents = [];
-        var othersEvents = [];
-        var daySegs = [];
-        var timedSegs;
-        var i;
-
-// separate the events into all-day and timed
-        for (i = 0; i < events.length; i++) {
-            if (events[i].user_id == global_event_is_holiday) {
-                myEvents.push(events[i]);
-            }
-            else {
-                othersEvents.push(events[i]);
-            }
-
-            if (events[i].rendering && events[i].rendering == "background") {
-                othersEvents.push(events[i]);
-            }
-        }
-
-// render the events in the subcomponents
-        timedSegs = this.timeGrid.renderEvents(othersEvents);
-
-        if (this.dayGrid) {
-            daySegs = this.dayGrid.renderEvents(myEvents);
-        }
-
-// the all-day area is flexible and might have a lot of events, so shift the height
-        this.updateHeight();
-    },
-
-    computeRange: function(date) {
-
-        var range = BasicView.prototype.computeRange.call(this, date);
-        range.intervalStart = date.clone().subtract(3, 'days');
-        range.intervalEnd = range.intervalStart.clone().add(10, 'days');
-
-        range.intervalStart.stripTime();
-        range.intervalEnd.stripTime();
-
-        range.start = range.intervalStart.clone();
-        range.start = this.skipHiddenDays(range.start);
-        range.end = range.intervalEnd.clone();
-        range.end = this.skipHiddenDays(range.end, -1, true); // exclusively move backwards
-
-        return range;
-    },
-
-    computePrevDate: function(date) {
-		return this.skipHiddenDays(
-			date.clone().subtract(1, 'week'), -1
-		);
-	},
-
-	// Computes the new date when the user hits the next button, given the current date
-	computeNextDate: function(date) {
-		return this.skipHiddenDays(
-			date.clone().add(1, 'week')
-		);
-	}
-
-});
-;;
-
-fcViews.weekWorkers = {
-	type: 'Workers',
-	duration: { weeks: 1 }
-};
-;;
 
 fcViews.Resource = BasicView.extend({
 
