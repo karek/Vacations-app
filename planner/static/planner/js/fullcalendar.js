@@ -6127,13 +6127,19 @@ var ResourceDayGrid = UnclickableDayGrid.extend({
 				"</tr>";
         var slatCount = 1;
 
+        var previousResGroup = undefined;
+
         // next, add one row per resource
         for (i in global_users_sorted) {
             var currPerson = global_users_sorted[i];
             var name = currPerson.first_name + " "  + currPerson.last_name;
             var maybeBold = htmlEscape(name);
-            this.slatNoByUserId[currPerson.id] = slatCount;
-            slatCount++;
+            this.slatNoByUserId[currPerson.id] = slatCount++;
+            var rowClasses = '';
+
+            if (previousResGroup != currPerson.team_id) {
+                rowClasses += ' fc-slats-group-separator';
+            }
 
             if (currPerson.id == global_logged_user_id)
                 if (!global_show_my_absences)
@@ -6147,12 +6153,12 @@ var ResourceDayGrid = UnclickableDayGrid.extend({
                 axisHtml = axisBeg + '<span class="glyphicon glyphicon-star-empty"></span>' +  maybeBold + axisEnd;
 
 			html +=
-				'<tr>' +
+				'<tr class="' + rowClasses + '">' +
 					(!isRTL ? axisHtml : '') +
 					'<td class="' + view.widgetContentClass + '"/>' +
 					(isRTL ? axisHtml : '') +
 				"</tr>";
-
+            previousResGroup = currPerson.team_id;
         }
 
 		return html;
