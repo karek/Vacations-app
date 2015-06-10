@@ -1041,10 +1041,6 @@ be a descendant of the grid when it is being dragged.
 	z-index: 6;
 }
 
-.fc-resource-day-grid .fc-event-container {
-    padding: 2px;
-}
-
 .fc-resource-day-grid tr.fc-slats-group-separator {
     border-top: 4px solid #ddd;
 }

@@ -6178,7 +6178,7 @@ var ResourceDayGrid = UnclickableDayGrid.extend({
 		var classes = this.getSegClasses(seg, isDraggable, isResizable);
 		var skinCss = this.getEventSkinCss(event);
 
-		classes.unshift('fc-time-grid-event');
+		classes.unshift('fc-day-grid-event');
 
         var icon = '';
         if (seg.event.icon) {
