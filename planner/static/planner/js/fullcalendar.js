@@ -6014,23 +6014,49 @@ var ResourceDayGrid = UnclickableDayGrid.extend({
 	slatTops: null, // an array of top positions, relative to the container. last item holds bottom of last slot
 
     renderHtml: function() {
+		var view = this.view;
+		var classes = [ 'fc-row', 'fc-week', view.widgetContentClass ];
 		return '' +
-			'<div class="fc-bg">' +
-				'<table>' +
-					this.rowHtml('slotBg') + // leverages RowRenderer, which will call slotBgCellHtml
-				'</table>' +
-			'</div>' +
-			'<div class="fc-slats" id="slats">' +
-				'<table>' +
-					this.slatRowHtml() +
-				'</table>' +
+			'<div class="' + classes.join(' ') + '">' +
+                '<div class="fc-bg">' +
+                    '<table>' +
+                        this.rowHtml('day') + // leverages RowRenderer, which will call slotBgCellHtml
+                    '</table>' +
+                '</div>' +
+                '<div class="fc-slats" id="slats">' +
+                    '<table>' +
+                        this.slatRowHtml() +
+                    '</table>' +
+                '</div>' +
 			'</div>';
+	},
+
+
+	// Generates the HTML for a single row. `row` is the row number.
+	dayRowHtml: function(row, isRigid) {
+		return '' +
+            '<div class="fc-bg">' +
+                '<table>' +
+                    this.rowHtml('day', row) + // leverages RowRenderer. calls dayCellHtml()
+                '</table>' +
+            '</div>' +
+            '<div class="fc-content-skeleton">' +
+                '<table>' +
+                    (this.numbersVisible ?
+                        '<thead>' +
+                            this.rowHtml('number', row) + // leverages RowRenderer. View will define render method
+                        '</thead>' :
+                        ''
+                        ) +
+                '</table>' +
+            '</div>';
 	},
 
 	// Renders the time grid into `this.el`, which should already be assigned.
 	// Relies on the view's colCnt. In the future, this component should probably be self-sufficient.
 	render: function() {
-		this.el.html(this.renderHtml());
+        var tmpHtml = this.renderHtml();
+		this.el.html(tmpHtml);
 		this.dayEls = this.el.find('.fc-day');
 		this.slatEls = this.el.find('.fc-slats tr');
 
@@ -6040,14 +6066,15 @@ var ResourceDayGrid = UnclickableDayGrid.extend({
 		var rowCnt = this.rowCnt;
 		var colCnt = this.colCnt;
 		var cellCnt = rowCnt * colCnt;
-		var html = '';
 		var row;
 		var i, cell;
+        var slatsDiv = this.el.find('#slats');
+        var rowsHtml = '';
 
 		for (row = 0; row < rowCnt; row++) {
-			html += this.dayRowHtml(row, isRigid);
+			rowsHtml += this.dayRowHtml(row, true);
 		}
-		this.el.html(html);
+        slatsDiv.before(rowsHtml);
 
 		this.rowEls = this.el.find('.fc-row');
 		this.dayEls = this.el.find('.fc-day');
@@ -6089,12 +6116,16 @@ var ResourceDayGrid = UnclickableDayGrid.extend({
         var axisBeg = '<td class="fc-axis fc-time ' + view.widgetContentClass + '" ' + view.axisStyleAttr() + '>' +
                     '<span>' ; // for matchCellWidths
 
+        this.slatNoByUserId = new Array();
+        console.debug('-- clear slatNo --');
 		// Calculate the time for each slot
         for (i in global_users_sorted) {
 
             var currPerson = global_users_sorted[i];
             var name = currPerson.first_name + " "  + currPerson.last_name;
             var maybeBold = htmlEscape(name);
+            this.slatNoByUserId[currPerson.id] = i;
+            console.debug('user: ', currPerson.id, ' slatNo: ', i);
 
             if (currPerson.id == global_logged_user_id)
                 if (!global_show_my_absences)
@@ -6174,7 +6205,23 @@ var ResourceDayGrid = UnclickableDayGrid.extend({
             seg.top = this.slatTops[global_users_order[seg.event.user_id]];
             seg.bottom = this.slatTops[global_users_order[seg.event.user_id]+1];
         }
-    }
+    },
+
+
+	// Utility for generating a CSS string with all the event skin-related properties
+	getEventSkinCss: function(event) {
+		var statements = new Array;
+        var oldCss = DayGrid.prototype.getEventSkinCss.call(this, event);
+        if (oldCss) statements.push(oldCss);
+        //if (event.user_id != global_event_is_holiday) {
+            //var userSlatNo = this.slatNoByUserId[event.user_id];
+            //statements.push('top: ' + this.slatTops[userSlatNo] + 'px');
+            //console.debug('event user: ', event.user_id, ' slatNo: ', userSlatNo, ' top: ', this.slatTops[userSlatNo]);
+        //}
+		return statements.join(';');
+	},
+
+
 
 });;
 
@@ -10132,6 +10179,7 @@ fcViews.Resource = BasicView.extend({
 		this.coordMap = this.dayGrid.coordMap; // the view's date-to-cell mapping is identical to the subcomponent's
 	},
 
+
 	// Generates an HTML attribute string for setting the width of the axis, if it is known
 	axisStyleAttr: function() {
 		if (this.axisWidth !== null) {
@@ -10146,12 +10194,104 @@ fcViews.Resource = BasicView.extend({
 		this.axisWidth = matchCellWidths(this.el.find('.fc-axis'));
 	},
 
+
+	// Generates the HTML that will go before the day-of week header cells.
+	// Queried by the TimeGrid subcomponent when generating rows. Ordering depends on isRTL.
+	headIntroHtml: function() {
+		var date;
+		var weekNumber;
+		var weekTitle;
+		var weekText;
+
+		if (this.opt('weekNumbers')) {
+			date = this.timeGrid.getCell(0).start;
+			weekNumber = this.calendar.calculateWeekNumber(date);
+			weekTitle = this.opt('weekNumberTitle');
+
+			if (this.opt('isRTL')) {
+				weekText = weekNumber + weekTitle;
+			}
+			else {
+				weekText = weekTitle + weekNumber;
+			}
+
+			return '' +
+				'<th class="fc-axis fc-week-number ' + this.widgetHeaderClass + '" ' + this.axisStyleAttr() + '>' +
+					'<span>' + // needed for matchCellWidths
+						htmlEscape(weekText) +
+					'</span>' +
+				'</th>';
+		}
+		else {
+			return '<th class="fc-axis ' + this.widgetHeaderClass + '" ' + this.axisStyleAttr() + '></th>';
+		}
+	},
+
+
+	// Generates the HTML that goes before the all-day cells.
+	// Queried by the DayGrid subcomponent when generating rows. Ordering depends on isRTL.
+	dayIntroHtml: function() {
+		return '' +
+			'<td class="fc-axis ' + this.widgetContentClass + '" ' + this.axisStyleAttr() + '>' +
+				'<span>' + // needed for matchCellWidths
+                    (this.opt('allDayHtml') || htmlEscape(this.opt('allDayText'))) +
+				'</span>' +
+			'</td>';
+	},
+
+
+	// Generates the HTML that goes before the bg of the TimeGrid slot area. Long vertical column.
+	slotBgIntroHtml: function() {
+		return '<td class="fc-axis ' + this.widgetContentClass + '" ' + this.axisStyleAttr() + '></td>';
+	},
+
+
+	// Generates the HTML that goes before all other types of cells.
+	// Affects content-skeleton, helper-skeleton, highlight-skeleton for both the time-grid and day-grid.
+	// Queried by the TimeGrid and DayGrid subcomponents when generating rows. Ordering depends on isRTL.
+	introHtml: function() {
+		return '<td class="fc-axis" ' + this.axisStyleAttr() + '></td>';
+	},
+
+
+	// Refreshes the horizontal dimensions of the view
+	updateWidth: function() {
+		// make all axis cells line up, and record the width so newly created axis cells will have it
+		this.axisWidth = matchCellWidths(this.el.find('.fc-axis'));
+	},
+
+
+	// Builds the HTML skeleton for the view.
+	// The day-grid component will render inside of a container defined by this HTML.
+	renderHtml: function() {
+		return '' +
+			'<table>' +
+				'<thead>' +
+					'<tr>' +
+						'<td class="' + this.widgetHeaderClass + '">' +
+							this.dayGrid.headHtml() + // render the day-of-week headers
+						'</td>' +
+					'</tr>' +
+				'</thead>' +
+				'<tbody>' +
+					'<tr>' +
+						'<td class="' + this.widgetContentClass + '">' +
+							'<div class="fc-day-grid-container fc-resource-day-grid-container">' +
+								'<div class="fc-day-grid fc-resource-day-grid"/>' +
+							'</div>' +
+						'</td>' +
+					'</tr>' +
+				'</tbody>' +
+			'</table>';
+	},
+
+
 });
 ;;
 
 fcViews.resourceWeekView = {
 	type: 'Resource',
-	duration: { days: 10 }
+	duration: { days: 10 },
 };
 ;;
 
