@@ -10121,8 +10121,10 @@ fcViews.agendaDay = {
 fcViews.Resource = BasicView.extend({
 
 	axisWidth: null, // the width of the time axis running down the side
+	intervalNext: null, // Interval that should be added/subtracted when clicking on next/prev button
 
 	initialize: function() {
+		this.intervalNext = moment.duration(this.opt('nextButtonDuration') || this.constructor.duration || { days: 1 });
 		this.dayGrid = new ResourceDayGrid(this);
 		this.coordMap = this.dayGrid.coordMap; // the view's date-to-cell mapping is identical to the subcomponent's
 	},
@@ -10234,13 +10236,28 @@ fcViews.Resource = BasicView.extend({
 	},
 
 
+	// Computes the new date when the user hits the prev button, given the current date
+	computePrevDate: function(date) {
+		return this.skipHiddenDays(
+			date.clone().startOf(this.intervalUnit).subtract(this.intervalNext), -1
+		);
+	},
+
+
+	// Computes the new date when the user hits the next button, given the current date
+	computeNextDate: function(date) {
+		return this.skipHiddenDays(
+			date.clone().startOf(this.intervalUnit).add(this.intervalNext)
+		);
+	},
 });
 ;;
 
 fcViews.resourceWeekView = {
 	type: 'Resource',
 	duration: { days: 10 },
-    allDayText: '',
+	nextButtonDuration: { days: 7 },
+	allDayText: '',
 };
 ;;
 
