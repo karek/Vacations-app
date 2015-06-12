@@ -10118,7 +10118,7 @@ fcViews.agendaDay = {
 ;;
 
 
-fcViews.Resource = BasicView.extend({
+var ResourceView = fcViews.Resource = BasicView.extend({
 
 	axisWidth: null, // the width of the time axis running down the side
 	intervalNext: null, // Interval that should be added/subtracted when clicking on next/prev button
@@ -10253,10 +10253,35 @@ fcViews.Resource = BasicView.extend({
 });
 ;;
 
+// Resource view with showing <-3, +7> days
+fcViews.ourResource = ResourceView.extend({
+
+//	Compute the value to feed into setRange. Overrides superclass.
+	computeRange: function(date) {
+		var range = BasicView.prototype.computeRange.call(this, date); // get value from the super-method
+		range.intervalStart = date.clone().subtract(moment.duration(this.opt('daysBack') || { days: 0 } ));
+		range.intervalEnd = range.intervalStart.clone().add(moment.duration(this.opt('duration')));
+
+		range.intervalStart.stripTime();
+		range.intervalEnd.stripTime();
+
+		// year and month views should be aligned with weeks. this is already done for week
+		 range.start = range.intervalStart.clone();
+		 range.start = this.skipHiddenDays(range.start);
+		 range.end = range.intervalEnd.clone();
+		 range.end = this.skipHiddenDays(range.end, -1, true); // exclusively move backwards
+
+		return range;
+	},
+
+});
+;;
+
 fcViews.resourceWeekView = {
-	type: 'Resource',
+	type: 'ourResource',
 	duration: { days: 10 },
 	nextButtonDuration: { days: 7 },
+	daysBack: { days: 3 },
 	allDayText: '',
 };
 ;;
