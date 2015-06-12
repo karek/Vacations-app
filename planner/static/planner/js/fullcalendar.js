@@ -10124,11 +10124,11 @@ fcViews.Resource = BasicView.extend({
 	intervalNext: null, // Interval that should be added/subtracted when clicking on next/prev button
 
 	initialize: function() {
-		this.intervalNext = moment.duration(this.opt('nextButtonDuration') || this.constructor.duration || { days: 1 });
+		this.intervalNext = moment.duration(this.opt('nextButtonDuration') || this.opt('duration')  ||
+											this.constructor.duration || { days: 1 });
 		this.dayGrid = new ResourceDayGrid(this);
 		this.coordMap = this.dayGrid.coordMap; // the view's date-to-cell mapping is identical to the subcomponent's
 	},
-
 
 	// Generates an HTML attribute string for setting the width of the axis, if it is known
 	axisStyleAttr: function() {
