@@ -6012,6 +6012,8 @@ var ResourceDayGrid = UnclickableDayGrid.extend({
     dayMousedown: function() {},
 	slatEls: null, // elements running horizontally across all columns
 	slatTops: null, // an array of top positions, relative to the container. last item holds bottom of last slot
+    maxUnassignedSegs: 1, // maximum number of no-resource events in one day, to calculate the first row's height
+    curUnassignedSegs: 1, // for how many events is the first row currently set up
 
     renderHtml: function() {
 		var view = this.view;
@@ -6055,6 +6057,8 @@ var ResourceDayGrid = UnclickableDayGrid.extend({
 	// Renders the time grid into `this.el`, which should already be assigned.
 	// Relies on the view's colCnt. In the future, this component should probably be self-sufficient.
 	render: function() {
+        this.maxUnassignedSegs = 1;
+        this.curUnassignedSegs = 1;
         var tmpHtml = this.renderHtml();
 		this.el.html(tmpHtml);
 		this.dayEls = this.el.find('.fc-day');
@@ -6094,6 +6098,13 @@ var ResourceDayGrid = UnclickableDayGrid.extend({
 	computeSlatTops: function() {
 		var tops = [];
 		var top;
+
+        if (this.curUnassignedSegs != this.maxUnassignedSegs) {
+            var oldHeight = this.slatEls.first().outerHeight();
+            newHeight = (oldHeight / this.curUnassignedSegs) * this.maxUnassignedSegs;
+            this.slatEls.first().css('height', '' + newHeight + 'px');
+            this.curUnassignedSegs = this.maxUnassignedSegs;
+        }
 
 		this.slatEls.each(function(i, node) {
 			top = $(node).position().top;
@@ -6245,10 +6256,114 @@ var ResourceDayGrid = UnclickableDayGrid.extend({
 	},
 
 
-    // render the row as always, and then assign each row explicit height to match its slat
-    renderSegRow: function(row, rowSegs) {
+	// Given a row # and an array of segments all in the same row, render a <tbody> element, a skeleton that contains
+	// the segments. Returns object with a bunch of internal data about how the render was calculated.
+	renderSegRow: function(row, rowSegs) {
+		var colCnt = this.colCnt;
+		var segLevels = this.buildSegLevels(rowSegs); // group into sub-arrays of levels
+		var levelCnt = Math.max(1, segLevels.length); // ensure at least one level
+		var tbody = $('<tbody/>');
+		var segMatrix = []; // lookup for which segments are rendered into which level+col cells
+		var cellMatrix = []; // lookup for all <td> elements of the level+col matrix
+		var loneCellMatrix = []; // lookup for <td> elements that only take up a single column
+		var i, levelSegs;
+		var col;
+		var tr;
+		var j, seg;
+		var td;
+
+		// populates empty cells from the current column (`col`) to `endCol`
+		function emptyCellsUntil(endCol) {
+			while (col < endCol) {
+				// try to grab a cell from the level above and extend its rowspan. otherwise, create a fresh cell
+				td = (loneCellMatrix[i - 1] || [])[col];
+				if (td) {
+					td.attr(
+						'rowspan',
+						parseInt(td.attr('rowspan') || 1, 10) + 1
+					);
+				}
+				else {
+					td = $('<td/>');
+					tr.append(td);
+				}
+				cellMatrix[i][col] = td;
+				loneCellMatrix[i][col] = td;
+				col++;
+			}
+		}
+
+		for (i = 0; i < levelCnt; i++) { // iterate through all levels
+			levelSegs = segLevels[i];
+			col = 0;
+			tr = $('<tr/>');
+
+			segMatrix.push([]);
+			cellMatrix.push([]);
+			loneCellMatrix.push([]);
+
+            var prevTd = null;
+            var segsInTd = 0;
+            var prevWasUnassigned = false;
+            var prevSegStart = null;
+
+			// levelCnt might be 1 even though there are no actual levels. protect against this.
+			// this single empty row is useful for styling.
+			if (levelSegs) {
+				for (j = 0; j < levelSegs.length; j++) { // iterate through segments in level
+					seg = levelSegs[j];
+
+					emptyCellsUntil(seg.leftCol);
+
+                    // if there are multiple unassigned events on one day, stack them properly in one td
+					if (prevTd && prevWasUnassigned && 
+                            seg.event.user_id == global_event_is_holiday &&
+                            seg.event.start.format('YYYY-MM-DD') == prevSegStart) {
+                        prevTd.append(seg.el);
+                        ++segsInTd;
+                        if (segsInTd > this.maxUnassignedSegs) {
+                            this.maxUnassignedSegs = segsInTd;
+                        }
+                    } else {
+    					// otherwise, create a container that occupies or more columns. append the event element.
+                        td = $('<td class="fc-event-container"/>').append(seg.el);
+                        segsInTd = 1;
+                    }
+					if (seg.leftCol != seg.rightCol) {
+						td.attr('colspan', seg.rightCol - seg.leftCol + 1);
+					}
+					else { // a single-column segment
+						loneCellMatrix[i][col] = td;
+					}
+
+					while (col <= seg.rightCol) {
+						cellMatrix[i][col] = td;
+						segMatrix[i][col] = seg;
+						col++;
+					}
+
+					tr.append(td);
+                    prevTd = td;
+                    prevWasUnassigned = (seg.event.user_id == global_event_is_holiday);
+                    prevSegStart = seg.event.start.format('YYYY-MM-DD');
+				}
+			}
+
+			emptyCellsUntil(colCnt); // finish off the row
+			this.bookendCells(tr, 'eventSkeleton');
+			tbody.append(tr);
+		}
+
         this.computeSlatTops();
-        var segRow = DayGrid.prototype.renderSegRow.call(this, row, rowSegs);
+		var segRow = { // a "rowStruct"
+			row: row, // the row number
+			tbodyEl: tbody,
+			cellMatrix: cellMatrix,
+			segMatrix: segMatrix,
+			segLevels: segLevels,
+			segs: rowSegs
+		};
+
         var tops = this.slatTops;
         segRow.tbodyEl.find('tr').each(function(i, node) {
             var slatHeight = tops[i+1] - tops[i];
@@ -6257,7 +6372,7 @@ var ResourceDayGrid = UnclickableDayGrid.extend({
             }
         });
         return segRow;
-    }
+	},
 
 
 });;
