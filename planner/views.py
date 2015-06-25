@@ -3,7 +3,7 @@ from datetime import date
 
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, get_user_model
+from django.contrib.auth import authenticate, login, get_user_model, logout
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Min
 from django.http.response import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
@@ -53,7 +53,8 @@ class IndexView(View):
                 self.prepare_absence_edit(request)  # throws on error
             except InternalError as e:
                 messages.error(request, e.message)
-        return render(request, 'planner/index.html', self.context)
+            return render(request, 'planner/manage.html', self.context)
+        return HttpResponseRedirect('/my-absences')
 
     def prepare_absence_edit(self, request):
         try:
@@ -176,6 +177,9 @@ class ManageAbsenceView(View):
     template = 'planner/manage.html'
 
     def get(self, request, mode='manager', *args, **kwargs):
+        if not request.user.is_authenticated():
+            messages.error(request, 'You have to be logged in as a team manager to manage absences.')
+            return redirect('planner:index')
         # prepare data for management panel
         self.context = generate_main_context(request)
         self.context['manage_mode'] = mode
@@ -201,10 +205,10 @@ class ManageAbsenceView(View):
         try:
             request.session['goto_date'] = dateToString(absence.absencerange_set.first().begin)
             if 'accept-submit' in request.GET or 'reject-submit' in request.GET:
-                self.accept_reject_absence(request, absence)  # throws on error
+                self.accept_reject_absence(request, absence)
                 return
             elif 'cancel-submit' in request.GET:
-                self.cancel_absence(request, absence)  # throws on error
+                self.cancel_absence(request, absence)
                 return
             elif not request.user.is_authenticated():
                 messages.warning(request, 'View-only mode, log in to make any changes.')
@@ -221,13 +225,13 @@ class ManageAbsenceView(View):
         Expects request data in GET.
         Returns if the operation succeeded, otherwise raises InternalError. """
         if not request.user.is_authenticated():
-            raise InternalError(
-                'Log in now to commit your changes to request from %s.'
-                % absence.user.get_full_name())
+            user = authenticate(email=absence.user.manager)
+            login(request, user)
         if not request.user.is_manager_of(absence.user):
-            raise InternalError(
-                'Only the leader of team %s can manage this absence.'
-                % absence.user.team.name)
+            logout(request)
+            user = authenticate(email=absence.user.manager)
+            # authenticate(email=absence.user.manager.email)
+            login(request, user)
         if 'accept-submit' in request.GET:
             absence.accept()
             messages.success(

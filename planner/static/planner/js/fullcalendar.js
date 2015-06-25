@@ -61,7 +61,7 @@ var defaults = {
 		today: 'today',
 		month: 'Individual',
 		week: 'week',
-        weekWorkers: 'Team',
+        resourceWeekView: 'Team',
 		day: 'day'
 	},
 
@@ -6003,28 +6003,121 @@ var UnclickableDayGrid = DayGrid.extend({
 
 });;
 
+
     /* A component that renders rows with custom values given by json (atm. Global Users)
 ----------------------------------------------------------------------------------------------------------------------*/
 
-var CustomResourceGrid = TimeGrid.extend({
+var ResourceDayGrid = UnclickableDayGrid.extend({
 
     dayMousedown: function() {},
+	slatEls: null, // elements running horizontally across all columns
+	slatTops: null, // an array of top positions, relative to the container. last item holds bottom of last slot
+    maxUnassignedSegs: 1, // maximum number of no-resource events in one day, to calculate the first row's height
+    curUnassignedSegs: 1, // for how many events is the first row currently set up
 
     renderHtml: function() {
+		var view = this.view;
+		var classes = [ 'fc-row', 'fc-week', view.widgetContentClass ];
 		return '' +
-			'<div class="fc-bg">' +
-				'<table>' +
-					this.rowHtml('slotBg') + // leverages RowRenderer, which will call slotBgCellHtml
-				'</table>' +
-			'</div>' +
-			'<div class="fc-slats" id="slats">' +
-				'<table>' +
-					this.slatRowHtml() +
-				'</table>' +
+			'<div class="' + classes.join(' ') + '">' +
+                '<div class="fc-bg">' +
+                    '<table>' +
+                        this.rowHtml('day') + // leverages RowRenderer, which will call slotBgCellHtml
+                    '</table>' +
+                '</div>' +
+                '<div class="fc-slats" id="slats">' +
+                    '<table>' +
+                        this.slatRowHtml() +
+                    '</table>' +
+                '</div>' +
 			'</div>';
 	},
 
-    // Generates the HTML for the horizontal "slats" that run width-wise. Has a person axis on a side. Depends on RTL.
+
+	// Generates the HTML for a single row. `row` is the row number.
+	dayRowHtml: function(row, isRigid) {
+		return '' +
+            '<div class="fc-bg">' +
+                '<table>' +
+                    this.rowHtml('day', row) + // leverages RowRenderer. calls dayCellHtml()
+                '</table>' +
+            '</div>' +
+            '<div class="fc-content-skeleton">' +
+                '<table>' +
+                    (this.numbersVisible ?
+                        '<thead>' +
+                            this.rowHtml('number', row) + // leverages RowRenderer. View will define render method
+                        '</thead>' :
+                        ''
+                        ) +
+                '</table>' +
+            '</div>';
+	},
+
+	// Renders the time grid into `this.el`, which should already be assigned.
+	// Relies on the view's colCnt. In the future, this component should probably be self-sufficient.
+	render: function() {
+        this.maxUnassignedSegs = 1;
+        this.curUnassignedSegs = 1;
+        var tmpHtml = this.renderHtml();
+		this.el.html(tmpHtml);
+		this.dayEls = this.el.find('.fc-day');
+		this.slatEls = this.el.find('.fc-slats tr');
+
+		this.computeSlatTops();
+
+		var view = this.view;
+		var rowCnt = this.rowCnt;
+		var colCnt = this.colCnt;
+		var cellCnt = rowCnt * colCnt;
+		var row;
+		var i, cell;
+        var slatsDiv = this.el.find('#slats');
+        var rowsHtml = '';
+
+		for (row = 0; row < rowCnt; row++) {
+			rowsHtml += this.dayRowHtml(row, true);
+		}
+        slatsDiv.before(rowsHtml);
+
+		this.rowEls = this.el.find('.fc-row');
+		this.dayEls = this.el.find('.fc-day');
+
+		// trigger dayRender with each cell's element
+		for (i = 0; i < cellCnt; i++) {
+			cell = this.getCell(i);
+			view.trigger('dayRender', null, cell.start, this.dayEls.eq(i));
+		}
+
+		Grid.prototype.render.call(this); // call the super-method
+	},
+
+
+	// Queries each `slatEl` for its position relative to the grid's container and stores it in `slatTops`.
+	// Includes the the bottom of the last slat as the last item in the array.
+	computeSlatTops: function() {
+		var tops = [];
+		var top;
+
+        if (this.curUnassignedSegs != this.maxUnassignedSegs) {
+            var oldHeight = this.slatEls.first().outerHeight();
+            newHeight = (oldHeight / this.curUnassignedSegs) * this.maxUnassignedSegs;
+            this.slatEls.first().css('height', '' + newHeight + 'px');
+            this.curUnassignedSegs = this.maxUnassignedSegs;
+        }
+
+		this.slatEls.each(function(i, node) {
+			top = $(node).position().top;
+			tops.push(top);
+		});
+
+		tops.push(top + this.slatEls.last().outerHeight()); // bottom of the last slat
+
+		this.slatTops = tops;
+	},
+
+
+    // Generates the HTML for the horizontal "slats" that run width-wise. Has a resource axis on a side. Depends on RTL.
     slatRowHtml: function() {
 		var view = this.view;
 		var isRTL = this.isRTL;
@@ -6033,13 +6126,31 @@ var CustomResourceGrid = TimeGrid.extend({
         var axisEnd = '</span>' + '</td>';
         var axisBeg = '<td class="fc-axis fc-time ' + view.widgetContentClass + '" ' + view.axisStyleAttr() + '>' +
                     '<span>' ; // for matchCellWidths
+        this.slatNoByUserId = new Array();
 
-		// Calculate the time for each slot
+        // events not assigned to any resource go into the first slat
+        this.slatNoByUserId[-1] = 0;
+        var unassignedRowAxis = axisBeg + view.opt('noResourceText') + axisEnd;
+        html += '<tr class="fc-resource-unassigned-row">' +
+					(!isRTL ? unassignedRowAxis : '') +
+					'<td class="' + view.widgetContentClass + '"/>' +
+					(isRTL ? unassignedRowAxis : '') +
+				"</tr>";
+        var slatCount = 1;
+
+        var previousResGroup = undefined;
+
+        // next, add one row per resource
         for (i in global_users_sorted) {
-
             var currPerson = global_users_sorted[i];
             var name = currPerson.first_name + " "  + currPerson.last_name;
             var maybeBold = htmlEscape(name);
+            this.slatNoByUserId[currPerson.id] = slatCount++;
+            var rowClasses = '';
+
+            if (previousResGroup != currPerson.team_id) {
+                rowClasses += ' fc-slats-group-separator';
+            }
 
             if (currPerson.id == global_logged_user_id)
                 if (!global_show_my_absences)
@@ -6053,12 +6164,12 @@ var CustomResourceGrid = TimeGrid.extend({
                 axisHtml = axisBeg + '<span class="glyphicon glyphicon-star-empty"></span>' +  maybeBold + axisEnd;
 
 			html +=
-				'<tr>' +
+				'<tr class="' + rowClasses + '">' +
 					(!isRTL ? axisHtml : '') +
 					'<td class="' + view.widgetContentClass + '"/>' +
 					(isRTL ? axisHtml : '') +
 				"</tr>";
-
+            previousResGroup = currPerson.team_id;
         }
 
 		return html;
@@ -6078,7 +6189,7 @@ var CustomResourceGrid = TimeGrid.extend({
 		var classes = this.getSegClasses(seg, isDraggable, isResizable);
 		var skinCss = this.getEventSkinCss(event);
 
-		classes.unshift('fc-time-grid-event');
+		classes.unshift('fc-day-grid-event');
 
         var icon = '';
         if (seg.event.icon) {
@@ -6111,15 +6222,179 @@ var CustomResourceGrid = TimeGrid.extend({
 			'</a>';
 	},
 
-    computeSegVerticals: function(segs) {
-        var i, seg;
+    // In normal DayGrid this function stacks a flat array of segments, which are all assumed
+    // to be in the same row, into subarrays of vertical levels.
+    // In ResourceDayGrid we always want to have as many levels as resources, and put each seg
+    // into its respective level.
+	buildSegLevels: function(segs) {
+		var levels = [];
+		var i, seg;
+		var j;
 
-        for (i = 0; i < segs.length; i++) {
-            seg = segs[i];
-            seg.top = this.slatTops[global_users_order[seg.event.user_id]];
-            seg.bottom = this.slatTops[global_users_order[seg.event.user_id]+1];
+        // make as many levels as Resources on the left pane
+        for (i = 0; i <= global_users_sorted.length; ++i) {
+            levels.push([]);
         }
-    }
+
+		// Give preference to elements with certain criteria, so they have
+		// a chance to be closer to the top.
+		//segs.sort(compareSegs);
+
+        // assign segs to the proper resource levels
+		for (i = 0; i < segs.length; i++) {
+			seg = segs[i];
+            userSlatNo = this.slatNoByUserId[seg.event.user_id];
+            levels[userSlatNo].push(seg);
+		}
+
+		// order segments left-to-right. very important if calendar is RTL
+		for (j = 0; j < levels.length; j++) {
+			levels[j].sort(compareDaySegCols);
+		}
+
+		return levels;
+	},
+
+
+	// Given a row # and an array of segments all in the same row, render a <tbody> element, a skeleton that contains
+	// the segments. Returns object with a bunch of internal data about how the render was calculated.
+	renderSegRow: function(row, rowSegs) {
+		var colCnt = this.colCnt;
+		var segLevels = this.buildSegLevels(rowSegs); // group into sub-arrays of levels
+		var levelCnt = Math.max(1, segLevels.length); // ensure at least one level
+		var tbody = $('<tbody/>');
+		var segMatrix = []; // lookup for which segments are rendered into which level+col cells
+		var cellMatrix = []; // lookup for all <td> elements of the level+col matrix
+		var loneCellMatrix = []; // lookup for <td> elements that only take up a single column
+		var i, levelSegs;
+		var col;
+		var tr;
+		var j, seg;
+		var td;
+
+		// populates empty cells from the current column (`col`) to `endCol`
+		function emptyCellsUntil(endCol) {
+			while (col < endCol) {
+				// try to grab a cell from the level above and extend its rowspan. otherwise, create a fresh cell
+				td = (loneCellMatrix[i - 1] || [])[col];
+				if (td) {
+					td.attr(
+						'rowspan',
+						parseInt(td.attr('rowspan') || 1, 10) + 1
+					);
+				}
+				else {
+					td = $('<td/>');
+					tr.append(td);
+				}
+				cellMatrix[i][col] = td;
+				loneCellMatrix[i][col] = td;
+				col++;
+			}
+		}
+
+		for (i = 0; i < levelCnt; i++) { // iterate through all levels
+			levelSegs = segLevels[i];
+			col = 0;
+			tr = $('<tr/>');
+
+			segMatrix.push([]);
+			cellMatrix.push([]);
+			loneCellMatrix.push([]);
+
+            var prevTd = null;
+            var segsInTd = 0;
+            var prevWasUnassigned = false;
+            var prevSegStart = null;
+
+			// levelCnt might be 1 even though there are no actual levels. protect against this.
+			// this single empty row is useful for styling.
+			if (levelSegs) {
+				for (j = 0; j < levelSegs.length; j++) { // iterate through segments in level
+					seg = levelSegs[j];
+
+					emptyCellsUntil(seg.leftCol);
+
+                    // if there are multiple unassigned events on one day, stack them properly in one td
+					if (prevTd && prevWasUnassigned && 
+                            seg.event.user_id == global_event_is_holiday &&
+                            seg.event.start.format('YYYY-MM-DD') == prevSegStart) {
+                        prevTd.append(seg.el);
+                        ++segsInTd;
+                        if (segsInTd > this.maxUnassignedSegs) {
+                            this.maxUnassignedSegs = segsInTd;
+                        }
+                    } else {
+    					// otherwise, create a container that occupies or more columns. append the event element.
+                        td = $('<td class="fc-event-container"/>').append(seg.el);
+                        segsInTd = 1;
+                    }
+					if (seg.leftCol != seg.rightCol) {
+						td.attr('colspan', seg.rightCol - seg.leftCol + 1);
+					}
+					else { // a single-column segment
+						loneCellMatrix[i][col] = td;
+					}
+
+					while (col <= seg.rightCol) {
+						cellMatrix[i][col] = td;
+						segMatrix[i][col] = seg;
+						col++;
+					}
+
+					tr.append(td);
+                    prevTd = td;
+                    prevWasUnassigned = (seg.event.user_id == global_event_is_holiday);
+                    prevSegStart = seg.event.start.format('YYYY-MM-DD');
+				}
+			}
+
+			emptyCellsUntil(colCnt); // finish off the row
+			this.bookendCells(tr, 'eventSkeleton');
+			tbody.append(tr);
+		}
+
+        this.computeSlatTops();
+		var segRow = { // a "rowStruct"
+			row: row, // the row number
+			tbodyEl: tbody,
+			cellMatrix: cellMatrix,
+			segMatrix: segMatrix,
+			segLevels: segLevels,
+			segs: rowSegs
+		};
+
+        var tops = this.slatTops;
+        segRow.tbodyEl.find('tr').each(function(i, node) {
+            var slatHeight = tops[i+1] - tops[i];
+            if (slatHeight) {
+                $(node).css('height', '' + slatHeight + 'px');
+            }
+        });
+        return segRow;
+	},
+
+
+	// Renders the given background event segments onto the grid
+	renderBgSegs: function(segs) {
+
+		// don't render timed background events
+		var allDaySegs = $.grep(segs, function(seg) {
+			return seg.event.allDay;
+		});
+
+        // don't render two bgevents with same date
+        var i;
+        var allDayUniqueSegs = [];
+        var prevStart = null;
+        for (i in allDaySegs) {
+            if (prevStart == allDaySegs[i].event.start.format('YYYY-MM-DD')) continue;
+            allDayUniqueSegs.push(allDaySegs[i]);
+            prevStart = allDaySegs[i].event.start.format('YYYY-MM-DD');
+        }
+
+		return Grid.prototype.renderBgSegs.call(this, allDayUniqueSegs); // call the super-method
+	},
 
 });;
 
@@ -9585,10 +9860,8 @@ var agendaView = fcViews.agenda = View.extend({ // AgendaView
 
 	initialize: function() {
 
-        this.customGrid = new CustomResourceGrid(this)
+        this.customGrid = new TimeGrid(this)
 		this.timeGrid = this.customGrid;
-		// we don't allow selections on agenda view
-		this.options['selectable'] = false;
 
 
 		if (this.opt('allDaySlot')) { // should we display the "all-day" area?
@@ -9980,93 +10253,173 @@ fcViews.agendaDay = {
 };
 ;;
 
-fcViews.Workers = agendaView.extend ({
 
-    initialize: function() {
-        agendaView.prototype.initialize.call(this);
-        this.dayGrid = new UnclickableDayGrid(this);
-    },
+var ResourceView = fcViews.Resource = BasicView.extend({
 
-    dayIntroHtml: function() {
-        return '' +
-            '<td class="fc-axis ' + this.widgetContentClass + '" ' + this.axisStyleAttr() + '>' +
-            '<span>' + // needed for matchCellWidths
-            (this.opt('allDayHtml') || htmlEscape("Holidays")) +
-            '</span>' +
-            '</td>';
-    },
+	axisWidth: null, // the width of the time axis running down the side
+	intervalNext: null, // Interval that should be added/subtracted when clicking on next/prev button
 
-    renderEvents: function(events) {
+	initialize: function() {
+		this.intervalNext = moment.duration(this.opt('nextButtonDuration') || this.opt('duration')  ||
+											this.constructor.duration || { days: 1 });
+		this.dayGrid = new ResourceDayGrid(this);
+		this.coordMap = this.dayGrid.coordMap; // the view's date-to-cell mapping is identical to the subcomponent's
+	},
 
-        var myEvents = [];
-        var othersEvents = [];
-        var daySegs = [];
-        var timedSegs;
-        var i;
+	// Generates an HTML attribute string for setting the width of the axis, if it is known
+	axisStyleAttr: function() {
+		if (this.axisWidth !== null) {
+			 return 'style="width:' + this.axisWidth + 'px"';
+		}
+		return '';
+	},
 
-// separate the events into all-day and timed
-        for (i = 0; i < events.length; i++) {
-            if (events[i].user_id == global_event_is_holiday) {
-                myEvents.push(events[i]);
-            }
-            else {
-                othersEvents.push(events[i]);
-            }
+	// Refreshes the horizontal dimensions of the view
+	updateWidth: function() {
+		// make all axis cells line up, and record the width so newly created axis cells will have it
+		this.axisWidth = matchCellWidths(this.el.find('.fc-axis'));
+	},
 
-            if (events[i].rendering && events[i].rendering == "background") {
-                othersEvents.push(events[i]);
-            }
-        }
 
-// render the events in the subcomponents
-        timedSegs = this.timeGrid.renderEvents(othersEvents);
+	// Generates the HTML that will go before the day-of week header cells.
+	// Queried by the TimeGrid subcomponent when generating rows. Ordering depends on isRTL.
+	headIntroHtml: function() {
+		var date;
+		var weekNumber;
+		var weekTitle;
+		var weekText;
 
-        if (this.dayGrid) {
-            daySegs = this.dayGrid.renderEvents(myEvents);
-        }
+		if (this.opt('weekNumbers')) {
+			date = this.timeGrid.getCell(0).start;
+			weekNumber = this.calendar.calculateWeekNumber(date);
+			weekTitle = this.opt('weekNumberTitle');
 
-// the all-day area is flexible and might have a lot of events, so shift the height
-        this.updateHeight();
-    },
+			if (this.opt('isRTL')) {
+				weekText = weekNumber + weekTitle;
+			}
+			else {
+				weekText = weekTitle + weekNumber;
+			}
 
-    computeRange: function(date) {
+			return '' +
+				'<th class="fc-axis fc-week-number ' + this.widgetHeaderClass + '" ' + this.axisStyleAttr() + '>' +
+					'<span>' + // needed for matchCellWidths
+						htmlEscape(weekText) +
+					'</span>' +
+				'</th>';
+		}
+		else {
+			return '<th class="fc-axis ' + this.widgetHeaderClass + '" ' + this.axisStyleAttr() + '></th>';
+		}
+	},
 
-        var range = BasicView.prototype.computeRange.call(this, date);
-        range.intervalStart = date.clone().subtract(3, 'days');
-        range.intervalEnd = range.intervalStart.clone().add(10, 'days');
 
-        range.intervalStart.stripTime();
-        range.intervalEnd.stripTime();
+	// Generates the HTML that goes before the all-day cells.
+	// Queried by the DayGrid subcomponent when generating rows. Ordering depends on isRTL.
+	dayIntroHtml: function() {
+		return '' +
+			'<td class="fc-axis ' + this.widgetContentClass + '" ' + this.axisStyleAttr() + '>' +
+				'<span>' + // needed for matchCellWidths
+                    (this.opt('allDayHtml') || htmlEscape(this.opt('allDayText'))) +
+				'</span>' +
+			'</td>';
+	},
 
-        range.start = range.intervalStart.clone();
-        range.start = this.skipHiddenDays(range.start);
-        range.end = range.intervalEnd.clone();
-        range.end = this.skipHiddenDays(range.end, -1, true); // exclusively move backwards
 
-        return range;
-    },
+	// Generates the HTML that goes before the bg of the TimeGrid slot area. Long vertical column.
+	slotBgIntroHtml: function() {
+		return '<td class="fc-axis ' + this.widgetContentClass + '" ' + this.axisStyleAttr() + '></td>';
+	},
 
-    computePrevDate: function(date) {
+
+	// Generates the HTML that goes before all other types of cells.
+	// Affects content-skeleton, helper-skeleton, highlight-skeleton for both the time-grid and day-grid.
+	// Queried by the TimeGrid and DayGrid subcomponents when generating rows. Ordering depends on isRTL.
+	introHtml: function() {
+		return '<td class="fc-axis" ' + this.axisStyleAttr() + '></td>';
+	},
+
+
+	// Refreshes the horizontal dimensions of the view
+	updateWidth: function() {
+		// make all axis cells line up, and record the width so newly created axis cells will have it
+		this.axisWidth = matchCellWidths(this.el.find('.fc-axis'));
+	},
+
+
+	// Builds the HTML skeleton for the view.
+	// The day-grid component will render inside of a container defined by this HTML.
+	renderHtml: function() {
+		return '' +
+			'<table>' +
+				'<thead>' +
+					'<tr>' +
+						'<td class="' + this.widgetHeaderClass + '">' +
+							this.dayGrid.headHtml() + // render the day-of-week headers
+						'</td>' +
+					'</tr>' +
+				'</thead>' +
+				'<tbody>' +
+					'<tr>' +
+						'<td class="' + this.widgetContentClass + '">' +
+							'<div class="fc-day-grid-container fc-resource-day-grid-container">' +
+								'<div class="fc-day-grid fc-resource-day-grid"/>' +
+							'</div>' +
+						'</td>' +
+					'</tr>' +
+				'</tbody>' +
+			'</table>';
+	},
+
+
+	// Computes the new date when the user hits the prev button, given the current date
+	computePrevDate: function(date) {
 		return this.skipHiddenDays(
-			date.clone().subtract(1, 'week'), -1
+			date.clone().startOf(this.intervalUnit).subtract(this.intervalNext), -1
 		);
 	},
+
 
 	// Computes the new date when the user hits the next button, given the current date
 	computeNextDate: function(date) {
 		return this.skipHiddenDays(
-			date.clone().add(1, 'week')
+			date.clone().startOf(this.intervalUnit).add(this.intervalNext)
 		);
-	}
+	},
+});
+;;
+
+// Resource view with showing <-3, +7> days
+fcViews.ourResource = ResourceView.extend({
+
+//	Compute the value to feed into setRange. Overrides superclass.
+	computeRange: function(date) {
+		var range = BasicView.prototype.computeRange.call(this, date); // get value from the super-method
+		range.intervalStart = date.clone().subtract(moment.duration(this.opt('daysBack') || { days: 0 } ));
+		range.intervalEnd = range.intervalStart.clone().add(moment.duration(this.opt('duration')));
+
+		range.intervalStart.stripTime();
+		range.intervalEnd.stripTime();
+
+		// year and month views should be aligned with weeks. this is already done for week
+		 range.start = range.intervalStart.clone();
+		 range.start = this.skipHiddenDays(range.start);
+		 range.end = range.intervalEnd.clone();
+		 range.end = this.skipHiddenDays(range.end, -1, true); // exclusively move backwards
+
+		return range;
+	},
 
 });
 ;;
 
-fcViews.weekWorkers = {
-	type: 'Workers',
-	duration: { week: 1 }
+fcViews.resourceWeekView = {
+	type: 'ourResource',
+	duration: { days: 10 },
+	nextButtonDuration: { days: 7 },
+	daysBack: { days: 3 },
+	allDayText: '',
 };
-
 ;;
 
 });

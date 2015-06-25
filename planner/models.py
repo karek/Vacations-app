@@ -249,7 +249,7 @@ class Absence(models.Model):
         (CANCELLED, 'Cancelled'),
     )
 
-    user = models.ForeignKey(EmailUser)
+    user = models.ForeignKey(EmailUser, verbose_name="employee")
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(default=timezone.now)
     absence_kind = models.ForeignKey(AbsenceKind)
@@ -295,7 +295,8 @@ class Absence(models.Model):
         self.absence_kind = tmp_abs.absence_kind
         self.comment = tmp_abs.comment
         self.status = self.PENDING
-        self.date_modified = timezone.now()
+        self.date_modified = tmp_abs.date_created
+        self.total_workdays = tmp_abs.total_workdays
         tmp_abs.delete()
         self.save()
         self.request_acceptance()

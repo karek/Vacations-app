@@ -46,6 +46,7 @@ function selectf(begin, end, jsEvent, view) {
             end: moment(end.format('YYYY-MM-DD')) 
         };
         check_and_add_range(range);
+        display_or_hide_planning_controls();
     } else if (compute_selections() && global_disable_selecting) {
         // we are called by a normal selection event, but selecting is disabled.
         // we must refresh the currently selected ranges, to remove FC's selection highlight which
@@ -114,7 +115,6 @@ function check_and_add_range(range) {
                 this.remove();
                 //since this is not a merge of ranges, we have to check if this wasn't the last range on the list
                 //and if it is, we should hide Plan button
-                display_or_hide_planning_controls();
                 var old_minus_new = subtract_range(old_range, range);
                 for (var i in old_minus_new) {
                     add_checked_range(old_minus_new[i]);
@@ -272,6 +272,7 @@ function mapAjaxAbsenceToRange(absence) {
 }
 
 // Shows or hides Plan button if there are no ranges selected at the moment
+// Also, when no ranges are selected, show back the selfcare management panel
 function display_or_hide_planning_controls() {
     console.debug("display_or_hide_planning_controls");
     var currently_selected_ranges = $('#absence_select > li').length;
@@ -294,8 +295,12 @@ function display_or_hide_planning_controls() {
     var absence_other_fields = $('#absence_other_fields');
     var plan_absence_button = $('#plan_absence_button');
     var invitation_log_in = $('#invitation_log_in');
+    var invitation_log_in_plan = $('#invitation_log_in_plan');
 
     var absence_select = $('#absence_select');
+
+    var planner_form = $('form#plan-absence');
+    var manager_form = $('form#manage-absence');
 
     manage_list.hide();
     manage_no_absences.hide();
@@ -309,14 +314,14 @@ function display_or_hide_planning_controls() {
     absence_other_fields.hide();
     plan_absence_button.hide();
     invitation_log_in.hide();
+    invitation_log_in_plan.hide();
 
     absence_select.hide();
 
-    if (manage_mode_enabled()) {
-        // TODO zmienilem tutaj zarzadzanie widocznymi elementami,
-        // mozna ukryc cos jak uzytkownik nie jest zalogowany w trybie akceptowania
-        // wywoluje ta funkcje przy renderowaniu index.html i manage.html
-
+    // manager mode with clicking disabled: for team request or managing own absence
+    if (manage_mode_team_manager() || accept_mode_enabled()) {
+        manager_form.show();
+        planner_form.hide();
         if (!accept_mode_enabled()) {
             manage_exit_button.show();
             if(user_is_logged_in()) {
@@ -336,20 +341,25 @@ function display_or_hide_planning_controls() {
             }
         }
     } else {
+        // else: show selfcare panel or planned ranges
         if (ranges_not_selected) {
+            planner_form.slideUp(150, function(){manager_form.slideDown(150);});
             if (user_is_logged_in()) {
                 invitation_select_days.show();
+                manage_no_absences.show();
+                get_management_absences();
             } else {
                 invitation_log_in.show();
             }
         } else {
+            manager_form.slideUp(150, function(){planner_form.slideDown(150);});
             absence_select.show();
             if (user_is_logged_in()) {
                 // absence_comment.show();
                 absence_other_fields.show();
                 plan_absence_button.show();
             } else {
-                invitation_log_in.show();
+                invitation_log_in_plan.show();
             }
         }
     }
@@ -393,12 +403,13 @@ global_goto_date_loaded = false;
 function view_render_callback(view, element) {
     highlight_selected_ranges();
     if (typeof global_view_filters_clicked !== 'undefined' && !global_view_filters_clicked) {
-        if (view.name == 'weekWorkers' && global_teams_selected[global_logged_user_team_id] == 0) {
+        if (view.name == 'resourceWeekView' && global_teams_selected[global_logged_user_team_id] == 0) {
             getUsersFromSelectedTeamsById(global_logged_user_team_id);
             changeButtonState(global_logged_user_team_id, true);
             return;
         }
-        if (view.name == 'month' && global_teams_selected[global_logged_user_team_id] == 1) {
+        if (view.name == 'month' && global_teams_selected[global_logged_user_team_id] == 1
+                && !manage_mode_team_manager()) {
             global_teams_selected[global_logged_user_team_id] = 0;
             changeButtonState(global_logged_user_team_id, false);
             $('#calendar').fullCalendar('refetchEvents');
@@ -481,10 +492,10 @@ function edit_mode_enabled() {
 
 global_show_my_absences = true;
 function toggle_my_absences(jsevent, state) {
+    global_view_filters_clicked = true;
     global_show_my_absences = state;
     filterGlobalUsers();
 	$('#calendar').fullCalendar('refetchEvents');
-    global_view_filters_clicked = true;
 }
 
 function getUsersFromSelectedTeams(jsevent) {
@@ -568,8 +579,8 @@ function prettify_team_select() {
 }
 
 function team_select_clicked(jsevent, state) {
-    getUsersFromSelectedTeams(jsevent);
     global_view_filters_clicked = true;
+    getUsersFromSelectedTeams(jsevent);
 }
 
 function event_render_callback(event, element) {
