@@ -28,15 +28,11 @@ status_PENDING_OR_ACCEPTED = '0,1';
 // Pass empty users array to get everyone's absences.
 function getAbsenceRangesBetween(begin, end, users, on_success) {
     var req_url = global_range_url + '?begin=' + begin + '&end=' + end;
-    for (var i in users) req_url += '&user[]=' + users[i]; 
-    console.debug('ajax url: ' + req_url);
+    for (var i in users) req_url += '&user[]=' + users[i];
     $.ajax({
         type: "GET",
         url: req_url,
         success: function(data) {
-            console.debug('ajax returned: ' + data.length + ' absence ranges');
-            // TODO: remove this in the future
-            debugShowRanges(data);
             on_success(data);
         },
         error: function(jqxhr, txt_status, error) {
@@ -50,12 +46,10 @@ function getAbsenceRangesBetween(begin, end, users, on_success) {
 // Get and save holidays between given dates.
 function getHolidaysBetween(begin, end, on_success) {
     var req_url = global_holiday_url + '?begin=' + begin + '&end=' + end;
-    console.debug('ajax url: ' + req_url);
     $.ajax({
         type: 'GET',
         url: req_url,
         success: function(data) {
-            console.debug('ajax returned: ' + data.length + ' holidays');
             on_success(data);
         },
         error: function(jqxhr, txt_status, error) {
@@ -69,18 +63,14 @@ function getHolidaysBetween(begin, end, on_success) {
 // Get and save users (and execute callback).
 function getAllUsers(on_success) {
     if (global_users_loaded) {
-        console.debug('users already loaded, running on_success immediately');
         on_success(global_users);
         return;
     }
     var req_url = global_user_url;
-    console.debug('ajax url: ' + req_url);
     $.ajax({
         type: "GET",
         url: req_url,
         success: function(data) {
-            console.debug('ajax returned ' + data.length + ' users');
-
             saveUserData(data);
             on_success(data);
         },
@@ -98,14 +88,13 @@ function calcSorted(data) {
 
     for (u in data) {
         data[u]['full_name'] = data[u].first_name + ' ' + data[u].last_name;
-        console.debug('saving user ' + data[u].email);
         global_users_by_id[data[u].id] = data[u];
         global_users_sorted[data[u].id] = data[u];
     }
 
 // In future functions sort it in some other way
     if (!global_show_my_absences)
-    global_users_sorted = global_users_sorted.filter(
+		global_users_sorted = global_users_sorted.filter(
         function (a) {
             return a.id != global_logged_user_id;
         });
@@ -167,10 +156,6 @@ function saveHolidays(data) {
 
 // Get all users in fullCalendar's format
 function getAbsencesForCalendar(begin, end, timezone, callback) {
-    console.debug('calendar calls for events from ' + begin.format('YYYY-MM-DD')
-        + ' to ' + end.format('YYYY-MM-DD'));
-    // TODO: should we be concerned about the timezone?
-    // TODO: add user/team selection when it's needed
     getAbsenceRangesBetween(
         begin.format('YYYY-MM-DD'),
         end.format('YYYY-MM-DD'),
@@ -206,8 +191,7 @@ function getAbsencesForCalendar(begin, end, timezone, callback) {
             // copy data to global arrays, for convenience of other calculations
             global_ranges = ranges;
             global_logged_user_absences = logged_user_absences;
-            console.debug('saved ' + event_objects.length + ' ranges');
-            console.debug('saved ' + logged_user_absences.length + ' logged user\'s ranges');
+
             // now also get holidays for the given range
             getHolidaysBetween(
                 begin.format('YYYY-MM-DD'),
@@ -287,20 +271,6 @@ function saveAbsencesForCalendar(ranges, callback) {
 }
 
 
-// add received ranges to the debug list
-// TODO: remove this in the future
-function debugShowRanges(ranges) {
-    console.debug('showing ' + ranges.length + ' ranges');
-    $('#all_ranges').append('<hr />');
-    for (i in ranges) {
-        var uid = ranges[i].user_id;
-        var li = '<li>from ' + ranges[i].begin + ' to ' + ranges[i].end + ', by '
-            + global_users_by_id[uid].full_name + ' (' + global_users_by_id[uid].email + ')'
-            + '</li>';
-        $('#all_ranges').append(li);
-    }
-}
-
 function make_get_param(url, param, value) {
     var paramstr = param + '=' + encodeURI(value);
     if (url.indexOf('?') != -1) return '&' + paramstr;
@@ -311,15 +281,15 @@ function make_get_param(url, param, value) {
 // params should be a dict of filtering parameters accepted by backend
 function getMatchingAbsences(params, on_success) {
     var req_url = global_absence_url;
+
     for (var param in params) {
         req_url += make_get_param(req_url, param, params[param]);
     }
-    console.debug('ajax url: ' + req_url);
+
     $.ajax({
         type: "GET",
         url: req_url,
         success: function(data) {
-            console.debug('ajax returned: ' + data.length + ' absences');
             on_success(data);
         },
         error: function(jqxhr, txt_status, error) {
@@ -415,7 +385,6 @@ function select_edited_absence() {
     select_ranges_from_json(global_edit_ranges);
     $('#planning-comment').val(global_edit_absence.comment);
     var string_kind = new String(global_edit_absence.kind_id);
-    console.debug('kind str: ', string_kind);
     $('#planning-kind-select').val(string_kind).change();
 }
 

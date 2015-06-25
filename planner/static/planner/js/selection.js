@@ -29,7 +29,6 @@ function set_selection_type(start_point) {
         $(".s_range").each(function(index) { 
             var old_range = { begin: moment($(this).attr("s_begin")), end: moment($(this).attr("s_end"))};
             if (in_range(start_point, old_range)) {
-                //console.debug('activating DESELECT');
                 global_select_mode = 'deselect';
             }
         });
@@ -37,7 +36,7 @@ function set_selection_type(start_point) {
 }
 
 function selectf(begin, end, jsEvent, view) {
-	// console.debug("selectf")
+
     if (compute_selections() && !global_disable_selecting) {
         log_date("selectf.begin:", begin);
         log_date("selectf.end:", end);
@@ -74,7 +73,6 @@ function count_range_length(begin, end) {
     var days = 0;
 
     var duration = moment.duration(end - begin).asDays();
-    //console.log("begin: ", date_to_string(begin), "end: ", date_to_string(end), "duration: ", duration);
 
     var date = begin.add(-1,'days');
     while (duration > 0) {
@@ -135,7 +133,6 @@ function check_and_add_range(range) {
         for (var i in global_logged_user_absences) {
             var cur_range = mapAjaxAbsenceToRange(global_logged_user_absences[i]);
             subtracted = subtract_range(range, cur_range);
-            //console.debug("subtracted ", cur_range.begin, " - ", cur_range.end, " -> ", subtracted.length);
             switch(subtracted.length) {
                 case 0: // current range covers whole remaining range, nothing more to do
                     range = null;
@@ -220,7 +217,6 @@ function add_checked_range(range) {
 }
 
 function unselectf(view, jsEvent) {
-	//console.debug("unselectf");
 	$('#yourCalendar').fullCalendar('unselect');
 }
 
@@ -274,14 +270,8 @@ function mapAjaxAbsenceToRange(absence) {
 // Shows or hides Plan button if there are no ranges selected at the moment
 // Also, when no ranges are selected, show back the selfcare management panel
 function display_or_hide_planning_controls() {
-    console.debug("display_or_hide_planning_controls");
     var currently_selected_ranges = $('#absence_select > li').length;
     var ranges_not_selected = currently_selected_ranges == 0;
-
-    console.debug("manage_mode_enabled = " + manage_mode_enabled());
-    console.debug("user_is_logged_in = " + user_is_logged_in());
-    console.debug("ranges_not_selected = " + ranges_not_selected);
-
 
     var manage_list = $('#manage_absence_list');
     var manage_no_absences = $('#manage_no_absences');
@@ -366,7 +356,6 @@ function display_or_hide_planning_controls() {
 }
 
 $(document).on('click', '.rm-absence-selection', function(){
-	console.debug('removing selected range');
 	$(this).closest('li').remove();
     highlight_selected_ranges();
     count_absence_length();
@@ -376,8 +365,6 @@ $(document).on('click', '.rm-absence-selection', function(){
 // When passed as 'selectOverlap' calendar's parameter, this function disallows selections
 // intersecting with user's current absences.
 function check_select_overlap(cal_event) {
-    console.debug("check_select_overlap for event #" + cal_event.id + ": " + cal_event.title + ", "
-            + cal_event.user_id);
     return cal_event.user_id !== global_logged_user_id;
 }
 
@@ -431,16 +418,13 @@ function save_current_goto_date() {
 // To save a given date, on which the calendar will be opened later
 function save_goto_date(goto_date) {
     var t_plus_eps = moment().add(1, 'minutes').toDate().toUTCString();
-    //console.debug('cookie str: ', 'goto_date=' + goto_date + '; expires=' + t_plus_eps);
     document.cookie = 'goto_date=' + goto_date + '; expires=' + t_plus_eps + '; path=/';
-    //console.debug("cookies: ", document.cookie);
 }
 
 // to be run after page load, to show previously saved date (if any)
 function load_saved_goto_date() {
     var goto_match = /goto_date=(\d{4}-\d\d-\d\d)/.exec(document.cookie);
     if (goto_match) goto_match = goto_match[1];
-    //console.debug("goto_date from cookie: ", goto_match);
     var cur_date = $('#calendar').fullCalendar('getDate').format('YYYY-MM-DD');
     if (goto_match && goto_match != cur_date) {
         goto_date(goto_match);
@@ -450,7 +434,6 @@ function load_saved_goto_date() {
 
 // Manually add selection from given ranges (from DB's json)
 function select_ranges_from_json(ranges) {
-    console.debug('select from json: ' + ranges.length + 'ranges');
     for (i in ranges) {
         var range = {
             begin: moment(ranges[i].begin),
@@ -551,7 +534,6 @@ function filterGlobalUsers() {
     }
     calcSorted(global_users_filtered);
 
-    //Somebody fix dat shit down there please VVV :(
     var date = $('#calendar').fullCalendar('getDate');
     $('#calendar').fullCalendar('next');
     $('#calendar').fullCalendar( 'gotoDate', date );
@@ -593,6 +575,5 @@ function event_render_callback(event, element) {
 }
 
 function goto_date(date_string) {
-    //console.debug("goto_date: ", date_string, " -> ", date_to_string(moment(date_string)));
 	$('#calendar').fullCalendar('gotoDate', moment(date_string));
 }
