@@ -403,7 +403,7 @@ global_goto_date_loaded = false;
 function view_render_callback(view, element) {
     highlight_selected_ranges();
     if (typeof global_view_filters_clicked !== 'undefined' && !global_view_filters_clicked) {
-        if (view.name == 'weekWorkers' && global_teams_selected[global_logged_user_team_id] == 0) {
+        if (view.name == 'resourceWeekView' && global_teams_selected[global_logged_user_team_id] == 0) {
             getUsersFromSelectedTeamsById(global_logged_user_team_id);
             changeButtonState(global_logged_user_team_id, true);
             return;

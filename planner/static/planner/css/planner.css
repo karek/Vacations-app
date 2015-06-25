@@ -76,3 +76,11 @@ table.pending-details-table span.label {
 table.pending-details-table > tbody > tr > th {
     width: 100px;
 }
+
+div#team-select {
+    padding-top: 0px;
+    width: 263px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}

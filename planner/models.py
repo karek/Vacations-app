@@ -289,7 +289,8 @@ class Absence(models.Model):
         self.absence_kind = tmp_abs.absence_kind
         self.comment = tmp_abs.comment
         self.status = self.PENDING
-        self.dateModified = timezone.now()
+        self.dateModified = tmp_abs.dateCreated
+        self.total_workdays = tmp_abs.total_workdays
         tmp_abs.delete()
         self.save()
         self.request_acceptance()

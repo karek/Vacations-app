@@ -25,8 +25,8 @@
                     <span class="glyphicon glyphicon-filter"></span> View filtering</button>
             </div>
         </div>
-        <div id='team-select' style="padding-top: 0px" hidden="hidden">
-            <div style="text-align: center; padding-top: 15px; ">
+        <div id='team-select' hidden="hidden">
+            <div style="padding-top: 15px; ">
                 <input id="toggle-my-absences" type="checkbox" name="toggle-my-absences"/>
             </div>
             <form id="teams-form" action="." method="POST" style="padding-top: 15px;">
@@ -111,17 +111,19 @@
             header: {
                 left: 'prev,next today',
                 center: 'title',
-                right: 'month,weekWorkers'
+                right: 'month,resourceWeekView'
             },
             eventLimit: true,
+            //defaultView: 'resourceWeekView',
             views: {
                 month: {
                     eventLimit: 2,
                     weekends: false
                 },
-                weekWorkers: {
+                resourceWeekView: {
                     eventLimit: false,
-                    weekends: true
+                    weekends: true,
+                    noResourceText: 'Holidays'
                 }
             },
             selectable: true,  // we can select days
