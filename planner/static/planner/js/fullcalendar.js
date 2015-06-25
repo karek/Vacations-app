@@ -6375,6 +6375,27 @@ var ResourceDayGrid = UnclickableDayGrid.extend({
 	},
 
 
+	// Renders the given background event segments onto the grid
+	renderBgSegs: function(segs) {
+
+		// don't render timed background events
+		var allDaySegs = $.grep(segs, function(seg) {
+			return seg.event.allDay;
+		});
+
+        // don't render two bgevents with same date
+        var i;
+        var allDayUniqueSegs = [];
+        var prevStart = null;
+        for (i in allDaySegs) {
+            if (prevStart == allDaySegs[i].event.start.format('YYYY-MM-DD')) continue;
+            allDayUniqueSegs.push(allDaySegs[i]);
+            prevStart = allDaySegs[i].event.start.format('YYYY-MM-DD');
+        }
+
+		return Grid.prototype.renderBgSegs.call(this, allDayUniqueSegs); // call the super-method
+	},
+
 });;
 
 
