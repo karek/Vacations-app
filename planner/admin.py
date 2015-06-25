@@ -59,9 +59,9 @@ class HolidayInline(admin.TabularInline):
 
 
 class HolidayCalendarAdmin(admin.ModelAdmin):
-    fields = ['name']
+    fields = ['name', 'selected_by_default']
     inlines = [HolidayInline]
-    list_display = ('name', 'holiday_count', 'users_using_count')
+    list_display = ('name', 'holiday_count', 'users_using_count', 'selected_by_default')
 
     def holiday_count(self, obj):
         return obj.holiday_set.count()

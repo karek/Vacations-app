@@ -6,3 +6,4 @@ staticfiles
 env/
 venv/
 *.sqlite
+.sw[po]

@@ -34,6 +34,8 @@ class HolidayCalendar(models.Model):
 
     """ A set of work-free days. """
     name = models.CharField(max_length=30)
+    selected_by_default = models.BooleanField(default=False, blank=False, null=False,
+            verbose_name='selected by default in registration form')
 
     def __unicode__(self):
         return '%s' % (self.name)
@@ -126,7 +128,7 @@ class EmailUser(AbstractBaseUser):
     objects = EmailUserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name']
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'team']
 
     class Meta:
         verbose_name = "employee"
@@ -134,7 +136,7 @@ class EmailUser(AbstractBaseUser):
 
     def clean(self):
         super(EmailUser, self).clean()
-        if self.email is not None:
+        if self.email:
             self.email = self.email.lower()
             if self._state.adding:
                 emailuser = EmailUser.objects.filter(email__iexact=self.email)
@@ -143,7 +145,11 @@ class EmailUser(AbstractBaseUser):
                     raise ValidationError({
                         'email': 'That email address is already associated with an account.'
                     })
-        managers = EmailUser.objects.exclude(id=self.id).filter(team=self.team, is_teamleader=True)
+        try:
+            managers = EmailUser.objects.exclude(id=self.id).filter(
+                    team=self.team, is_teamleader=True)
+        except Team.DoesNotExist:
+            raise ValidationError({'team': 'Team not selected or does not exist.'})
         if self.is_teamleader and managers.exists():
             manager = managers[0].get_full_name()
             raise ValidationError({
@@ -244,8 +250,8 @@ class Absence(models.Model):
     )
 
     user = models.ForeignKey(EmailUser, verbose_name="employee")
-    dateCreated = models.DateTimeField(auto_now_add=True)
-    dateModified = models.DateTimeField(default=timezone.now)
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(default=timezone.now)
     absence_kind = models.ForeignKey(AbsenceKind)
     status = models.IntegerField(default=PENDING, choices=STATUS_CHOICES)
     total_workdays = models.IntegerField(default=0, null=False, blank=False)
@@ -254,7 +260,7 @@ class Absence(models.Model):
     def __unicode__(self):
         return "%s days of %s requested by %s %s on %s" % \
                (self.total_workdays, self.absence_kind.name, self.user.first_name,
-                self.user.last_name, self.dateCreated.strftime('%Y-%m-%d'),)
+                self.user.last_name, self.date_created.strftime('%Y-%m-%d'),)
 
     @classmethod
     @transaction.atomic
@@ -267,7 +273,7 @@ class Absence(models.Model):
             new_range.full_clean()
             new_range.save()
             new_abs.total_workdays += new_range.workday_count
-        new_abs.dateModified = new_abs.dateCreated
+        new_abs.date_modified = new_abs.date_created
         new_abs.save()
         if do_mails:
             new_abs.request_acceptance()
@@ -289,7 +295,7 @@ class Absence(models.Model):
         self.absence_kind = tmp_abs.absence_kind
         self.comment = tmp_abs.comment
         self.status = self.PENDING
-        self.dateModified = tmp_abs.dateCreated
+        self.date_modified = tmp_abs.date_created
         self.total_workdays = tmp_abs.total_workdays
         tmp_abs.delete()
         self.save()
@@ -302,8 +308,8 @@ class Absence(models.Model):
             'id': self.id,
             'user_id': self.user.id,
             'user_name': self.user.get_full_name(),
-            'date_created': dateToString(self.dateCreated),
-            'date_modified': dateToString(self.dateModified),
+            'date_created': dateToString(self.date_created),
+            'date_modified': dateToString(self.date_modified),
             'kind_id': self.absence_kind.id,
             'kind_name': self.absence_kind.name,
             'kind_bg_color': self.absence_kind.bg_color,
@@ -442,13 +448,13 @@ class Absence(models.Model):
         return text + '\n\n' + self.description()
 
     def change_timestamp(self):
-        return self.dateModified.strftime('%s')
+        return self.date_modified.strftime('%s')
 
     def created_timestamp(self):
-        return self.dateCreated.strftime('%s')
+        return self.date_created.strftime('%s')
 
     def was_modified(self):
-        return self.dateCreated != self.dateModified
+        return self.date_created != self.date_modified
 
     def manage_path(self):
         return '/manage-absences?absence-id=%d&ts=%s' % (self.id, self.change_timestamp())
