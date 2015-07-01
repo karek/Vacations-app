@@ -61,8 +61,9 @@ class RegisterForm(UserCreationForm):
         user.first_name = self.cleaned_data["first_name"]
         user.last_name = self.cleaned_data["last_name"]
         user.team = self.cleaned_data["team"]
-        user.holidays = self.cleaned_data["holidays"]
         if commit:
+            user.save()
+            user.holidays = self.cleaned_data["holidays"]
             user.save()
         return user
 
