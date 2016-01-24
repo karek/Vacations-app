@@ -69,7 +69,6 @@ class Holiday(models.Model):
         return ((weekend, weekend.strftime("%A")) for weekend in cls.yearRange(year)
                 if weekend.weekday() == 5 or weekend.weekday() == 6)
 
-    # TODO: FK to HolidayCalendar
 
     def toDict(self):
         return {
